@@ -4,18 +4,8 @@
 # =============================================================================
 
 # =============================================================================
-# Reload Functions (Unified)
+# Local Reload Functions (Enhanced)
 # =============================================================================
-
-# Quick reload function
-reload() {
-    echo "🔄 Reloading ZSH configuration..."
-    # Clean up any existing timing files
-    rm -f "${TMPDIR:-/tmp}/zsh_startup_time_"*
-    # Disable timing check for this reload
-    export ZSH_DISABLE_STARTUP_CHECK=1
-    exec zsh
-}
 
 # Source reload function (for debugging)
 reload_source() {
@@ -51,9 +41,9 @@ reload_zshenv() {
 }
 
 # Aliases for reload functions
-alias r='reload'
+alias r='zsh_reload'
 alias rs='reload_source'
-alias rz='reload'
+alias rz='zsh_reload'
 alias rsenv='reload_zshenv'
 alias sz='source ~/.zshenv'
 

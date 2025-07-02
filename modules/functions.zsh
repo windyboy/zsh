@@ -4,6 +4,41 @@
 # =============================================================================
 
 # =============================================================================
+# CONFIGURATION MANAGEMENT
+# =============================================================================
+
+# Safe ZSH reload function
+zsh_reload() {
+    echo "🔄 Reloading ZSH configuration..."
+    
+    # Temporarily disable error handling
+    local old_error_trap=$(trap -p ERR 2>/dev/null || echo "")
+    trap - ERR
+    
+    # Clear any existing error state
+    unset ZSH_ERROR_TRAP_SET
+    
+    # Reload configuration
+    if source ~/.zshrc 2>/dev/null; then
+        echo "✅ Configuration reloaded successfully"
+    else
+        echo "❌ Configuration reload failed"
+        # Restore error trap if it existed
+        if [[ -n "$old_error_trap" ]]; then
+            eval "$old_error_trap"
+        fi
+        return 1
+    fi
+    
+    # Restore error trap if it existed
+    if [[ -n "$old_error_trap" ]]; then
+        eval "$old_error_trap"
+    fi
+    
+    return 0
+}
+
+# =============================================================================
 # DIRECTORY OPERATIONS - 目录操作
 # =============================================================================
 
@@ -566,5 +601,223 @@ function findduplicates() {
         # 简单的重复文件检测
         find "$dir" -type f -exec md5sum {} \; 2>/dev/null | \
         sort | uniq -w32 -dD
+    fi
+}
+
+# =============================================================================
+# ZSH CONFIGURATION MANAGEMENT - ZSH配置管理
+# =============================================================================
+
+# Reload zsh configuration
+function zsh_reload() {
+    echo "🔄 Reloading ZSH configuration..."
+    
+    # Start timing
+    local start_time=$EPOCHREALTIME
+    
+    # Source the main configuration
+    if [[ -f "$HOME/.config/zsh/zshrc" ]]; then
+        source "$HOME/.config/zsh/zshrc"
+        local end_time=$EPOCHREALTIME
+        local reload_time
+        if command -v bc >/dev/null 2>&1; then
+            reload_time=$(printf "%.3f" $(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "0"))
+        else
+            reload_time=$(printf "%.3f" $((end_time - start_time)))
+        fi
+        echo "✅ ZSH configuration reloaded in ${reload_time}s"
+    else
+        echo "❌ ZSH configuration file not found: $HOME/.config/zsh/zshrc"
+        return 1
+    fi
+}
+
+# Validate zsh configuration
+function validate_zsh_config() {
+    echo "🔍 Validating ZSH configuration..."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    local errors=0
+    local warnings=0
+    
+    # Check main configuration files
+    local config_files=(
+        "$HOME/.config/zsh/zshrc"
+        "$HOME/.config/zsh/zshenv"
+        "$HOME/.config/zsh/modules/core.zsh"
+        "$HOME/.config/zsh/modules/performance.zsh"
+        "$HOME/.config/zsh/modules/plugins.zsh"
+        "$HOME/.config/zsh/modules/completion.zsh"
+        "$HOME/.config/zsh/modules/functions.zsh"
+        "$HOME/.config/zsh/modules/aliases.zsh"
+        "$HOME/.config/zsh/modules/keybindings.zsh"
+        "$HOME/.config/zsh/themes/prompt.zsh"
+    )
+    
+    for file in "${config_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            echo "✅ $file"
+        else
+            echo "❌ $file (missing)"
+            ((errors++))
+        fi
+    done
+    
+    # Check directories
+    local dirs=(
+        "$HOME/.config/zsh"
+        "$HOME/.cache/zsh"
+        "$HOME/.local/share/zsh"
+    )
+    
+    for dir in "${dirs[@]}"; do
+        if [[ -d "$dir" ]]; then
+            echo "✅ $dir"
+        else
+            echo "⚠️  $dir (missing)"
+            ((warnings++))
+        fi
+    done
+    
+    # Check required commands
+    local commands=("zsh" "git" "bc")
+    for cmd in "${commands[@]}"; do
+        if command -v "$cmd" >/dev/null 2>&1; then
+            echo "✅ $cmd available"
+        else
+            echo "⚠️  $cmd not found"
+            ((warnings++))
+        fi
+    done
+    
+    # Check zsh options
+    local required_options=("EXTENDED_HISTORY" "SHARE_HISTORY" "AUTO_CD" "EXTENDED_GLOB")
+    for opt in "${required_options[@]}"; do
+        if [[ -o "$opt" ]]; then
+            echo "✅ Option $opt is set"
+        else
+            echo "❌ Option $opt is not set"
+            ((errors++))
+        fi
+    done
+    
+    echo
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    if (( errors == 0 && warnings == 0 )); then
+        echo "✅ Configuration validation passed"
+        return 0
+    elif (( errors == 0 )); then
+        echo "⚠️  Configuration validation passed with $warnings warnings"
+        return 0
+    else
+        echo "❌ Configuration validation failed with $errors errors and $warnings warnings"
+        return 1
+    fi
+}
+
+# Performance analysis
+function zsh_performance() {
+    echo "🚀 ZSH Performance Analysis"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    # Check if performance functions are available
+    if (( ${+functions[diagnose_performance]} )); then
+        diagnose_performance
+    else
+        echo "⚠️  Performance diagnosis functions not available"
+    fi
+    
+    # Check if quick test is available
+    if (( ${+functions[quick_test]} )); then
+        echo
+        quick_test
+    else
+        echo "⚠️  Quick test function not available"
+    fi
+    
+    # Manual performance check
+    echo
+    echo "📊 Manual Performance Check:"
+    echo "PATH entries: $(echo "$PATH" | tr ':' '\n' | wc -l | tr -d ' ')"
+    echo "Functions: $(declare -F | wc -l | tr -d ' ')"
+    echo "Aliases: $(alias | wc -l | tr -d ' ')"
+    echo "History size: $HISTSIZE"
+    echo "History file: $HISTFILE"
+}
+
+# Backup zsh configuration
+function zsh_backup() {
+    echo "💾 Creating ZSH configuration backup..."
+    
+    local backup_dir="$HOME/.config/zsh/backup"
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local backup_path="$backup_dir/${timestamp}"
+    
+    # Create backup directory
+    mkdir -p "$backup_path"
+    
+    # Backup main configuration files
+    local files_to_backup=(
+        "$HOME/.config/zsh/zshrc"
+        "$HOME/.config/zsh/zshenv"
+        "$HOME/.config/zsh/modules"
+        "$HOME/.config/zsh/themes"
+        "$HOME/.config/zsh/completions"
+    )
+    
+    local backed_up=0
+    for item in "${files_to_backup[@]}"; do
+        if [[ -e "$item" ]]; then
+            if [[ -d "$item" ]]; then
+                cp -r "$item" "$backup_path/"
+            else
+                cp "$item" "$backup_path/"
+            fi
+            echo "✅ Backed up: $(basename "$item")"
+            ((backed_up++))
+        else
+            echo "⚠️  Skipped: $(basename "$item") (not found)"
+        fi
+    done
+    
+    # Create backup info file
+    cat > "$backup_path/backup_info.txt" << EOF
+ZSH Configuration Backup
+Created: $(date)
+ZSH Version: $ZSH_VERSION
+User: $(whoami)
+Host: $(hostname)
+Files backed up: $backed_up
+EOF
+    
+    echo
+    echo "✅ Backup completed: $backup_path"
+    echo "📁 Backup contains $backed_up items"
+    echo "📄 Backup info: $backup_path/backup_info.txt"
+}
+
+# History statistics
+function history_stats() {
+    echo "📊 History Statistics"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    if [[ -f "$HISTFILE" ]]; then
+        local total_commands=$(wc -l < "$HISTFILE" 2>/dev/null || echo "0")
+        local unique_commands=$(sort "$HISTFILE" | uniq | wc -l 2>/dev/null || echo "0")
+        local file_size=$(du -h "$HISTFILE" 2>/dev/null | cut -f1 || echo "unknown")
+        
+        echo "Total commands: $total_commands"
+        echo "Unique commands: $unique_commands"
+        echo "History file size: $file_size"
+        echo "History file: $HISTFILE"
+        
+        echo
+        echo "🔝 Most used commands:"
+        cut -d';' -f2- "$HISTFILE" 2>/dev/null | \
+        sed 's/^[[:space:]]*//' | \
+        cut -d' ' -f1 | \
+        sort | uniq -c | sort -nr | head -10
+    else
+        echo "❌ History file not found: $HISTFILE"
     fi
 }

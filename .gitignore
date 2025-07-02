@@ -69,7 +69,25 @@ modules/*~
 
 # Scripts that might be generated
 install.sh
-deploy.sh 
+deploy.sh
+maintenance.sh
+
+# Test files
+tests/test_results/
+tests/*.log
+
+# Performance metrics
+cache/metrics.json
+cache/performance.log
+
+# Error logs
+cache/error.log
+
+# Maintenance reports
+cache/maintenance_report_*.txt
+
+# Backup files
+data/backups/ 
 
 # Zsh completion cache
 .zcompdump

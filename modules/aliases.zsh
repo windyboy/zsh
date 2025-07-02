@@ -3,12 +3,20 @@
 # ZSH Aliases - Enhanced (基于您现有的配置)
 # =============================================================================
 
-# ===== 配置管理别名 (新增) =====
-alias zsh-check='validate_zsh_config'
+# ===== Configuration Management Aliases =====
+alias zsh-check='validate_configuration'
 alias zsh-reload='zsh_reload'
-alias zsh-perf='zsh_performance'
-alias zsh-backup='zsh_backup'
+alias reload='zsh_reload'
+alias zsh-perf='zsh_perf_analyze'
+alias zsh-perf-dash='zsh_perf_dashboard'
+alias zsh-perf-opt='optimize_zsh_performance'
 alias zsh-prof='ZSH_PROF=1 exec zsh'
+alias zsh-debug='ZSH_DEBUG=1 exec zsh'
+alias zsh-test='run_zsh_tests'
+alias zsh-test-quick='quick_test'
+alias zsh-errors='report_errors'
+alias zsh-errors-clear='clear_error_log'
+alias zsh-recovery='enter_recovery_mode'
 
 # ===== 历史管理别名 (新增) =====
 alias h='history'
