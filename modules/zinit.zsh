@@ -1,61 +1,31 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Zinit Configuration - Fixed Module Loading
+# Zinit Configuration - Modern Setup
 # =============================================================================
 
 # Only load zinit if it's not already loaded
 if [[ -z "$ZINIT" ]]; then
-    # Set up zinit installation directory
-    export ZINIT_HOME="${HOME}/.local/share/zinit"
+    # Modern zinit configuration using hash array
+    declare -A ZINIT
+    
+    # Set custom paths (optional - zinit will use defaults if not set)
+    ZINIT[HOME_DIR]="${HOME}/.local/share/zinit"
+    ZINIT[BIN_DIR]="${HOME}/.local/share/zinit/zinit.git"
     
     # Install zinit if not present
-    if [[ ! -f "$ZINIT_HOME/zinit.git/zinit.zsh" ]]; then
+    if [[ ! -f "${ZINIT[BIN_DIR]}/zinit.zsh" ]]; then
         echo "📦 Installing zinit..."
-        mkdir -p "$ZINIT_HOME"
-        git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME/zinit.git"
+        mkdir -p "${ZINIT[HOME_DIR]}"
+        git clone https://github.com/zdharma-continuum/zinit.git "${ZINIT[BIN_DIR]}"
     fi
     
     # Load zinit
-source "$ZINIT_HOME/zinit.git/zinit.zsh"
-
-# Fix module loading path - ensure zsh modules are loaded from system path
-# This prevents zinit from looking in the wrong directory
-if [[ -z "$ZSH_MODULE_PATH" ]]; then
-    # Set the correct module path for zsh modules on Linux
-    export ZSH_MODULE_PATH="/usr/lib64/zsh/5.9"
-    # Alternative paths for different systems
-    [[ ! -d "$ZSH_MODULE_PATH" ]] && export ZSH_MODULE_PATH="/usr/lib/zsh/5.9"
-    [[ ! -d "$ZSH_MODULE_PATH" ]] && export ZSH_MODULE_PATH="/usr/lib/zsh"
-    [[ ! -d "$ZSH_MODULE_PATH" ]] && export ZSH_MODULE_PATH="/usr/local/lib/zsh"
-    [[ ! -d "$ZSH_MODULE_PATH" ]] && export ZSH_MODULE_PATH="/opt/homebrew/lib/zsh"
-fi
-
-# Set the module path for zsh to find modules correctly
-export ZMODULE_PATH="$ZSH_MODULE_PATH/zsh"
-# Ensure the system module path is included so plugins like
-# fast-syntax-highlighting can load modules such as zsh/termcap
-# without specifying the directory explicitly.
-if [[ -d "$ZMODULE_PATH" ]]; then
-    [[ "${module_path:-}" != *"$ZMODULE_PATH"* ]] && module_path=("$ZMODULE_PATH" $module_path)
-fi
+    source "${ZINIT[BIN_DIR]}/zinit.zsh"
 fi
 
 # =============================================================================
 # Essential Plugins
 # =============================================================================
-
-# Ensure zsh modules are loaded from the correct system path
-# This is critical to prevent the "Not a directory" errors
-if [[ -n "$ZSH_MODULE_PATH" ]]; then
-    # Pre-load essential zsh modules from system path
-    # Use the full path to the module directory
-    zmodload -d "$ZMODULE_PATH" zsh/termcap 2>/dev/null || true
-    zmodload -d "$ZMODULE_PATH" zsh/terminfo 2>/dev/null || true
-    zmodload -d "$ZMODULE_PATH" zsh/mapfile 2>/dev/null || true
-    zmodload -d "$ZMODULE_PATH" zsh/stat 2>/dev/null || true
-    zmodload -d "$ZMODULE_PATH" zsh/complete 2>/dev/null || true
-    zmodload -d "$ZMODULE_PATH" zsh/computil 2>/dev/null || true
-fi
 
 # Syntax highlighting (must be loaded last)
 zinit light zdharma-continuum/fast-syntax-highlighting
@@ -99,7 +69,7 @@ check_zinit_plugins() {
         local name="${plugin%%:*}"
         local desc="${plugin##*:}"
         
-        if [[ -d "$ZINIT_HOME/plugins" ]] && ls "$ZINIT_HOME/plugins" | grep -q "$name"; then
+        if [[ -d "${ZINIT[HOME_DIR]}/plugins" ]] && ls "${ZINIT[HOME_DIR]}/plugins" | grep -q "$name"; then
             echo "✅ $desc"
         else
             echo "❌ $desc (not installed)"
@@ -107,22 +77,21 @@ check_zinit_plugins() {
     done
 }
 
-# Function to debug zsh module loading
-debug_zsh_modules() {
-    echo "🔍 ZSH Module Debug Info:"
-    echo "========================="
-    echo "ZSH_MODULE_PATH: $ZSH_MODULE_PATH"
-    echo "ZMODULE_PATH: $ZMODULE_PATH"
-    echo "Available modules in $ZMODULE_PATH:"
-    if [[ -d "$ZMODULE_PATH" ]]; then
-        ls -la "$ZMODULE_PATH" | grep "\.so$" | head -10
+# Function to debug zinit configuration
+debug_zinit_config() {
+    echo "🔍 Zinit Configuration Debug Info:"
+    echo "=================================="
+    echo "ZINIT[HOME_DIR]: ${ZINIT[HOME_DIR]}"
+    echo "ZINIT[BIN_DIR]: ${ZINIT[BIN_DIR]}"
+    echo "ZPFX: $ZPFX"
+    echo ""
+    echo "Available plugins in ${ZINIT[HOME_DIR]}/plugins:"
+    if [[ -d "${ZINIT[HOME_DIR]}/plugins" ]]; then
+        ls -la "${ZINIT[HOME_DIR]}/plugins" | head -10
     else
-        echo "❌ Module directory not found: $ZMODULE_PATH"
+        echo "❌ Plugins directory not found"
     fi
-    
-    echo "Loaded modules:"
-    zmodload | grep -E "(termcap|terminfo|mapfile|stat|complete|computil)" || echo "No relevant modules loaded"
 }
 
-# Export functions
-export -f check_zinit_plugins debug_zsh_modules 2>/dev/null || true 
+# Make functions available (zsh-compatible way)
+autoload -Uz check_zinit_plugins debug_zinit_config 
