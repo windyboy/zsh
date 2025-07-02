@@ -72,4 +72,4 @@ install.sh
 deploy.sh 
 
 # Zsh completion cache
-.zcompdump*
+.zcompdump

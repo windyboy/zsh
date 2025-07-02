@@ -70,7 +70,13 @@ export SAVEHIST=50000
 
 # ===== 性能监控结束 =====
 ZSHRC_LOAD_END=$EPOCHREALTIME
-LOAD_TIME=$(printf "%.3f" $((ZSHRC_LOAD_END - ZSHRC_LOAD_START)))
+# Fix: Use bc for proper floating-point arithmetic with error handling
+if command -v bc >/dev/null 2>&1; then
+    LOAD_TIME=$(printf "%.3f" $(echo "$ZSHRC_LOAD_END - $ZSHRC_LOAD_START" | bc -l 2>/dev/null || echo "0"))
+else
+    # Fallback to integer arithmetic if bc is not available
+    LOAD_TIME=$(printf "%.3f" $((ZSHRC_LOAD_END - ZSHRC_LOAD_START)))
+fi
 
 # Performance monitoring output (enhanced)
 if [[ -n "$ZSH_PROF" ]]; then
@@ -78,7 +84,7 @@ if [[ -n "$ZSH_PROF" ]]; then
     zprof
 fi
 
-# Startup time warning
+# Startup time warning (with proper floating-point comparison)
 if (( $(echo "$LOAD_TIME > 0.5" | bc -l) )); then
     echo "⚠️  Zsh startup time: ${LOAD_TIME}s (consider optimization)"
 elif [[ -z "$ZSH_QUIET" ]]; then

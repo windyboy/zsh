@@ -28,7 +28,14 @@ check_startup_time() {
         start_time=$(cat "$time_file" 2>/dev/null)
         if [[ -n "$start_time" ]]; then
             local current_time=$EPOCHREALTIME
-            local duration=$(printf "%.3f" $((current_time - start_time)))
+            # Fix: Use bc for proper floating-point arithmetic with error handling
+            local duration
+            if command -v bc >/dev/null 2>&1; then
+                duration=$(printf "%.3f" $(echo "$current_time - $start_time" | bc -l 2>/dev/null || echo "0"))
+            else
+                # Fallback to integer arithmetic if bc is not available
+                duration=$(printf "%.3f" $((current_time - start_time)))
+            fi
             
             # 删除临时文件
             rm -f "$time_file" 2>/dev/null
