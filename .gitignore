@@ -2,7 +2,7 @@
 
 # Cache files
 cache/
-*.zwc
+**/*.zwc
 *.zwc.old
 
 # Backup files
@@ -98,5 +98,3 @@ data/backups/
 # Zsh completion cache
 .zcompdump
 
-# Zsh completion cache
-*.zwc
