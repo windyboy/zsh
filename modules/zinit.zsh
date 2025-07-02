@@ -16,12 +16,33 @@ if [[ -z "$ZINIT" ]]; then
     fi
     
     # Load zinit
-    source "$ZINIT_HOME/zinit.git/zinit.zsh"
+source "$ZINIT_HOME/zinit.git/zinit.zsh"
+
+# Fix module loading path - ensure zsh modules are loaded from system path
+# This prevents zinit from looking in the wrong directory
+if [[ -z "$ZSH_MODULE_PATH" ]]; then
+    # Set the correct module path for zsh modules on macOS
+    export ZSH_MODULE_PATH="/usr/lib/zsh/5.9"
+    # Alternative paths for different systems
+    [[ ! -d "$ZSH_MODULE_PATH" ]] && export ZSH_MODULE_PATH="/usr/lib/zsh"
+    [[ ! -d "$ZSH_MODULE_PATH" ]] && export ZSH_MODULE_PATH="/usr/local/lib/zsh"
+    [[ ! -d "$ZSH_MODULE_PATH" ]] && export ZSH_MODULE_PATH="/opt/homebrew/lib/zsh"
+fi
 fi
 
 # =============================================================================
 # Essential Plugins
 # =============================================================================
+
+# Ensure zsh modules are loaded from the correct system path
+# This is critical to prevent the "Not a directory" errors
+if [[ -n "$ZSH_MODULE_PATH" ]]; then
+    # Pre-load essential zsh modules from system path
+    zmodload -d "$ZSH_MODULE_PATH" zsh/termcap 2>/dev/null || true
+    zmodload -d "$ZSH_MODULE_PATH" zsh/terminfo 2>/dev/null || true
+    zmodload -d "$ZSH_MODULE_PATH" zsh/mapfile 2>/dev/null || true
+    zmodload -d "$ZSH_MODULE_PATH" zsh/stat 2>/dev/null || true
+fi
 
 # Syntax highlighting (must be loaded last)
 zinit light zdharma-continuum/fast-syntax-highlighting
