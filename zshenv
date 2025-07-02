@@ -15,8 +15,8 @@ export ZSH_DATA_DIR="${XDG_DATA_HOME}/zsh"
 
 # History configuration
 export HISTFILE="${ZSH_DATA_DIR}/history"
-export HISTSIZE=100000
-export SAVEHIST=1000000
+export HISTSIZE=50000
+export SAVEHIST=50000
 
 # Application paths
 export BUN_INSTALL="$HOME/.bun"

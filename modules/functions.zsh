@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# ZSH Functions Module - 实用函数集合
+# ZSH Functions Module - Utility Functions Collection
 # =============================================================================
 
 # =============================================================================
@@ -39,10 +39,10 @@ zsh_reload() {
 }
 
 # =============================================================================
-# DIRECTORY OPERATIONS - 目录操作
+# DIRECTORY OPERATIONS
 # =============================================================================
 
-# 创建目录并进入
+# Create directory and enter it
 function mkcd() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: mkcd <directory>"
@@ -52,7 +52,7 @@ function mkcd() {
     mkdir -p "$1" && cd "$1"
 }
 
-# 返回上级目录的快捷方式
+# Quick way to go up directories
 function up() {
     local levels=${1:-1}
     local path=""
@@ -64,7 +64,7 @@ function up() {
     cd "$path"
 }
 
-# 显示目录大小
+# Show directory size
 function dirsize() {
     local target="${1:-.}"
     if [[ -d "$target" ]]; then
@@ -75,7 +75,7 @@ function dirsize() {
     fi
 }
 
-# 查找大文件
+# Find large files
 function findlarge() {
     local size="${1:-100M}"
     local path="${2:-.}"
@@ -86,10 +86,10 @@ function findlarge() {
 }
 
 # =============================================================================
-# FILE OPERATIONS - 文件操作
+# FILE OPERATIONS
 # =============================================================================
 
-# 安全删除（移动到回收站）
+# Safe delete (move to trash)
 function trash() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: trash <file1> [file2] ..."
@@ -111,7 +111,7 @@ function trash() {
     done
 }
 
-# 创建备份文件
+# Create backup file
 function backup() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: backup <file>"
@@ -129,7 +129,7 @@ function backup() {
     done
 }
 
-# 提取各种压缩文件
+# Extract various compressed files
 function extract() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: extract <file>"
@@ -159,10 +159,10 @@ function extract() {
 }
 
 # =============================================================================
-# NETWORK OPERATIONS - 网络操作
+# NETWORK OPERATIONS
 # =============================================================================
 
-# 启动简单HTTP服务器
+# Start simple HTTP server
 function serve() {
     local port="${1:-8000}"
     local directory="${2:-.}"
@@ -193,12 +193,12 @@ function serve() {
     fi
 }
 
-# 获取外部IP地址
+# Get external IP address
 function myip() {
     echo "Getting external IP address..."
     local ip
     
-    # 尝试多个服务
+    # Try multiple services
     for service in "ifconfig.me" "ipinfo.io/ip" "icanhazip.com"; do
         if ip=$(curl -s --connect-timeout 5 "$service" 2>/dev/null); then
             if [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -212,7 +212,7 @@ function myip() {
     return 1
 }
 
-# 端口扫描
+# Port scanning
 function portscan() {
     local host="${1:-localhost}"
     local start_port="${2:-1}"
@@ -228,10 +228,10 @@ function portscan() {
 }
 
 # =============================================================================
-# SYSTEM INFORMATION - 系统信息
+# SYSTEM INFORMATION
 # =============================================================================
 
-# 系统信息概览
+# System information overview
 function sysinfo() {
     echo "🖥️  System Information"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -257,7 +257,7 @@ function sysinfo() {
     echo "Disk usage: $(df -h . | tail -1 | awk '{print $3 " used / " $2 " total (" $5 " used)"}')"
 }
 
-# 进程监控
+# Process monitoring
 function psgrep() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: psgrep <pattern>"
@@ -267,7 +267,7 @@ function psgrep() {
     ps aux | grep -i "$1" | grep -v grep
 }
 
-# 查找占用端口的进程
+# Find process using port
 function whoisport() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: whoisport <port>"
@@ -291,10 +291,10 @@ function whoisport() {
 }
 
 # =============================================================================
-# DEVELOPMENT TOOLS - 开发工具
+# DEVELOPMENT TOOLS
 # =============================================================================
 
-# Git相关快捷函数
+# Git-related shortcut functions
 function gitlog() {
     git log --oneline --graph --decorate --all -n "${1:-10}"
 }
@@ -309,7 +309,7 @@ function gitclean() {
     git gc --prune=now
 }
 
-# 代码行数统计
+# Code line count statistics
 function countlines() {
     local dir="${1:-.}"
     local pattern="${2:-*}"
@@ -318,7 +318,7 @@ function countlines() {
     find "$dir" -name "$pattern" -type f -exec wc -l {} + | sort -n
 }
 
-# 查找代码中的TODO/FIXME
+# Find TODO/FIXME in code
 function todos() {
     local dir="${1:-.}"
     echo "Searching for TODOs and FIXMEs in $dir..."
@@ -326,10 +326,10 @@ function todos() {
 }
 
 # =============================================================================
-# TEXT PROCESSING - 文本处理
+# TEXT PROCESSING
 # =============================================================================
 
-# 文本搜索和替换
+# Text search and replace
 function findreplace() {
     if [[ $# -lt 2 ]]; then
         echo "Usage: findreplace <search> <replace> [directory]"
@@ -347,13 +347,13 @@ function findreplace() {
     done
 }
 
-# 重复行检测
+# Duplicate line detection
 function finddupes() {
     local file="${1:-/dev/stdin}"
     sort "$file" | uniq -d
 }
 
-# 文件编码转换
+# File encoding conversion
 function convert_encoding() {
     if [[ $# -lt 3 ]]; then
         echo "Usage: convert_encoding <file> <from_encoding> <to_encoding>"
@@ -379,10 +379,10 @@ function convert_encoding() {
 }
 
 # =============================================================================
-# UTILITIES - 实用工具
+# UTILITIES
 # =============================================================================
 
-# 生成随机密码
+# Generate random password
 function genpass() {
     local length="${1:-16}"
     local include_symbols="${2:-yes}"
@@ -408,7 +408,7 @@ function genpass() {
     fi
 }
 
-# 计算器
+# Calculator
 function calc() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: calc <expression>"
@@ -423,7 +423,7 @@ function calc() {
     fi
 }
 
-# 颜色测试
+# Color test
 function colortest() {
     echo "Color test:"
     for i in {0..255}; do
@@ -435,7 +435,7 @@ function colortest() {
     echo
 }
 
-# 天气查询
+# Weather query
 function weather() {
     local city="${1:-}"
     if [[ -n "$city" ]]; then
@@ -445,7 +445,7 @@ function weather() {
     fi
 }
 
-# QR码生成
+# QR code generation
 function qr() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: qr <text>"
@@ -456,12 +456,12 @@ function qr() {
     if command -v qrencode >/dev/null; then
         qrencode -t ansiutf8 "$text"
     else
-        # 使用在线服务
+        # Use online service
         curl -s "qrenco.de/$text"
     fi
 }
 
-# Base64 编码/解码
+# Base64 encoding/decoding
 function b64encode() {
     if [[ $# -eq 0 ]]; then
         base64
@@ -478,7 +478,7 @@ function b64decode() {
     fi
 }
 
-# URL 编码/解码
+# URL encoding/decoding
 function urlencode() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: urlencode <text>"
@@ -502,7 +502,7 @@ function urlencode() {
     echo "$encoded"
 }
 
-# 文件监控
+# File monitoring
 function watchfile() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: watchfile <file> [command]"
@@ -538,14 +538,14 @@ function watchfile() {
 }
 
 # =============================================================================
-# CLEANUP AND MAINTENANCE - 清理和维护
+# CLEANUP AND MAINTENANCE
 # =============================================================================
 
-# 清理临时文件
+# Clean temporary files
 function cleanup() {
     echo "Cleaning up temporary files..."
     
-    # 清理常见的临时文件
+    # Clean common temporary files
     local temp_patterns=(
         "*.tmp"
         "*.temp"
@@ -577,7 +577,7 @@ function cleanup() {
     echo "Cleaned $cleaned temporary files"
 }
 
-# 磁盘使用分析
+# Disk usage analysis
 function diskusage() {
     local dir="${1:-.}"
     echo "Disk usage analysis for: $dir"
@@ -590,7 +590,7 @@ function diskusage() {
     fi
 }
 
-# 重复文件查找
+# Duplicate file finder
 function findduplicates() {
     local dir="${1:-.}"
     echo "Finding duplicate files in: $dir"
@@ -598,14 +598,14 @@ function findduplicates() {
     if command -v fdupes >/dev/null; then
         fdupes -r "$dir"
     else
-        # 简单的重复文件检测
+        # Simple duplicate file detection
         find "$dir" -type f -exec md5sum {} \; 2>/dev/null | \
         sort | uniq -w32 -dD
     fi
 }
 
 # =============================================================================
-# ZSH CONFIGURATION MANAGEMENT - ZSH配置管理
+# ZSH CONFIGURATION MANAGEMENT
 # =============================================================================
 
 # Reload zsh configuration
@@ -823,7 +823,7 @@ function history_stats() {
 }
 
 # =============================================================================
-# TESTING FRAMEWORK - 测试框架
+# TESTING FRAMEWORK
 # =============================================================================
 
 # Test runner function

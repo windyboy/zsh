@@ -1,4 +1,7 @@
+#!/usr/bin/env zsh
+# =============================================================================
 # ZSH Performance Optimization Module - Enhanced Version
+# =============================================================================
 
 # Performance monitoring configuration
 PERF_LOG="${ZSH_CACHE_DIR}/performance.log"

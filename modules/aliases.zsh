@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# ZSH Aliases - Enhanced (基于您现有的配置)
+# ZSH Aliases - Enhanced
 # =============================================================================
 
 # ===== Configuration Management Aliases =====
@@ -24,13 +24,13 @@ alias check-suspicious='check_suspicious_files'
 alias secure-delete='secure_rm'
 alias validate-security='validate_security_config'
 
-# ===== 历史管理别名 (新增) =====
+# ===== History Management Aliases (New) =====
 alias h='history'
 alias hg='history | grep'
 alias hist-stats='history_stats'
 alias hist-clean='echo "⚠️  This will clear all history. Type: history -c && > \$HISTFILE"'
 
-# ===== 您现有的别名配置 =====
+# ===== Your Existing Alias Configuration =====
 # Enhanced ls with eza (if available)
 if command -v eza >/dev/null 2>&1; then
     alias ls='eza --color=always --group-directories-first'
@@ -65,7 +65,7 @@ alias mv='mv -i'
 alias rm='rm -i'
 alias ln='ln -i'
 
-# 强制操作别名 (新增)
+# Force operation aliases (New)
 alias rmf='rm -f'
 alias cpf='cp -f'
 alias mvf='mv -f'
@@ -91,7 +91,7 @@ alias ports='netstat -tulanp'
 alias wget='wget -c'
 
 # =============================================================================
-# DEVELOPMENT TOOLS (保留您的所有配置)
+# DEVELOPMENT TOOLS (Preserving All Your Configuration)
 # =============================================================================
 
 # Git aliases
@@ -198,7 +198,7 @@ alias nowdate='date +"%d-%m-%Y"'
 
 # Extract archives
 alias extract='_extract'
-alias fe='find_and_edit'  # 查找并编辑文件
+alias fe='find_and_edit'  # Find and edit file
 
 # Find files
 alias ff='find . -type f -name'
@@ -230,7 +230,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 fi
 
 # =============================================================================
-# GLOBAL ALIASES (保留您的配置)
+# GLOBAL ALIASES (Preserving Your Configuration)
 # =============================================================================
 
 # Global aliases for common patterns
@@ -275,7 +275,7 @@ alias -g XG='| xargs egrep'
 alias -g X='| xargs'
 
 # =============================================================================
-# SUFFIX ALIASES (保留您的配置)
+# SUFFIX ALIASES (Preserving Your Configuration)
 # =============================================================================
 
 # Auto-open files by extension

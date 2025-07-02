@@ -1,17 +1,20 @@
-# Add deno completions to search path
-if [[ ":$FPATH:" != *":${HOME}/.config/zsh/completions:"* ]]; then export FPATH="${HOME}/.config/zsh/completions:$FPATH"; fi
 #!/usr/bin/env zsh
 # =============================================================================
 # ZSH Configuration - Modular Architecture
 # Version: 2.2 - Performance Enhanced
 # =============================================================================
 
+# Add deno completions to search path
+if [[ ":$FPATH:" != *":${HOME}/.config/zsh/completions:"* ]]; then 
+    export FPATH="${HOME}/.config/zsh/completions:$FPATH"
+fi
+
 # Initialize startup time tracking (for new shell starts only)
 if [[ -z "$ZSH_STARTUP_TIME_BEGIN" ]]; then
     export ZSH_STARTUP_TIME_BEGIN=$EPOCHREALTIME
 fi
 
-# ===== 性能监控开始 =====
+# ===== Performance Monitoring Start =====
 zmodload zsh/zprof
 ZSHRC_LOAD_START=$EPOCHREALTIME
 
@@ -102,7 +105,7 @@ fi
 # Final Setup & Performance Monitoring
 # =============================================================================
 
-# ===== 性能监控结束 =====
+# ===== Performance Monitoring End =====
 ZSHRC_LOAD_END=$EPOCHREALTIME
 
 # Calculate timing (only show for new shell starts, not reloads)
