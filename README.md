@@ -7,8 +7,9 @@ A professional-grade, modular ZSH configuration system with Oh My Posh integrati
 - **Modular Architecture**: Clean separation of concerns with dedicated modules
 - **Performance Optimized**: Sub-second startup times with intelligent caching
 - **Error Handling**: Comprehensive error recovery and logging
-- **Testing Framework**: Built-in testing and validation
-- **Plugin Management**: Zinit-based plugin system with lazy loading
+- **Testing Framework**: Built-in testing, validation, and scoring
+- **Plugin Management**: Manual plugin system (no Zinit required)
+- **Security Module**: Hardened shell with best practices
 - **Oh My Posh Integration**: Beautiful, informative prompts
 - **XDG Compliance**: Proper file organization following standards
 
@@ -20,13 +21,14 @@ A professional-grade, modular ZSH configuration system with Oh My Posh integrati
 ├── zshenv                # Environment variables
 ├── modules/              # Modular configuration
 │   ├── core.zsh         # Core ZSH settings
-│   ├── plugins.zsh      # Plugin management
+│   ├── plugins.zsh      # Plugin management (manual)
 │   ├── completion.zsh   # Completion system
 │   ├── functions.zsh    # Custom functions
 │   ├── aliases.zsh      # Aliases
 │   ├── keybindings.zsh  # Key bindings
 │   ├── performance.zsh  # Performance monitoring
-│   └── error_handling.zsh # Error handling
+│   ├── error_handling.zsh # Error handling
+│   └── security.zsh     # Security hardening
 ├── themes/
 │   └── prompt.zsh       # Oh My Posh configuration
 ├── tests/
@@ -106,12 +108,22 @@ my_custom_function() {
 }
 ```
 
+## 🔒 Security Module (`modules/security.zsh`)
+
+This module enforces best security practices:
+- Prevents accidental file overwrites (`NO_CLOBBER`)
+- Confirms before `rm *` (`RM_STAR_WAIT`)
+- Secure SSH/SCP aliases
+- Security audit and suspicious file checks
+- Hardened umask and TMPDIR
+- Security validation and scoring
+
+Run `validate-security` or `security-audit` for checks.
+
 ## 🔧 Modules
 
 ### Core Module (`modules/core.zsh`)
-
 Essential ZSH settings and options:
-
 - History configuration
 - Directory navigation
 - Globbing options
@@ -119,32 +131,24 @@ Essential ZSH settings and options:
 - Global aliases
 
 ### Plugin Module (`modules/plugins.zsh`)
+**Manual plugin management**—no Zinit required:
+- FZF, Zoxide, Eza, zsh-autosuggestions, zsh-syntax-highlighting, etc.
+- Plugins are loaded if available on your system
+- Use `check_plugins` to see plugin status
 
-Plugin management using Zinit:
-
-- **FZF**: Fuzzy finder
-- **Fast Syntax Highlighting**: Syntax highlighting
-- **Zsh Autosuggestions**: Command suggestions
-- **Zsh Completions**: Additional completions
-- **FZF Tab**: FZF-powered completion
-- **Zeno**: Snippet manager
-- **Zoxide**: Smart directory navigation
-- **Eza**: Modern ls replacement
-- **Forgit**: Git workflow enhancement
+**To install plugins:**
+- Use your OS package manager (e.g., `brew install fzf zoxide eza zsh-autosuggestions zsh-syntax-highlighting`)
+- No lazy loading or Zinit required
 
 ### Completion Module (`modules/completion.zsh`)
-
 Advanced completion system with caching:
-
 - Intelligent cache management
 - Tool-specific completions
 - Custom completion styles
 - Async loading
 
 ### Functions Module (`modules/functions.zsh`)
-
 Comprehensive utility functions:
-
 - **Directory Operations**: `mkcd`, `up`, `dirsize`
 - **File Operations**: `trash`, `backup`, `extract`
 - **Network Operations**: `serve`, `myip`, `portscan`
@@ -152,43 +156,42 @@ Comprehensive utility functions:
 - **Development Tools**: `git_quick`, `docker_cleanup`
 
 ### Performance Module (`modules/performance.zsh`)
-
 Performance monitoring and optimization:
-
 - Startup time tracking
 - Function profiling
-- Performance metrics
+- Performance metrics and scoring
 - Optimization suggestions
 - Performance dashboard
 
 ### Error Handling Module (`modules/error_handling.zsh`)
-
 Robust error handling and recovery:
-
 - Error logging
 - Recovery strategies
 - Safe execution
 - Emergency recovery mode
 
-## 🧪 Testing
+## 🧪 Testing & Scoring
 
 ### Run Tests
 
 ```bash
 # Full test suite
-run_zsh_tests
+zsh-test
 
 # Quick test
-quick_test
+zsh-test-quick
 ```
 
 ### Test Categories
-
 - Core configuration validation
-- Plugin system verification
-- Completion system testing
+- Security configuration validation
+- Plugin/module loading
 - Performance analysis
 - Custom function validation
+
+### Scoring
+- The test suite now outputs a configuration score out of 10
+- Achieve 10/10 for a perfect, professional setup
 
 ## 📊 Performance
 
@@ -196,28 +199,25 @@ quick_test
 
 ```bash
 # Performance dashboard
-zsh_perf_dashboard
-
-# Detailed analysis
-zsh_perf_analyze
-
-# Quick check
-quick_perf_check
+zsh-perf
 ```
 
-### Optimization
+## 🛡️ Troubleshooting
 
-```bash
-# Optimize performance
-optimize_zsh_performance
-```
+- **Interactive Shell Required:** Some features (completion, keybindings) only work in an interactive ZSH shell. Always test by opening a new terminal and running `zsh`.
+- **Completion Errors:** If you see errors about `zsh/parameter` or `zsh/zle`, delete your completion cache:
+  ```sh
+  rm ~/.cache/zsh/zcompdump*
+  ```
+  Then restart your shell.
+- **Plugin Not Found:** Install missing plugins with your package manager (e.g., `brew install fzf zoxide eza zsh-autosuggestions zsh-syntax-highlighting`).
+- **Default Shell:** Ensure ZSH is your default shell: `chsh -s $(which zsh)`
 
-### Performance Targets
+## 🎖️ Final Notes
 
-- **Startup Time**: < 1 second
-- **Memory Usage**: < 50MB
-- **Function Count**: < 500
-- **PATH Entries**: < 20
+- This configuration is now fully modular, secure, and does not require Zinit or any plugin manager.
+- All modules are loaded and tracked for reliability and scoring.
+- Security and performance are first-class citizens.
 
 ## 🎨 Oh My Posh Integration
 
