@@ -32,6 +32,12 @@ fi
 
 # Set the module path for zsh to find modules correctly
 export ZMODULE_PATH="$ZSH_MODULE_PATH/zsh"
+# Ensure the system module path is included so plugins like
+# fast-syntax-highlighting can load modules such as zsh/termcap
+# without specifying the directory explicitly.
+if [[ -d "$ZMODULE_PATH" ]]; then
+    [[ "${module_path:-}" != *"$ZMODULE_PATH"* ]] && module_path=("$ZMODULE_PATH" $module_path)
+fi
 fi
 
 # =============================================================================
