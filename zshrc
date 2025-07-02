@@ -118,11 +118,16 @@ if [[ -n "$ZSH_STARTUP_TIME_BEGIN" && "$ZSH_STARTUP_TIME_BEGIN" != "$ZSHRC_LOAD_
         zprof
     fi
     
-    # Startup time warning (with proper floating-point comparison)
-    if (( $(echo "$FULL_STARTUP_TIME > 0.5" | bc -l) )); then
-        echo "⚠️  Zsh startup time: ${FULL_STARTUP_TIME}s (consider optimization)"
-    elif [[ -z "$ZSH_QUIET" ]]; then
-        echo "⚡ Zsh loaded in ${FULL_STARTUP_TIME}s"
+    # Use performance module's analysis function
+    if (( ${+functions[_analyze_startup_performance]} )); then
+        _analyze_startup_performance "$FULL_STARTUP_TIME"
+    else
+        # Fallback to simple timing display
+        if (( $(echo "$FULL_STARTUP_TIME > 0.5" | bc -l) )); then
+            echo "⚠️  Zsh startup time: ${FULL_STARTUP_TIME}s (consider optimization)"
+        elif [[ -z "$ZSH_QUIET" ]]; then
+            echo "⚡ Zsh loaded in ${FULL_STARTUP_TIME}s"
+        fi
     fi
     
     # Clear the startup time to prevent showing it again

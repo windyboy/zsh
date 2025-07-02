@@ -27,42 +27,7 @@ _setup_performance_tracking() {
     # ZSH_PERF_START is already set in init_performance_monitoring
 }
 
-# Enhanced startup time detection
-check_startup_time() {
-    # If disabled, return early
-    [[ -n "$ZSH_DISABLE_STARTUP_CHECK" ]] && return 0
-    
-    local time_file="${TMPDIR:-/tmp}/zsh_startup_time_$$"
-    
-    # New shell startup
-    if [[ ! -f "$time_file" ]]; then
-        echo "$EPOCHREALTIME" > "$time_file" 2>/dev/null
-        return 0
-    fi
-    
-    # Calculate startup time
-    local start_time
-    if [[ -f "$time_file" ]]; then
-        start_time=$(cat "$time_file" 2>/dev/null)
-        if [[ -n "$start_time" ]]; then
-            local current_time=$EPOCHREALTIME
-            local duration
-            if command -v bc >/dev/null 2>&1; then
-                duration=$(printf "%.3f" $(echo "$current_time - $start_time" | bc -l 2>/dev/null || echo "0"))
-            else
-                duration=$(printf "%.3f" $((current_time - start_time)))
-            fi
-            
-            # Clean up
-            rm -f "$time_file" 2>/dev/null
-            
-            # Performance analysis
-            _analyze_startup_performance "$duration"
-        fi
-    fi
-}
-
-# Analyze startup performance
+# Analyze startup performance (called from main zshrc)
 _analyze_startup_performance() {
     local duration="$1"
     
@@ -99,7 +64,8 @@ _log_performance_metrics() {
     local duration="$1"
     local level="$2"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
+    # Ensure the directory exists
+    mkdir -p "$(dirname "$PERF_LOG")"
     echo "[$timestamp] Startup: ${duration}s ($level)" >> "$PERF_LOG"
 }
 
