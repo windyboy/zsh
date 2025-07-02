@@ -5,32 +5,29 @@
 
 # Only load zinit if it's not already loaded
 if [[ -z "$ZINIT" ]]; then
-    # Modern zinit configuration using hash array
-    declare -A ZINIT
+    # Set zinit paths first
+    local ZINIT_HOME="${HOME}/.local/share/zinit"
+    local ZINIT_BIN="${HOME}/.local/share/zinit/zinit.git"
     
-    # Set custom paths (optional - zinit will use defaults if not set)
-    ZINIT[HOME_DIR]="${HOME}/.local/share/zinit"
-    ZINIT[BIN_DIR]="${HOME}/.local/share/zinit/zinit.git"
+    # Install or update zinit
+    if [[ ! -f "$ZINIT_BIN/zinit.zsh" ]]; then
+        echo "📦 Installing zinit..."
+        mkdir -p "$ZINIT_HOME"
+        git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_BIN"
+    else
+        # Update zinit to latest version
+        echo "🔄 Updating zinit..."
+        (cd "$ZINIT_BIN" && git pull origin main >/dev/null 2>&1)
+    fi
     
-    # Suppress zinit warnings and optimize performance
+    # Load zinit first
+    source "$ZINIT_BIN/zinit.zsh"
+    
+    # Now configure zinit after it's loaded
     ZINIT[MUTE_WARNINGS]=1
     ZINIT[OPTIMIZE_OUT_DISK_ACCESSES]=1
     ZINIT[COMPINIT_OPTS]="-C"
     ZINIT[NO_ALIASES]=1
-    
-    # Install or update zinit
-    if [[ ! -f "${ZINIT[BIN_DIR]}/zinit.zsh" ]]; then
-        echo "📦 Installing zinit..."
-        mkdir -p "${ZINIT[HOME_DIR]}"
-        git clone https://github.com/zdharma-continuum/zinit.git "${ZINIT[BIN_DIR]}"
-    else
-        # Update zinit to latest version
-        echo "🔄 Updating zinit..."
-        (cd "${ZINIT[BIN_DIR]}" && git pull origin main >/dev/null 2>&1)
-    fi
-    
-    # Load zinit
-    source "${ZINIT[BIN_DIR]}/zinit.zsh"
     
     # Initialize zinit properly
     autoload -Uz _zinit
