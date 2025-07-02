@@ -1,5 +1,5 @@
 # Add deno completions to search path
-if [[ ":$FPATH:" != *":/Users/windy/.config/zsh/completions:"* ]]; then export FPATH="/Users/windy/.config/zsh/completions:$FPATH"; fi
+if [[ ":$FPATH:" != *":${HOME}/.config/zsh/completions:"* ]]; then export FPATH="${HOME}/.config/zsh/completions:$FPATH"; fi
 #!/usr/bin/env zsh
 # =============================================================================
 # ZSH Configuration - Modular Architecture
@@ -150,4 +150,4 @@ if [[ -o interactive ]] && [[ -z "$ZSH_QUIET" ]]; then
 fi
 
 # bun completions
-[ -s "/Users/windy/.bun/_bun" ] && source "/Users/windy/.bun/_bun"
+[ -s "${HOME}/.bun/_bun" ] && source "${HOME}/.bun/_bun"
