@@ -69,8 +69,8 @@ load_module "security"
 # 4. Performance optimizations
 load_module "performance"
 
-# 5. Plugin management
-load_module "plugins"
+# 5. Plugin management (zinit-based)
+load_module "zinit"
 
 # 6. Completion system
 load_module "completion"
