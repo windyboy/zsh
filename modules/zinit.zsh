@@ -21,13 +21,17 @@ source "$ZINIT_HOME/zinit.git/zinit.zsh"
 # Fix module loading path - ensure zsh modules are loaded from system path
 # This prevents zinit from looking in the wrong directory
 if [[ -z "$ZSH_MODULE_PATH" ]]; then
-    # Set the correct module path for zsh modules on macOS
-    export ZSH_MODULE_PATH="/usr/lib/zsh/5.9"
+    # Set the correct module path for zsh modules on Linux
+    export ZSH_MODULE_PATH="/usr/lib64/zsh/5.9"
     # Alternative paths for different systems
+    [[ ! -d "$ZSH_MODULE_PATH" ]] && export ZSH_MODULE_PATH="/usr/lib/zsh/5.9"
     [[ ! -d "$ZSH_MODULE_PATH" ]] && export ZSH_MODULE_PATH="/usr/lib/zsh"
     [[ ! -d "$ZSH_MODULE_PATH" ]] && export ZSH_MODULE_PATH="/usr/local/lib/zsh"
     [[ ! -d "$ZSH_MODULE_PATH" ]] && export ZSH_MODULE_PATH="/opt/homebrew/lib/zsh"
 fi
+
+# Set the module path for zsh to find modules correctly
+export ZMODULE_PATH="$ZSH_MODULE_PATH/zsh"
 fi
 
 # =============================================================================
@@ -38,10 +42,13 @@ fi
 # This is critical to prevent the "Not a directory" errors
 if [[ -n "$ZSH_MODULE_PATH" ]]; then
     # Pre-load essential zsh modules from system path
-    zmodload -d "$ZSH_MODULE_PATH" zsh/termcap 2>/dev/null || true
-    zmodload -d "$ZSH_MODULE_PATH" zsh/terminfo 2>/dev/null || true
-    zmodload -d "$ZSH_MODULE_PATH" zsh/mapfile 2>/dev/null || true
-    zmodload -d "$ZSH_MODULE_PATH" zsh/stat 2>/dev/null || true
+    # Use the full path to the module directory
+    zmodload -d "$ZMODULE_PATH" zsh/termcap 2>/dev/null || true
+    zmodload -d "$ZMODULE_PATH" zsh/terminfo 2>/dev/null || true
+    zmodload -d "$ZMODULE_PATH" zsh/mapfile 2>/dev/null || true
+    zmodload -d "$ZMODULE_PATH" zsh/stat 2>/dev/null || true
+    zmodload -d "$ZMODULE_PATH" zsh/complete 2>/dev/null || true
+    zmodload -d "$ZMODULE_PATH" zsh/computil 2>/dev/null || true
 fi
 
 # Syntax highlighting (must be loaded last)
@@ -94,5 +101,22 @@ check_zinit_plugins() {
     done
 }
 
+# Function to debug zsh module loading
+debug_zsh_modules() {
+    echo "🔍 ZSH Module Debug Info:"
+    echo "========================="
+    echo "ZSH_MODULE_PATH: $ZSH_MODULE_PATH"
+    echo "ZMODULE_PATH: $ZMODULE_PATH"
+    echo "Available modules in $ZMODULE_PATH:"
+    if [[ -d "$ZMODULE_PATH" ]]; then
+        ls -la "$ZMODULE_PATH" | grep "\.so$" | head -10
+    else
+        echo "❌ Module directory not found: $ZMODULE_PATH"
+    fi
+    
+    echo "Loaded modules:"
+    zmodload | grep -E "(termcap|terminfo|mapfile|stat|complete|computil)" || echo "No relevant modules loaded"
+}
+
 # Export functions
-export -f check_zinit_plugins 2>/dev/null || true 
+export -f check_zinit_plugins debug_zsh_modules 2>/dev/null || true 
