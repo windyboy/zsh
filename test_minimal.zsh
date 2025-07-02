@@ -1,20 +1,16 @@
 #!/usr/bin/env zsh
-# =============================================================================
-# ZSH Test Runner - Minimal Version
-# =============================================================================
+# Minimal zsh configuration for performance testing
 
-# Set startup time tracking for test
-if [[ -n "$EPOCHREALTIME" ]]; then
-  export ZSH_STARTUP_TIME_BEGIN="$EPOCHREALTIME"
-else
-  export ZSH_STARTUP_TIME_BEGIN="$(date +%s.%N)"
-fi
+# Basic settings
+export HISTFILE="${HOME}/.local/share/zsh/history"
+export HISTSIZE=1000
+export SAVEHIST=1000
 
-# Load the full zsh configuration first
-source "$HOME/.config/zsh/zshrc"
+# Basic completion
+autoload -Uz compinit
+compinit -C
 
-# Load the test framework
-source "$HOME/.config/zsh/tests/test_framework.zsh"
+# Basic prompt
+PS1='%n@%m %~ %# '
 
-# Run the tests
-run_zsh_tests 
+echo "Minimal configuration loaded"

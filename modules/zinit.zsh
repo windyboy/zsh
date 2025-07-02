@@ -15,9 +15,11 @@ if [[ -z "$ZINIT" ]]; then
         mkdir -p "$ZINIT_HOME"
         git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_BIN"
     else
-        # Update zinit to latest version
-        echo "🔄 Updating zinit..."
-        (cd "$ZINIT_BIN" && git pull origin main >/dev/null 2>&1)
+        # Update zinit to latest version (only if ZINIT_AUTO_UPDATE is set)
+        if [[ -n "$ZINIT_AUTO_UPDATE" ]]; then
+            echo "🔄 Updating zinit..."
+            (cd "$ZINIT_BIN" && git pull origin main >/dev/null 2>&1)
+        fi
     fi
     
     # Load zinit first (suppress warnings during loading)
@@ -35,17 +37,21 @@ if [[ -z "$ZINIT" ]]; then
 fi
 
 # =============================================================================
-# Essential Plugins
+# Essential Plugins (Lazy Loaded for Performance)
 # =============================================================================
 
-# Syntax highlighting (must be loaded last)
-zinit light zdharma-continuum/fast-syntax-highlighting 2>/dev/null || true
+# Only load plugins if we're in an interactive shell
+if [[ -o interactive ]]; then
+    # Syntax highlighting (must be loaded last)
+    zinit light zdharma-continuum/fast-syntax-highlighting 2>/dev/null || true
 
-# Auto suggestions
-zinit light zsh-users/zsh-autosuggestions 2>/dev/null || true
+    # Auto suggestions
+    zinit light zsh-users/zsh-autosuggestions 2>/dev/null || true
 
-# FZF tab completion
-zinit light Aloxaf/fzf-tab 2>/dev/null || true
+    # FZF tab completion (lazy load)
+    zinit ice wait'0' lucid
+    zinit light Aloxaf/fzf-tab 2>/dev/null || true
+fi
 
 # =============================================================================
 # Plugin Configuration

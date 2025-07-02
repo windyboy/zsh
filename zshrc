@@ -163,3 +163,5 @@ fi
 
 # bun completions
 [ -s "${HOME}/.bun/_bun" ] && source "${HOME}/.bun/_bun"
+# Disable automatic zinit updates for faster startup
+export ZINIT_AUTO_UPDATE=0
