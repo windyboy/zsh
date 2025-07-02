@@ -45,14 +45,14 @@ export ZSH_LOADED_MODULES=""
 # Module loading helper
 load_module() {
     local module="$1"
-    local module_path="${ZSH_CONFIG_DIR}/modules/${module}.zsh"
+    local module_file="${ZSH_CONFIG_DIR}/modules/${module}.zsh"
     
-    if [[ -f "$module_path" ]]; then
-        source "$module_path"
+    if [[ -f "$module_file" ]]; then
+        source "$module_file"
         export ZSH_LOADED_MODULES="$ZSH_LOADED_MODULES $module"
         return 0
     else
-        echo "⚠️  Module not found: $module_path" >&2
+        echo "⚠️  Module not found: $module_file" >&2
         return 1
     fi
 }

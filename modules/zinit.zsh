@@ -12,15 +12,29 @@ if [[ -z "$ZINIT" ]]; then
     ZINIT[HOME_DIR]="${HOME}/.local/share/zinit"
     ZINIT[BIN_DIR]="${HOME}/.local/share/zinit/zinit.git"
     
-    # Install zinit if not present
+    # Suppress zinit warnings and optimize performance
+    ZINIT[MUTE_WARNINGS]=1
+    ZINIT[OPTIMIZE_OUT_DISK_ACCESSES]=1
+    ZINIT[COMPINIT_OPTS]="-C"
+    ZINIT[NO_ALIASES]=1
+    
+    # Install or update zinit
     if [[ ! -f "${ZINIT[BIN_DIR]}/zinit.zsh" ]]; then
         echo "📦 Installing zinit..."
         mkdir -p "${ZINIT[HOME_DIR]}"
         git clone https://github.com/zdharma-continuum/zinit.git "${ZINIT[BIN_DIR]}"
+    else
+        # Update zinit to latest version
+        echo "🔄 Updating zinit..."
+        (cd "${ZINIT[BIN_DIR]}" && git pull origin main >/dev/null 2>&1)
     fi
     
     # Load zinit
     source "${ZINIT[BIN_DIR]}/zinit.zsh"
+    
+    # Initialize zinit properly
+    autoload -Uz _zinit
+    (( ${+_comps} )) && _comps[zinit]=_zinit
 fi
 
 # =============================================================================
