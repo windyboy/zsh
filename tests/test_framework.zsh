@@ -62,6 +62,21 @@ test_core_configuration() {
         ((errors++))
     fi
     
+    # Test security configuration
+    if [[ -o NO_CLOBBER ]]; then
+        echo "$TEST_PASS NO_CLOBBER is set"
+    else
+        echo "$TEST_FAIL NO_CLOBBER is not set"
+        ((errors++))
+    fi
+    
+    if [[ -o RM_STAR_WAIT ]]; then
+        echo "$TEST_PASS RM_STAR_WAIT is set"
+    else
+        echo "$TEST_FAIL RM_STAR_WAIT is not set"
+        ((errors++))
+    fi
+    
     return $errors
 }
 
@@ -75,6 +90,50 @@ test_custom_functions() {
     for func in "${essential_functions[@]}"; do
         assert_function_exists "$func" || ((errors++))
     done
+    
+    return $errors
+}
+
+# Test module loading
+test_module_loading() {
+    echo "=== Testing Module Loading ==="
+    local errors=0
+    
+    # Test that modules are loaded
+    local required_modules=("core" "error_handling" "security" "performance" "plugins" "completion" "functions" "aliases" "keybindings")
+    for module in "${required_modules[@]}"; do
+        if [[ "$ZSH_LOADED_MODULES" == *"$module"* ]]; then
+            echo "$TEST_PASS Module loaded: $module"
+        else
+            echo "$TEST_FAIL Module not loaded: $module"
+            ((errors++))
+        fi
+    done
+    
+    return $errors
+}
+
+# Test performance
+test_performance() {
+    echo "=== Testing Performance ==="
+    local errors=0
+    
+    # Test startup time
+    if [[ -n "$ZSH_STARTUP_TIME_BEGIN" ]]; then
+        echo "$TEST_PASS Startup time tracking enabled"
+    else
+        echo "$TEST_FAIL Startup time tracking not enabled"
+        ((errors++))
+    fi
+    
+    # Test function count
+    local func_count=$(declare -F | wc -l)
+    if (( func_count < 1000 )); then
+        echo "$TEST_PASS Function count reasonable: $func_count"
+    else
+        echo "$TEST_FAIL High function count: $func_count"
+        ((errors++))
+    fi
     
     return $errors
 }
@@ -96,13 +155,23 @@ run_zsh_tests() {
     test_custom_functions
     total_errors=$((total_errors + $?))
     
+    # Test module loading
+    test_module_loading
+    total_errors=$((total_errors + $?))
+    
+    # Test performance
+    test_performance
+    total_errors=$((total_errors + $?))
+    
     # Test summary
     echo ""
     if (( total_errors == 0 )); then
         echo "🎉 All tests passed!"
+        echo "🏆 Configuration Score: 10/10"
         return 0
     else
         echo "⚠️  $total_errors test(s) failed"
+        echo "📊 Configuration Score: $((10 - total_errors))/10"
         return 1
     fi
 }

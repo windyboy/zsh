@@ -124,7 +124,7 @@ _suggest_optimizations() {
     echo "  • Run 'zsh-perf-analyze' for detailed analysis"
 }
 
-# Simple performance analysis
+# Advanced performance analysis
 zsh_perf_analyze() {
     echo "🔍 ZSH Performance Analysis"
     echo "=========================="
@@ -135,9 +135,15 @@ zsh_perf_analyze() {
     echo "PATH entries: $(echo "$PATH" | tr ':' '\n' | wc -l)"
     echo "Memory: $(ps -o rss= -p $$ | awk '{printf "%.1f MB", $1/1024}')"
     
+    # Advanced metrics
+    echo "History size: $(wc -l < "$HISTFILE" 2>/dev/null || echo "0")"
+    echo "Completion cache size: $(ls -la "$COMPLETION_CACHE_FILE" 2>/dev/null | awk '{print $5}' || echo "0")"
+    echo "Loaded modules: $(echo $ZSH_LOADED_MODULES | wc -w 2>/dev/null || echo "0")"
+    
     # Performance assessment
     local func_count=$(declare -F | wc -l)
     local path_count=$(echo "$PATH" | tr ':' '\n' | wc -l)
+    local hist_size=$(wc -l < "$HISTFILE" 2>/dev/null || echo "0")
     
     if (( func_count > 500 )); then
         echo "⚠️  High function count: $func_count"
@@ -146,6 +152,18 @@ zsh_perf_analyze() {
     if (( path_count > 20 )); then
         echo "⚠️  Many PATH entries: $path_count"
     fi
+    
+    if (( hist_size > 10000 )); then
+        echo "⚠️  Large history file: $hist_size lines"
+    fi
+    
+    # Performance score calculation
+    local score=100
+    (( func_count > 500 )) && ((score -= 10))
+    (( path_count > 20 )) && ((score -= 10))
+    (( hist_size > 10000 )) && ((score -= 10))
+    
+    echo "📊 Performance Score: $score/100"
 }
 
 # Simple bottleneck check

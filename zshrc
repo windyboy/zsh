@@ -39,31 +39,52 @@ export SAVEHIST=50000
 # Load Modules (Order is important!)
 # =============================================================================
 
+# Initialize module tracking
+export ZSH_LOADED_MODULES=""
+
+# Module loading helper
+load_module() {
+    local module="$1"
+    local module_path="${ZSH_CONFIG_DIR}/modules/${module}.zsh"
+    
+    if [[ -f "$module_path" ]]; then
+        source "$module_path"
+        export ZSH_LOADED_MODULES="$ZSH_LOADED_MODULES $module"
+        return 0
+    else
+        echo "⚠️  Module not found: $module_path" >&2
+        return 1
+    fi
+}
+
 # 1. Core settings (must be first)
-[[ -f "${ZSH_CONFIG_DIR}/modules/core.zsh" ]] && source "${ZSH_CONFIG_DIR}/modules/core.zsh"
+load_module "core"
 
 # 2. Error handling (early for safety)
-[[ -f "${ZSH_CONFIG_DIR}/modules/error_handling.zsh" ]] && source "${ZSH_CONFIG_DIR}/modules/error_handling.zsh"
+load_module "error_handling"
 
-# 3. Performance optimizations
-[[ -f "${ZSH_CONFIG_DIR}/modules/performance.zsh" ]] && source "${ZSH_CONFIG_DIR}/modules/performance.zsh"
+# 3. Security (early for protection)
+load_module "security"
 
-# 4. Plugin management
-[[ -f "${ZSH_CONFIG_DIR}/modules/plugins.zsh" ]] && source "${ZSH_CONFIG_DIR}/modules/plugins.zsh"
+# 4. Performance optimizations
+load_module "performance"
 
-# 5. Completion system
-[[ -f "${ZSH_CONFIG_DIR}/modules/completion.zsh" ]] && source "${ZSH_CONFIG_DIR}/modules/completion.zsh"
+# 5. Plugin management
+load_module "plugins"
 
-# 6. Functions
-[[ -f "${ZSH_CONFIG_DIR}/modules/functions.zsh" ]] && source "${ZSH_CONFIG_DIR}/modules/functions.zsh"
+# 6. Completion system
+load_module "completion"
 
-# 7. Aliases
-[[ -f "${ZSH_CONFIG_DIR}/modules/aliases.zsh" ]] && source "${ZSH_CONFIG_DIR}/modules/aliases.zsh"
+# 7. Functions
+load_module "functions"
 
-# 8. Key bindings
-[[ -f "${ZSH_CONFIG_DIR}/modules/keybindings.zsh" ]] && source "${ZSH_CONFIG_DIR}/modules/keybindings.zsh"
+# 8. Aliases
+load_module "aliases"
 
-# 9. Theme/Prompt
+# 9. Key bindings
+load_module "keybindings"
+
+# 10. Theme/Prompt
 [[ -f "${ZSH_CONFIG_DIR}/themes/prompt.zsh" ]] && source "${ZSH_CONFIG_DIR}/themes/prompt.zsh"
 
 # 10. Local configuration (must be last to override defaults)
@@ -123,6 +144,9 @@ fi
 # Success message (only in interactive shells)
 if [[ -o interactive ]] && [[ -z "$ZSH_QUIET" ]]; then
     echo "✅ ZSH configuration loaded successfully"
+    echo "📊 Loaded modules: $ZSH_LOADED_MODULES"
+    echo "🔒 Security: $(validate_security_config >/dev/null 2>&1 && echo "Enabled" || echo "Issues")"
+    echo "⚡ Performance: $(zsh_perf_analyze >/dev/null 2>&1 && echo "Optimized" || echo "Needs attention")"
 fi
 
 # bun completions

@@ -18,6 +18,12 @@ alias zsh-errors='report_errors'
 alias zsh-errors-clear='clear_error_log'
 alias zsh-recovery='enter_recovery_mode'
 
+# ===== Security Aliases =====
+alias security-audit='security_audit'
+alias check-suspicious='check_suspicious_files'
+alias secure-delete='secure_rm'
+alias validate-security='validate_security_config'
+
 # ===== 历史管理别名 (新增) =====
 alias h='history'
 alias hg='history | grep'
