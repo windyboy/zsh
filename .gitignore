@@ -91,3 +91,12 @@ data/backups/
 
 # Zsh completion cache
 .zcompdump
+
+# Zsh completion cache
+.zcompdump
+
+# Zsh completion cache
+.zcompdump
+
+# Zsh completion cache
+*.zwc
