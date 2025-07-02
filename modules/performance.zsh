@@ -99,7 +99,7 @@ zsh_perf_analyze() {
     echo "Functions: $(declare -F | wc -l)"
     echo "Aliases: $(alias | wc -l)"
     echo "PATH entries: $(echo "$PATH" | tr ':' '\n' | wc -l)"
-    echo "Memory: $(ps -o rss= -p $$ 2>/dev/null | awk '{printf "%.1f MB", $1/1024}' | head -1)"
+    echo "Memory: $(ps -o rss= -p $$ 2>/dev/null | awk '{printf "%.1f MB", $1/1024}' | head -1 | tr -d '\n')"
     
     # Advanced metrics
     echo "History size: $(wc -l < "$HISTFILE" 2>/dev/null || echo "0")"
@@ -251,7 +251,7 @@ zsh_perf_dashboard() {
     echo "==========================="
     
     # Current metrics
-    echo "Memory: $(ps -o rss= -p $$ 2>/dev/null | awk '{printf "%.1f MB", $1/1024}' | head -1)"
+    echo "Memory: $(ps -o rss= -p $$ 2>/dev/null | awk '{printf "%.1f MB", $1/1024}' | head -1 | tr -d '\n')"
     echo "Functions: $(declare -F | wc -l)"
     echo "Aliases: $(alias | wc -l)"
     echo "PATH entries: $(echo "$PATH" | tr ':' '\n' | wc -l)"

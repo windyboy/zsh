@@ -7,9 +7,10 @@
 - **Issues**: Automatic zinit updates, unoptimized completion cache, uncompiled zsh files
 
 ### After Optimization
-- **Startup Time**: 0.292 seconds (GOOD)
-- **Improvement**: 97% faster startup time
-- **Baseline**: 0.051 seconds (minimal configuration)
+- **Startup Time**: 0.363 seconds (GOOD)
+- **Interactive Startup**: 1.463 seconds (GOOD)
+- **Improvement**: 96% faster startup time
+- **Baseline**: 0.011 seconds (minimal configuration)
 
 ## 🔧 Optimizations Applied
 

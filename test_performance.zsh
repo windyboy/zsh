@@ -12,6 +12,10 @@ time zsh -c "exit" 2>&1 | grep real
 echo "Testing configuration load time..."
 time zsh -c "source ~/.zshrc; exit" 2>&1 | grep real
 
+# Test interactive shell startup time
+echo "Testing interactive shell startup time..."
+time zsh -i -c "exit" 2>&1 | grep real
+
 # Test completion system
 echo "Testing completion system..."
 time (autoload -Uz compinit; compinit -C) 2>&1 | grep real

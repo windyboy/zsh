@@ -31,7 +31,8 @@ Your Zsh configuration was experiencing **critical startup times of 9.749 second
 
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
-| **Startup Time** | 9.749s | 0.292s | **97% faster** |
+| **Startup Time** | 9.749s | 0.363s | **96% faster** |
+| **Interactive Startup** | N/A | 1.463s | Good |
 | **Status** | CRITICAL | GOOD | ✅ Optimized |
 | **Performance Score** | N/A | 90/100 | Excellent |
 

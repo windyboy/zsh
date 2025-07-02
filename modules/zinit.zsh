@@ -15,9 +15,9 @@ if [[ -z "$ZINIT" ]]; then
         mkdir -p "$ZINIT_HOME"
         git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_BIN"
     else
-        # Update zinit to latest version (only if ZINIT_AUTO_UPDATE is set)
-        if [[ -n "$ZINIT_AUTO_UPDATE" ]]; then
-            echo "🔄 Updating zinit..."
+        # Update zinit to latest version (only if ZINIT_AUTO_UPDATE is set and not '0')
+        if [[ -n "$ZINIT_AUTO_UPDATE" && "$ZINIT_AUTO_UPDATE" != "0" ]]; then
+            echo "�� Updating zinit..."
             (cd "$ZINIT_BIN" && git pull origin main >/dev/null 2>&1)
         fi
     fi

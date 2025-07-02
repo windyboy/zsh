@@ -9,8 +9,6 @@ if [[ ":$FPATH:" != *":${HOME}/.config/zsh/completions:"* ]]; then export FPATH=
 # Initialize startup time tracking (for new shell starts only)
 if [[ -z "$ZSH_STARTUP_TIME_BEGIN" ]]; then
     export ZSH_STARTUP_TIME_BEGIN=$EPOCHREALTIME
-else
-    export ZSH_STARTUP_TIME_BEGIN
 fi
 
 # ===== 性能监控开始 =====
@@ -108,7 +106,7 @@ fi
 ZSHRC_LOAD_END=$EPOCHREALTIME
 
 # Calculate timing (only show for new shell starts, not reloads)
-if [[ -n "$ZSH_STARTUP_TIME_BEGIN" && "$ZSH_STARTUP_TIME_BEGIN" != "$ZSHRC_LOAD_START" ]]; then
+if [[ -n "$ZSH_STARTUP_TIME_BEGIN" ]] && [[ -o interactive ]]; then
     # This is a new shell start, calculate full startup time
     ZSH_STARTUP_TIME_END=$EPOCHREALTIME
     if command -v bc >/dev/null 2>&1; then
@@ -136,9 +134,7 @@ if [[ -n "$ZSH_STARTUP_TIME_BEGIN" && "$ZSH_STARTUP_TIME_BEGIN" != "$ZSHRC_LOAD_
     fi
     
     # Clear the startup time to prevent showing it again
-    if [[ -o interactive ]]; then
-        unset ZSH_STARTUP_TIME_BEGIN
-    fi
+    unset ZSH_STARTUP_TIME_BEGIN
 else
     # This is a reload, only show config load time
     if command -v bc >/dev/null 2>&1; then
