@@ -9,6 +9,8 @@ if [[ ":$FPATH:" != *":${HOME}/.config/zsh/completions:"* ]]; then export FPATH=
 # Initialize startup time tracking (for new shell starts only)
 if [[ -z "$ZSH_STARTUP_TIME_BEGIN" ]]; then
     export ZSH_STARTUP_TIME_BEGIN=$EPOCHREALTIME
+else
+    export ZSH_STARTUP_TIME_BEGIN
 fi
 
 # ===== 性能监控开始 =====
@@ -72,16 +74,19 @@ load_module "performance"
 # 5. Plugin management (zinit-based)
 load_module "zinit"
 
-# 6. Completion system
+# 6. Plugins (new modular plugin loader)
+load_module "plugins"
+
+# 7. Completion system
 load_module "completion"
 
-# 7. Functions
+# 8. Functions
 load_module "functions"
 
-# 8. Aliases
+# 9. Aliases
 load_module "aliases"
 
-# 9. Key bindings
+# 10. Key bindings
 load_module "keybindings"
 
 # 10. Theme/Prompt
@@ -131,7 +136,9 @@ if [[ -n "$ZSH_STARTUP_TIME_BEGIN" && "$ZSH_STARTUP_TIME_BEGIN" != "$ZSHRC_LOAD_
     fi
     
     # Clear the startup time to prevent showing it again
-    unset ZSH_STARTUP_TIME_BEGIN
+    if [[ -o interactive ]]; then
+        unset ZSH_STARTUP_TIME_BEGIN
+    fi
 else
     # This is a reload, only show config load time
     if command -v bc >/dev/null 2>&1; then

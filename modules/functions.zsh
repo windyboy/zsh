@@ -821,3 +821,89 @@ function history_stats() {
         echo "❌ History file not found: $HISTFILE"
     fi
 }
+
+# =============================================================================
+# TESTING FRAMEWORK - 测试框架
+# =============================================================================
+
+# Test runner function
+function run_zsh_tests() {
+    local test_framework="$HOME/.config/zsh/tests/test_framework.zsh"
+    if [[ -f "$test_framework" ]]; then
+        source "$test_framework"
+        # The framework creates its own run_zsh_tests function
+        # and aliases, so we just need to load it
+        return 0
+    else
+        echo "❌ Test framework not found: $test_framework"
+        return 1
+    fi
+}
+
+# Quick test function
+function quick_zsh_test() {
+    echo "⚡ Quick ZSH Configuration Test"
+    echo "=============================="
+    
+    local test_framework="$HOME/.config/zsh/tests/test_framework.zsh"
+    if [[ ! -f "$test_framework" ]]; then
+        echo "❌ Test framework not found: $test_framework"
+        return 1
+    fi
+    
+    # Load test framework
+    source "$test_framework"
+    
+    # Run quick test
+    if (( ${+functions[quick_test]} )); then
+        quick_test
+    else
+        echo "❌ Quick test function not available"
+        return 1
+    fi
+}
+
+# Test specific modules
+function test_zsh_modules() {
+    echo "🔍 Testing ZSH Modules..."
+    echo "========================"
+    
+    local errors=0
+    local modules=(
+        "core"
+        "error_handling" 
+        "security"
+        "performance"
+        "zinit"
+        "completion"
+        "functions"
+        "aliases"
+        "keybindings"
+    )
+    
+    for module in "${modules[@]}"; do
+        local module_file="$HOME/.config/zsh/modules/${module}.zsh"
+        if [[ -f "$module_file" ]]; then
+            echo "✅ $module"
+        else
+            echo "❌ $module (missing)"
+            ((errors++))
+        fi
+    done
+    
+    echo
+    if (( errors == 0 )); then
+        echo "✅ All modules found"
+        return 0
+    else
+        echo "❌ $errors module(s) missing"
+        return 1
+    fi
+}
+
+# Export test functions
+export -f run_zsh_tests quick_zsh_test test_zsh_modules 2>/dev/null || true
+
+# Create aliases for easy access
+alias zsh-test='source $HOME/.config/zsh/tests/test_framework.zsh && run_zsh_tests'
+alias zsh-test-quick='source $HOME/.config/zsh/tests/test_framework.zsh && quick_test'

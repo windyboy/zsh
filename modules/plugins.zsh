@@ -1,7 +1,12 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Plugin Management - Simplified and Robust
+# ZSH Plugins Module - Plugin Management
 # =============================================================================
+
+# Source zinit for plugin management
+if [[ -f "$ZSH_CONFIG_DIR/modules/zinit.zsh" ]]; then
+    source "$ZSH_CONFIG_DIR/modules/zinit.zsh"
+fi
 
 # Add completions to FPATH
 if [[ ":$FPATH:" != *":$ZSH_CONFIG_DIR/completions:"* ]]; then 

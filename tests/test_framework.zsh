@@ -197,4 +197,11 @@ quick_test() {
 }
 
 # Export test functions
-export -f run_zsh_tests quick_test 2>/dev/null || true 
+export -f run_zsh_tests quick_test 2>/dev/null || true
+
+# Create command aliases for easy access
+alias zsh-test='run_zsh_tests'
+alias zsh-test-quick='quick_test'
+
+# Make functions available in current shell
+autoload -Uz run_zsh_tests quick_test 
