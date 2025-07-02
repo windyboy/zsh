@@ -20,18 +20,18 @@ if [[ -z "$ZINIT" ]]; then
         (cd "$ZINIT_BIN" && git pull origin main >/dev/null 2>&1)
     fi
     
-    # Load zinit first
-    source "$ZINIT_BIN/zinit.zsh"
+    # Load zinit first (suppress warnings during loading)
+    source "$ZINIT_BIN/zinit.zsh" 2>/dev/null
     
     # Now configure zinit after it's loaded
-    ZINIT[MUTE_WARNINGS]=1
-    ZINIT[OPTIMIZE_OUT_DISK_ACCESSES]=1
-    ZINIT[COMPINIT_OPTS]="-C"
-    ZINIT[NO_ALIASES]=1
+    ZINIT[MUTE_WARNINGS]=1 2>/dev/null || true
+    ZINIT[OPTIMIZE_OUT_DISK_ACCESSES]=1 2>/dev/null || true
+    ZINIT[COMPINIT_OPTS]="-C" 2>/dev/null || true
+    ZINIT[NO_ALIASES]=1 2>/dev/null || true
     
     # Initialize zinit properly
-    autoload -Uz _zinit
-    (( ${+_comps} )) && _comps[zinit]=_zinit
+    autoload -Uz _zinit 2>/dev/null || true
+    (( ${+_comps} )) && _comps[zinit]=_zinit 2>/dev/null || true
 fi
 
 # =============================================================================
@@ -39,13 +39,13 @@ fi
 # =============================================================================
 
 # Syntax highlighting (must be loaded last)
-zinit light zdharma-continuum/fast-syntax-highlighting
+zinit light zdharma-continuum/fast-syntax-highlighting 2>/dev/null || true
 
 # Auto suggestions
-zinit light zsh-users/zsh-autosuggestions
+zinit light zsh-users/zsh-autosuggestions 2>/dev/null || true
 
 # FZF tab completion
-zinit light Aloxaf/fzf-tab
+zinit light Aloxaf/fzf-tab 2>/dev/null || true
 
 # =============================================================================
 # Plugin Configuration
