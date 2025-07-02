@@ -1,1 +1,0 @@
-/Users/windy/.config/zsh/zshrc
