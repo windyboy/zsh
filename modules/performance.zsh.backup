@@ -1,0 +1,600 @@
+#!/usr/bin/env zsh
+# =============================================================================
+# Performance Monitoring and Optimization
+# =============================================================================
+
+# =============================================================================
+# PERFORMANCE MONITORING
+# =============================================================================
+
+# Enable performance profiling if requested
+if [[ -n "$ZSH_PROF" ]]; then
+    zmodload zsh/zprof
+    
+    # Show profile on exit
+    _show_profile_on_exit() {
+        echo "\n🔍 ZSH Performance Profile"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        zprof | head -20
+    }
+    
+    # Set trap for exit
+    trap '_show_profile_on_exit' EXIT
+fi
+
+# Startup time measurement
+if [[ -n "$ZSH_BENCHMARK" ]]; then
+    # Record startup time
+    _zsh_startup_time() {
+        local start_time="${ZSH_START_TIME:-$EPOCHREALTIME}"
+        local end_time="$EPOCHREALTIME"
+        local startup_time=$(( end_time - start_time ))
+        
+        printf "⏱️  ZSH startup time: %.3f seconds\n" "$startup_time"
+    }
+    
+    # Add to precmd for first prompt
+    _benchmark_precmd() {
+        _zsh_startup_time
+        unset -f _benchmark_precmd
+        precmd_functions=(${precmd_functions:#_benchmark_precmd})
+    }
+    
+    precmd_functions+=(_benchmark_precmd)
+fi
+
+# =============================================================================
+# PERFORMANCE UTILITIES
+# =============================================================================
+
+# Measure command execution time
+timeit() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: timeit <command>"
+        echo "Example: timeit ls -la"
+        return 1
+    fi
+    
+    local start_time="$EPOCHREALTIME"
+    "$@"
+    local exit_code=$?
+    local end_time="$EPOCHREALTIME"
+    local duration=$(( end_time - start_time ))
+    
+    printf "\n⏱️  Execution time: %.3f seconds (exit code: %d)\n" "$duration" "$exit_code"
+    return $exit_code
+}
+
+# Profile ZSH startup with detailed analysis
+profile_startup() {
+
+    local iterations=${1:-3}
+    local total_time=0
+    local times=()
+    
+    echo "🚀 Profiling ZSH startup ($iterations iterations)..."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    for ((i=1; i<=iterations; i++)); do
+        # 使用更可靠的时间测量方法
+        local start_time=$(date +%s.%N)
+        zsh -i -c exit 2>/dev/null
+        local end_time=$(date +%s.%N)
+        
+        # 使用 bc 进行浮点计算
+        local duration
+        if command -v bc >/dev/null; then
+            duration=$(echo "$end_time - $start_time" | bc -l)
+        else
+            # 备用方法：使用 awk
+            duration=$(awk "BEGIN {print $end_time - $start_time}")
+        fi
+        
+        times+=($duration)
+        total_time=$(echo "$total_time + $duration" | bc -l 2>/dev/null || awk "BEGIN {print $total_time + $duration}")
+        
+        # 性能评估
+        local status="🟢 Fast"
+        if (( $(echo "$duration > 0.5" | bc -l 2>/dev/null || awk "BEGIN {print ($duration > 0.5)}") )); then
+            status="🟡 Moderate"
+        fi
+        if (( $(echo "$duration > 1.0" | bc -l 2>/dev/null || awk "BEGIN {print ($duration > 1.0)}") )); then
+            status="🔴 Slow"
+        fi
+        
+        printf "Run %2d: %.3f seconds %s\n" "$i" "$duration" "$status"
+    done
+    
+    # 计算统计信息
+    local avg_time=$(echo "scale=3; $total_time / $iterations" | bc -l 2>/dev/null || awk "BEGIN {printf \"%.3f\", $total_time / $iterations}")
+    
+    # 找到最小值和最大值
+    local min_time=${times[1]}
+    local max_time=${times[1]}
+    
+    for time in "${times[@]}"; do
+        if (( $(echo "$time < $min_time" | bc -l 2>/dev/null || awk "BEGIN {print ($time < $min_time)}") )); then
+            min_time=$time
+        fi
+        if (( $(echo "$time > $max_time" | bc -l 2>/dev/null || awk "BEGIN {print ($time > $max_time)}") )); then
+            max_time=$time
+        fi
+    done
+    
+    echo
+    echo "📊 Results Summary:"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    printf "Average:    %.3f seconds\n" "$avg_time"
+    printf "Minimum:    %.3f seconds\n" "$min_time"
+    printf "Maximum:    %.3f seconds\n" "$max_time"
+    
+    # 性能建议
+    echo
+    echo "🎯 Performance Assessment:"
+    if (( $(echo "$avg_time < 0.3" | bc -l 2>/dev/null || awk "BEGIN {print ($avg_time < 0.3)}") )); then
+        echo "🟢 Excellent - Your shell starts very quickly!"
+    elif (( $(echo "$avg_time < 0.5" | bc -l 2>/dev/null || awk "BEGIN {print ($avg_time < 0.5)}") )); then
+        echo "🟡 Good - Acceptable startup time"
+    elif (( $(echo "$avg_time < 1.0" | bc -l 2>/dev/null || awk "BEGIN {print ($avg_time < 1.0)}") )); then
+        echo "🟠 Moderate - Consider optimization"
+    else
+        echo "🔴 Slow - Optimization recommended"
+        echo "💡 Suggestion: Run 'analyze_config' and 'compile_config'"
+    fi
+
+}
+
+# Analyze ZSH configuration performance
+analyze_config() {
+    echo "🔍 Analyzing ZSH configuration performance..."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    local issues=0
+    local suggestions=()
+    
+    # Check for common performance issues
+    echo "🔎 Checking for performance issues..."
+    
+    # Check for synchronous operations in config files
+    local config_files=("$ZSH_CONFIG_DIR"/{zshrc,modules/*.zsh})
+    
+    for file in "${config_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            # Check for network operations
+            if grep -qE "(curl|wget|git clone)" "$file" 2>/dev/null; then
+                echo "⚠️  Found network operations in $(basename "$file")"
+                suggestions+=("Move network operations to background or lazy loading")
+                ((issues++))
+            fi
+            
+            # Check for heavy synchronous plugin loading
+            if grep -q "zinit load" "$file" 2>/dev/null; then
+                echo "⚠️  Found synchronous plugin loading in $(basename "$file")"
+                suggestions+=("Consider using 'zinit wait' for non-essential plugins")
+                ((issues++))
+            fi
+        fi
+    done
+    
+    # Check compinit optimization
+    if ! grep -qE "(zicompinit|compinit.*-C)" "${config_files[@]}" 2>/dev/null; then
+        echo "⚠️  compinit not optimized"
+        suggestions+=("Use 'compinit -C' or zinit's zicompinit for faster completion loading")
+        ((issues++))
+    fi
+    
+    # Check module count
+    local module_count=$(ls "$ZSH_CONFIG_DIR/modules"/*.zsh 2>/dev/null | wc -l)
+    if (( module_count > 12 )); then
+        echo "ℹ️  High module count ($module_count modules)"
+        suggestions+=("Consider consolidating related modules")
+    fi
+    
+    # Check function count
+    local function_count=$(declare -f | grep -c "^[a-zA-Z_][a-zA-Z0-9_]* ()")
+    if (( function_count > 60 )); then
+        echo "ℹ️  High function count ($function_count functions)"
+        suggestions+=("Consider lazy loading for rarely used functions")
+    fi
+    
+    # Check history file size
+    if [[ -f "$HISTFILE" ]]; then
+        local hist_size=$(wc -l < "$HISTFILE" 2>/dev/null || echo 0)
+        if (( hist_size > 50000 )); then
+            echo "⚠️  Large history file ($hist_size entries)"
+            suggestions+=("Consider reducing SAVEHIST or cleaning old entries")
+            ((issues++))
+        fi
+    fi
+    
+    # Check for compiled files
+    local zwc_count=$(find "$ZSH_CONFIG_DIR" -name "*.zwc" 2>/dev/null | wc -l)
+    if (( zwc_count == 0 )); then
+        echo "⚠️  No compiled configuration files found"
+        suggestions+=("Run 'compile_config' to compile configuration files")
+        ((issues++))
+    fi
+    
+    # Check cache directory size
+    if [[ -d "$ZSH_CACHE_DIR" ]]; then
+        local cache_size=$(du -sm "$ZSH_CACHE_DIR" 2>/dev/null | cut -f1)
+        if [[ -n "$cache_size" ]] && (( cache_size > 100 )); then
+            echo "ℹ️  Large cache directory (${cache_size}MB)"
+            suggestions+=("Consider running 'reset_cache' to clean old cache files")
+        fi
+    fi
+    
+    echo
+    echo "📋 Analysis Results:"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    if (( issues == 0 )); then
+        echo "✅ No major performance issues found!"
+        echo "🎉 Your configuration appears well optimized."
+    else
+        echo "🔍 Found $issues potential performance issues"
+        echo
+        echo "💡 Optimization Suggestions:"
+        for suggestion in "${suggestions[@]}"; do
+            echo "   • $suggestion"
+        done
+    fi
+    
+    echo
+    echo "🧪 Quick startup test:"
+    local start_time=$(date +%s.%N)
+    zsh -i -c exit 2>/dev/null
+    local end_time=$(date +%s.%N)
+    local duration=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "0.500")
+    printf "Startup time: %.3f seconds\n" "$duration"
+}
+
+# Compile ZSH configuration files
+compile_config() {
+    echo "🔨 Compiling ZSH configuration files..."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    local compiled=0
+    local failed=0
+    
+    # Compile main configuration files
+    local main_files=("$ZSH_CONFIG_DIR/zshrc" "$ZSH_CONFIG_DIR/zshenv" "$HOME/.zshrc" "$HOME/.zshenv")
+    
+    for file in "${main_files[@]}"; do
+        if [[ -f "$file" && ( ! -f "${file}.zwc" || "$file" -nt "${file}.zwc" ) ]]; then
+            if zcompile "$file" 2>/dev/null; then
+                echo "✅ Compiled $(basename "$file")"
+                ((compiled++))
+            else
+                echo "❌ Failed to compile $(basename "$file")"
+                ((failed++))
+            fi
+        fi
+    done
+    
+    # Compile modules
+    if [[ -d "$ZSH_CONFIG_DIR/modules" ]]; then
+        for file in "$ZSH_CONFIG_DIR/modules"/*.zsh; do
+            if [[ -f "$file" && ( ! -f "${file}.zwc" || "$file" -nt "${file}.zwc" ) ]]; then
+                if zcompile "$file" 2>/dev/null; then
+                    echo "✅ Compiled modules/$(basename "$file")"
+                    ((compiled++))
+                else
+                    echo "❌ Failed to compile modules/$(basename "$file")"
+                    ((failed++))
+                fi
+            fi
+        done
+    fi
+    
+    # Compile completion cache
+    if [[ -f "$ZSH_CACHE_DIR/zcompdump" && ( ! -f "$ZSH_CACHE_DIR/zcompdump.zwc" || 
+          "$ZSH_CACHE_DIR/zcompdump" -nt "$ZSH_CACHE_DIR/zcompdump.zwc" ) ]]; then
+        if zcompile "$ZSH_CACHE_DIR/zcompdump" 2>/dev/null; then
+            echo "✅ Compiled completion cache"
+            ((compiled++))
+        else
+            echo "❌ Failed to compile completion cache"
+            ((failed++))
+        fi
+    fi
+    
+    echo
+    echo "📊 Compilation Summary:"
+    if (( compiled == 0 && failed == 0 )); then
+        echo "ℹ️  All files are already compiled and up to date"
+    else
+        echo "✅ Successfully compiled: $compiled files"
+        [[ $failed -gt 0 ]] && echo "❌ Failed to compile: $failed files"
+        
+        if (( compiled > 0 )); then
+            echo "🚀 Restart your shell or run 'source ~/.zshrc' for better performance"
+        fi
+    fi
+}
+
+# Clean compiled files
+clean_compiled() {
+    echo "🧹 Cleaning compiled ZSH files..."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    local cleaned=0
+    
+    # Remove compiled configuration files
+    local zwc_files=(
+        "$ZSH_CONFIG_DIR"/{zshrc,zshenv}.zwc
+        "$ZSH_CONFIG_DIR/modules"/*.zsh.zwc
+        "$HOME"/{.zshrc,.zshenv}.zwc
+        "$ZSH_CACHE_DIR/zcompdump.zwc"
+    )
+    
+    for file in "${zwc_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            rm -f "$file"
+            echo "🗑️  Removed $(basename "$file")"
+            ((cleaned++))
+        fi
+    done
+    
+    echo
+    if (( cleaned == 0 )); then
+        echo "ℹ️  No compiled files found"
+    else
+        echo "✅ Cleaned $cleaned compiled files"
+        echo "💡 Run 'compile_config' to recompile for better performance"
+    fi
+}
+
+# Reset ZSH cache
+reset_cache() {
+    echo "🔄 Resetting ZSH cache..."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    local reset_count=0
+    
+    # Remove completion cache
+    if [[ -d "$ZSH_CACHE_DIR" ]]; then
+        local cache_files=$(find "$ZSH_CACHE_DIR" -type f 2>/dev/null | wc -l)
+        if (( cache_files > 0 )); then
+            rm -rf "$ZSH_CACHE_DIR"/*
+            echo "✅ Cleared cache directory ($cache_files files)"
+            ((reset_count++))
+        fi
+    fi
+    
+    # Remove zinit cache
+    if [[ -d "$ZSH_DATA_DIR/zinit" ]]; then
+        if [[ -d "$ZSH_DATA_DIR/zinit/.zinit" ]]; then
+            rm -rf "$ZSH_DATA_DIR/zinit/.zinit"
+            echo "✅ Cleared zinit cache"
+            ((reset_count++))
+        fi
+    fi
+    
+    # Remove compiled files
+    clean_compiled >/dev/null 2>&1
+    
+    echo
+    if (( reset_count == 0 )); then
+        echo "ℹ️  No cache files found to reset"
+    else
+        echo "🎉 Cache reset complete!"
+        echo "💡 Restart ZSH to rebuild cache and run 'compile_config' for best performance"
+    fi
+}
+
+# Comprehensive benchmark
+benchmark_zsh() {
+    echo "🏁 ZSH Performance Benchmark Suite"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo
+    
+    # System information
+    echo "🖥️  System Information:"
+    echo "OS: $(uname -s -r)"
+    echo "ZSH: $ZSH_VERSION"
+    echo "Terminal: $TERM"
+    echo
+    
+    # 1. Startup time analysis
+    echo "1️⃣  Startup Time Analysis:"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    profile_startup 3
+    echo
+    
+    # 2. Memory usage
+    echo "2️⃣  Memory Usage Analysis:"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    if command -v ps >/dev/null; then
+        local memory_info=$(ps -o pid,ppid,pmem,vsz,rss,comm -p $$ --no-headers 2>/dev/null)
+        if [[ -n "$memory_info" ]]; then
+            echo "Process: $memory_info"
+            local rss=$(echo "$memory_info" | awk '{print $5}')
+            local memory_mb=$((rss / 1024))
+            printf "Memory Usage: %d MB\n" "$memory_mb"
+        fi
+    fi
+    echo
+    
+    # 3. Configuration statistics
+    echo "3️⃣  Configuration Statistics:"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    local func_count=$(declare -f | grep -c "^[a-zA-Z_][a-zA-Z0-9_]* ()")
+    local alias_count=$(alias | wc -l)
+    local module_count=$(ls "$ZSH_CONFIG_DIR/modules"/*.zsh 2>/dev/null | wc -l)
+    local zwc_count=$(find "$ZSH_CONFIG_DIR" -name "*.zwc" 2>/dev/null | wc -l)
+    
+    echo "Functions: $func_count"
+    echo "Aliases: $alias_count"
+    echo "Modules: $module_count"
+    echo "Compiled files: $zwc_count"
+    echo
+    
+    # 4. Plugin analysis (if zinit is available)
+    echo "4️⃣  Plugin Analysis:"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    if command -v zinit >/dev/null 2>&1; then
+        echo "Plugin loading times (top 10):"
+        zinit times | head -10
+    else
+        echo "Zinit not available - cannot analyze plugin loading times"
+    fi
+    echo
+    
+    # 5. Performance recommendations
+    echo "5️⃣  Performance Recommendations:"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    analyze_config | grep -A 20 "💡 Optimization Suggestions:" || echo "No specific recommendations at this time"
+    
+    echo
+    echo "🏆 Benchmark Complete!"
+    echo "💡 For detailed analysis, run individual commands:"
+    echo "   • profile_startup - Detailed startup analysis"
+    echo "   • analyze_config - Configuration optimization"
+    echo "   • compile_config - Compile for better performance"
+}
+
+# Show performance tips
+show_performance_tips() {
+    echo "⚡ ZSH Performance Optimization Guide"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo
+    echo "🚀 Startup Optimization:"
+    echo "   • Use 'zinit wait' for non-essential plugins"
+    echo "   • Compile configuration files with 'compile_config'"
+    echo "   • Use 'compinit -C' for faster completion loading"
+    echo "   • Minimize synchronous operations in config files"
+    echo "   • Load heavy tools (nvm, pyenv) lazily"
+    echo
+    echo "🔌 Plugin Management:"
+    echo "   • Load only necessary plugins"
+    echo "   • Use turbo mode (zinit wait) for delayed loading"
+    echo "   • Prefer lightweight alternatives"
+    echo "   • Regular plugin cleanup and updates"
+    echo "   • Profile plugin loading times"
+    echo
+    echo "🔧 Completion System:"
+    echo "   • Enable completion caching"
+    echo "   • Use selective completion loading"
+    echo "   • Optimize completion styles"
+    echo "   • Regular cache cleanup"
+    echo "   • Compile completion dump files"
+    echo
+    echo "📝 Functions and Aliases:"
+    echo "   • Use lazy loading for heavy functions"
+    echo "   • Minimize global functions"
+    echo "   • Prefer aliases over functions for simple commands"
+    echo "   • Group related functionality in modules"
+    echo "   • Avoid expensive operations in prompt"
+    echo
+    echo "📊 Monitoring and Maintenance:"
+    echo "   • Regular performance benchmarks"
+    echo "   • Monitor startup time changes"
+    echo "   • Profile resource usage"
+    echo "   • Analyze configuration regularly"
+    echo "   • Keep history file manageable"
+    echo
+    echo "🛠️  Available Commands:"
+    echo "   profile_startup     - Measure startup time"
+    echo "   analyze_config      - Check for performance issues"
+    echo "   compile_config      - Compile configuration files"
+    echo "   benchmark_zsh       - Full performance benchmark"
+    echo "   reset_cache         - Clear all caches"
+    echo "   clean_compiled      - Remove compiled files"
+    echo "   timeit <command>    - Measure command execution time"
+    echo
+    echo "🎯 Quick Start:"
+    echo "   1. Run 'benchmark_zsh' for overall assessment"
+    echo "   2. Run 'analyze_config' for specific issues"
+    echo "   3. Run 'compile_config' for immediate improvement"
+    echo "   4. Monitor with 'profile_startup' regularly"
+}
+
+# Monitor resource usage
+monitor_resources() {
+    local interval="${1:-2}"
+    local duration="${2:-60}"
+    
+    if ! [[ "$interval" =~ ^[0-9]+$ ]] || (( interval < 1 || interval > 10 )); then
+        echo "Error: interval must be between 1 and 10 seconds"
+        return 1
+    fi
+    
+    if ! [[ "$duration" =~ ^[0-9]+$ ]] || (( duration < 10 || duration > 3600 )); then
+        echo "Error: duration must be between 10 and 3600 seconds"
+        return 1
+    fi
+    
+    local count=0
+    
+    echo "📊 Monitoring ZSH resource usage..."
+    echo "Interval: ${interval}s, Duration: ${duration}s"
+    echo "Press Ctrl+C to stop early"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    printf "%-8s | %-6s | %-6s | %-6s | %-8s | %-8s\n" "Time" "PID" "%CPU" "%MEM" "VSZ(MB)" "RSS(MB)"
+    echo "---------|--------|--------|--------|----------|----------"
+    
+    while (( count < duration )); do
+        local zsh_pids=$(pgrep -u "$USER" zsh 2>/dev/null)
+        if [[ -n "$zsh_pids" ]]; then
+            # Get current shell process info
+            local ps_info=$(ps -p $$ -o pid=,pcpu=,pmem=,vsz=,rss= --no-headers 2>/dev/null)
+            if [[ -n "$ps_info" ]]; then
+                local pid=$(echo "$ps_info" | awk '{print $1}')
+                local cpu=$(echo "$ps_info" | awk '{print $2}')
+                local mem=$(echo "$ps_info" | awk '{print $3}')
+                local vsz=$(echo "$ps_info" | awk '{printf "%.1f", $4/1024}')
+                local rss=$(echo "$ps_info" | awk '{printf "%.1f", $5/1024}')
+                
+                printf "%-8s | %-6s | %-6s | %-6s | %-8s | %-8s\n" \
+                    "$(date +%H:%M:%S)" "$pid" "$cpu" "$mem" "$vsz" "$rss"
+            fi
+        fi
+        
+        sleep "$interval"
+        ((count += interval))
+    done
+    
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "✅ Monitoring complete"
+}
+
+# Quick reload function
+zsh_reload() {
+    echo "🔄 Reloading ZSH configuration..."
+    local start_time="$EPOCHREALTIME"
+    source "$HOME/.zshrc"
+    local end_time="$EPOCHREALTIME"
+    local duration=$(( end_time - start_time ))
+    
+    printf "✅ Configuration reloaded in %.3f seconds\n" "$duration"
+}
+
+# Performance profiling wrapper
+with_profile() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: with_profile <command>"
+        echo "Example: with_profile ls -la"
+        return 1
+    fi
+    
+    echo "🔍 Profiling command: $*"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    # Enable profiling
+    zmodload zsh/zprof
+    
+    # Run command with timing
+    timeit "$@"
+    
+    echo
+    echo "📊 Function call profile:"
+    zprof | head -15
+    
+    # Clean up
+    zmodload -u zsh/zprof
+}
+
+# Alias for convenience
+alias reload_zsh='zsh_reload'
+alias profile_cmd='with_profile'

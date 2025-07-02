@@ -1,0 +1,75 @@
+# Zsh configuration .gitignore
+
+# Cache files
+cache/
+*.zwc
+*.zwc.old
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+*.swp
+*.swo
+*~
+
+# Backup directories
+backup/
+
+# Data directories
+data/
+
+# Local configuration files (user-specific)
+local.zsh
+local.zsh.example
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.sublime-*
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Zsh history files
+.zsh_history
+.zsh_sessions/
+
+# Completion cache
+completions/_*
+
+# Theme cache
+themes/*.zwc
+
+# Module cache
+modules/*.zwc
+modules/*.bak
+modules/*.backup
+modules/*.old
+modules/*.orig
+modules/*.tmp
+modules/*.swp
+modules/*.swo
+modules/*~
+
+# Scripts that might be generated
+install.sh
+deploy.sh 
+
+# Zsh completion cache
+.zcompdump*
