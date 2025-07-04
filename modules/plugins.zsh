@@ -1,12 +1,8 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# ZSH Plugins Module - Plugin Management
+# ZSH Plugins Module - Zinit-Based Plugin Management
+# Version: 2.1 - Simplified Zinit-Focused Approach
 # =============================================================================
-
-# Source zinit for plugin management
-if [[ -f "$ZSH_CONFIG_DIR/modules/zinit.zsh" ]]; then
-    source "$ZSH_CONFIG_DIR/modules/zinit.zsh"
-fi
 
 # Add completions to FPATH
 if [[ ":$FPATH:" != *":$ZSH_CONFIG_DIR/completions:"* ]]; then 
@@ -14,7 +10,71 @@ if [[ ":$FPATH:" != *":$ZSH_CONFIG_DIR/completions:"* ]]; then
 fi
 
 # =============================================================================
-# ESSENTIAL PLUGINS (Manual Installation)
+# ZINIT PLUGIN MANAGEMENT
+# =============================================================================
+
+# Only load zinit if it's not already loaded
+if [[ -z "$ZINIT" ]]; then
+    # Set zinit paths first
+    local ZINIT_HOME="${HOME}/.local/share/zinit"
+    local ZINIT_BIN="${HOME}/.local/share/zinit/zinit.git"
+    
+    # Install or update zinit
+    if [[ ! -f "$ZINIT_BIN/zinit.zsh" ]]; then
+        echo "📦 Installing zinit..."
+        mkdir -p "$ZINIT_HOME"
+        git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_BIN"
+    else
+        # Update zinit to latest version (only if ZINIT_AUTO_UPDATE is set and not '0')
+        if [[ -n "$ZINIT_AUTO_UPDATE" && "$ZINIT_AUTO_UPDATE" != "0" ]]; then
+            echo "🔄 Updating zinit..."
+            (cd "$ZINIT_BIN" && git pull origin main >/dev/null 2>&1)
+        fi
+    fi
+    
+    # Load zinit first (suppress warnings during loading)
+    source "$ZINIT_BIN/zinit.zsh" 2>/dev/null
+    
+    # Now configure zinit after it's loaded
+    ZINIT[MUTE_WARNINGS]=1 2>/dev/null || true
+    ZINIT[OPTIMIZE_OUT_DISK_ACCESSES]=1 2>/dev/null || true
+    ZINIT[COMPINIT_OPTS]="-C" 2>/dev/null || true
+    ZINIT[NO_ALIASES]=1 2>/dev/null || true
+    
+    # Initialize zinit properly
+    autoload -Uz _zinit 2>/dev/null || true
+    (( ${+_comps} )) && _comps[zinit]=_zinit 2>/dev/null || true
+fi
+
+# =============================================================================
+# ESSENTIAL ZINIT PLUGINS
+# =============================================================================
+
+# Only load plugins if we're in an interactive shell
+if [[ -o interactive ]]; then
+    # Syntax highlighting (must be loaded last)
+    zinit light zdharma-continuum/fast-syntax-highlighting 2>/dev/null || true
+
+    # Auto suggestions
+    zinit light zsh-users/zsh-autosuggestions 2>/dev/null || true
+
+    # FZF tab completion (lazy load)
+    zinit ice wait'0' lucid
+    zinit light Aloxaf/fzf-tab 2>/dev/null || true
+
+    # Git status in prompt (lightweight)
+    zinit snippet https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh
+
+    # Better history search (Ctrl+R replacement)
+    zinit ice wait'0' lucid
+    zinit light zsh-users/zsh-history-substring-search 2>/dev/null || true
+
+    # History management
+    zinit snippet https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/history/history.plugin.zsh
+fi
+
+# =============================================================================
+# SYSTEM PLUGINS (Fallback)
 # =============================================================================
 
 # FZF - Essential for workflow (if available)
@@ -24,7 +84,7 @@ if command -v fzf >/dev/null 2>&1; then
     export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {}'"
     export FZF_CTRL_R_OPTS="--preview 'echo {}' --preview-window down:3:hidden:wrap --bind '?:toggle-preview'"
     
-    # FZF key bindings
+    # FZF key bindings (fallback if not loaded via zinit)
     if [[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]]; then
         source /usr/share/doc/fzf/examples/key-bindings.zsh
     elif [[ -f /usr/local/opt/fzf/shell/key-bindings.zsh ]]; then
@@ -51,20 +111,20 @@ fi
 # PLUGIN CONFIGURATION
 # =============================================================================
 
-# Auto-suggestions configuration (if available)
-if [[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
-    source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
-    ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-    ZSH_AUTOSUGGEST_USE_ASYNC=1
-    ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
-    ZSH_AUTOSUGGEST_HISTORY_IGNORE="cd *"
-fi
+# Auto-suggestions configuration
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
+export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+export ZSH_AUTOSUGGEST_USE_ASYNC=1
+export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
+export ZSH_AUTOSUGGEST_HISTORY_IGNORE="cd *"
 
-# Syntax highlighting (if available)
-if [[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
-    source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-fi
+# FZF tab configuration
+zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --color=always --style=numbers --line-range=:500 $realpath'
+
+# History substring search key bindings
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+bindkey '^R' history-incremental-search-backward
 
 # =============================================================================
 # PLUGIN STATUS
@@ -80,7 +140,12 @@ check_plugins() {
         "zoxide:Smart Navigation"
         "eza:Enhanced ls"
         "zsh-autosuggestions:Auto Suggestions"
-        "zsh-syntax-highlighting:Syntax Highlighting"
+        "fast-syntax-highlighting:Syntax Highlighting"
+        "fzf-tab:FZF Tab Completion"
+        "git:Git Integration"
+        "gitfast:Git Aliases"
+        "history:History Management"
+        "zsh-history-substring-search:Better History Search"
     )
     
     for plugin in "${plugins[@]}"; do
@@ -93,6 +158,21 @@ check_plugins() {
             echo "❌ $desc (not installed)"
         fi
     done
+    
+    # Check Zinit status
+    echo ""
+    echo "🔌 Zinit Status:"
+    if [[ -n "$ZINIT" ]]; then
+        echo "✅ Zinit loaded"
+        echo "📦 Plugins managed by Zinit:"
+        if [[ -d "${ZINIT[HOME_DIR]}/plugins" ]]; then
+            ls "${ZINIT[HOME_DIR]}/plugins" | sed 's/^/  • /'
+        else
+            echo "  No plugins found"
+        fi
+    else
+        echo "❌ Zinit not loaded"
+    fi
 }
 
 # Export plugin functions
