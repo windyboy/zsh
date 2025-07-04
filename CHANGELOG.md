@@ -23,6 +23,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Completion path portability issues
 - Zinit configuration and initialization issues
 
+## [2.1.0] - 2025-01-27
+
+### Added
+- **Zinit Plugin Management**: Complete Zinit integration for efficient plugin loading
+- **Essential Plugins**: Syntax highlighting, autosuggestions, FZF tab completion
+- **Git Integration**: Git status in prompt and useful aliases via Oh My Zsh git plugin
+- **History Management**: Better history search with zsh-history-substring-search
+- **Automatic Zinit Installation**: Zinit is automatically installed and updated
+- **Plugin Status Check**: `check_plugins` function to verify plugin status
+
+### Changed
+- **Simplified Plugin Architecture**: Removed complex hybrid system in favor of Zinit-only approach
+- **Streamlined Module Loading**: Removed separate `zinit.zsh` module, integrated into `plugins.zsh`
+- **Improved Plugin Selection**: Focused on practical, daily-use plugins
+- **Better Error Handling**: Fixed Oh My Zsh plugin loading issues
+
+### Fixed
+- **Plugin Loading Errors**: Resolved missing file errors with gitfast plugin
+- **Zinit Configuration**: Fixed Zinit initialization and configuration issues
+- **Syntax Errors**: Corrected export statements and shell compatibility issues
+
+### Removed
+- **Complex Hybrid System**: Removed manual plugin management fallbacks
+- **Unnecessary Plugins**: Removed gitfast plugin to avoid dependency issues
+- **Separate Zinit Module**: Integrated Zinit management into plugins.zsh
+
 ## [1.0.0] - 2025-07-02
 
 ### Added
@@ -31,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Error Handling Module**: Comprehensive error recovery and logging system
 - **Security Module**: Hardened shell with best practices and security validation
 - **Testing Framework**: Built-in testing, validation, and scoring system
-- **Oh My Posh Integration**: Beautiful, informative prompts with fallback support
+- **Custom Prompt System**: Clean, informative prompts with git status
 - **XDG Compliance**: Proper file organization following XDG Base Directory Specification
 - **Manual Plugin Management**: No Zinit required - plugins loaded if available on system
 - **Performance Monitoring**: Real-time performance tracking and optimization suggestions
@@ -121,11 +147,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **2.1.0**: Zinit-based plugin management with essential plugins and improved error handling
 - **1.0.0**: Complete modular system with performance optimization, security hardening, and comprehensive testing
 - **0.9.0**: Modular architecture foundation with basic module loading
 - **0.8.0**: Zinit integration and initial performance features
 
 ## Migration Guide
+
+### From 1.0.x to 2.1.0
+- **Plugin Management**: Now uses Zinit for all plugin loading (no more manual fallbacks)
+- **Simplified Architecture**: Removed separate `zinit.zsh` module, everything integrated into `plugins.zsh`
+- **Essential Plugins**: Focused on practical, daily-use plugins only
+- **Automatic Setup**: Zinit is automatically installed and configured
+- **Plugin Status**: Use `check_plugins` to verify your plugin setup
 
 ### From 0.8.x to 1.0.0
 - The configuration is now fully modular and no longer requires Zinit

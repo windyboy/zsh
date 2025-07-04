@@ -1,9 +1,9 @@
-# ZSH Modular Configuration with Oh My Posh
+# ZSH Modular Configuration
 
-A professional-grade, modular ZSH configuration system with Oh My Posh integration, designed for developers who demand performance, reliability, and extensibility.
+A professional-grade, modular ZSH configuration system designed for developers who demand performance, reliability, and extensibility.
 
-**Current Version**: 1.0.0  
-**Last Updated**: 2025-07-02
+**Current Version**: 2.1.0  
+**Last Updated**: 2025-01-27
 
 ## 🚀 Features
 
@@ -11,9 +11,8 @@ A professional-grade, modular ZSH configuration system with Oh My Posh integrati
 - **Performance Optimized**: Sub-second startup times with intelligent caching
 - **Error Handling**: Comprehensive error recovery and logging
 - **Testing Framework**: Built-in testing, validation, and scoring
-- **Plugin Management**: Manual plugin system (no Zinit required)
+- **Zinit Plugin Management**: Fast, efficient plugin loading with Zinit
 - **Security Module**: Hardened shell with best practices
-- **Oh My Posh Integration**: Beautiful, informative prompts
 - **XDG Compliance**: Proper file organization following standards
 
 ## 📁 Project Structure
@@ -24,7 +23,7 @@ A professional-grade, modular ZSH configuration system with Oh My Posh integrati
 ├── zshenv                # Environment variables
 ├── modules/              # Modular configuration
 │   ├── core.zsh         # Core ZSH settings
-│   ├── plugins.zsh      # Plugin management (manual)
+│   ├── plugins.zsh      # Zinit-based plugin management
 │   ├── completion.zsh   # Completion system
 │   ├── functions.zsh    # Custom functions
 │   ├── aliases.zsh      # Aliases
@@ -33,7 +32,7 @@ A professional-grade, modular ZSH configuration system with Oh My Posh integrati
 │   ├── error_handling.zsh # Error handling
 │   └── security.zsh     # Security hardening
 ├── themes/
-│   └── prompt.zsh       # Oh My Posh configuration
+│   └── prompt.zsh       # Prompt configuration
 ├── tests/
 │   └── test_framework.zsh # Testing framework
 ├── completions/         # Custom completions
@@ -90,7 +89,7 @@ chmod +x install.sh
 - **ZSH**: Version 5.8 or higher
 - **Operating System**: macOS, Linux, or WSL
 - **Package Manager**: Homebrew (macOS), apt/yum (Linux)
-- **Optional**: Oh My Posh for enhanced prompts
+- **Optional**: Enhanced prompts with custom theme
 
 ## ⚙️ Configuration
 
@@ -151,14 +150,22 @@ Essential ZSH settings and options:
 - Global aliases
 
 ### Plugin Module (`modules/plugins.zsh`)
-**Manual plugin management**—no Zinit required:
-- FZF, Zoxide, Eza, zsh-autosuggestions, zsh-syntax-highlighting, etc.
-- Plugins are loaded if available on your system
-- Use `check_plugins` to see plugin status
+**Zinit-based plugin management**:
+- **Essential Plugins**: Syntax highlighting, autosuggestions, FZF tab completion
+- **Git Integration**: Git status in prompt, useful aliases
+- **History Management**: Better history search and management
+- **System Tools**: FZF, Zoxide, Eza (if available)
+- **Automatic Installation**: Zinit is automatically installed and updated
 
-**To install plugins:**
-- Use your OS package manager (e.g., `brew install fzf zoxide eza zsh-autosuggestions zsh-syntax-highlighting`)
-- No lazy loading or Zinit required
+**Current Plugins**:
+- `fast-syntax-highlighting` - Syntax highlighting
+- `zsh-autosuggestions` - Command suggestions
+- `fzf-tab` - FZF-powered tab completion
+- `git` - Git integration and aliases
+- `zsh-history-substring-search` - Better history search
+- `history` - History management
+
+**Plugin Status**: Run `check_plugins` to see which plugins are active
 
 ### Completion Module (`modules/completion.zsh`)
 Advanced completion system with caching:
@@ -263,32 +270,26 @@ test_timing.zsh
 - Comprehensive testing framework ensures configuration quality.
 - Performance optimization tools help maintain fast startup times.
 
-## 🎨 Oh My Posh Integration
+## 🎨 Prompt Configuration
 
 ### Theme Configuration
 
-The prompt theme is configured in `themes/prompt.zsh`:
+The prompt theme is configured in `themes/prompt.zsh` with a clean, professional design:
 
 ```bash
-# Theme path
-POSH_THEME="${POSH_THEME:-$HOME/.poshthemes/pararussel.omp.json}"
-
-# Fallback prompt if Oh My Posh is not available
-_setup_fallback_prompt() {
-    # Custom fallback prompt implementation
+# Custom prompt configuration
+_setup_prompt() {
+    # Professional prompt with git status
+    # Clean, readable design for any terminal
 }
 ```
 
-### Installing Oh My Posh
-
-```bash
-# macOS
-brew install oh-my-posh
-
-# Linux
-wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -O /usr/local/bin/oh-my-posh
-chmod +x /usr/local/bin/oh-my-posh
-```
+### Features
+- Git status and branch information
+- Exit code display
+- Current directory path
+- User and host information
+- Clean, readable design
 
 ## 🔍 Advanced Troubleshooting
 
@@ -463,8 +464,8 @@ See [CHANGELOG.md](CHANGELOG.md) for a complete history of changes and version i
 
 ## 🙏 Acknowledgments
 
-- [Oh My Posh](https://ohmyposh.dev/) - Prompt engine
 - [ZSH Community](https://zsh.sourceforge.io/) - Shell framework
+- [Zinit](https://github.com/zdharma-continuum/zinit) - Plugin manager
 - [FZF](https://github.com/junegunn/fzf) - Fuzzy finder
 - [Zoxide](https://github.com/ajeetdsouza/zoxide) - Smart cd replacement
 - [Eza](https://github.com/eza-community/eza) - Modern ls replacement
@@ -480,4 +481,4 @@ See [CHANGELOG.md](CHANGELOG.md) for a complete history of changes and version i
 
 **Made with ❤️ for developers who care about their shell experience**
 
-**Version 1.0.0** - A complete, modular, and performance-optimized ZSH configuration system. 
+**Version 2.1.0** - A complete, modular, and performance-optimized ZSH configuration system. 

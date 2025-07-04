@@ -3,37 +3,28 @@
 # Prompt Theme Configuration
 # =============================================================================
 
-# Theme configuration
-POSH_THEME="${POSH_THEME:-$HOME/.poshthemes/pararussel.omp.json}"
-
-# Check if oh-my-posh is available
-if command -v oh-my-posh >/dev/null 2>&1; then
-    # Check if theme file exists
-    if [[ -f "$POSH_THEME" ]]; then
-        # Initialize oh-my-posh
-        eval "$(oh-my-posh init zsh --config "$POSH_THEME")"
-    else
-        print -P "%F{160}▓▒░ Theme file not found: $POSH_THEME%f"
-        _setup_fallback_prompt
-    fi
-else
-    print -P "%F{160}▓▒░ oh-my-posh not found, using fallback prompt%f"
-    _setup_fallback_prompt
-fi
-
-# Fallback prompt function
-_setup_fallback_prompt() {
-    # Simple but informative prompt
+# Custom prompt setup
+_setup_custom_prompt() {
+    # Load vcs_info for git status
     autoload -Uz vcs_info
     precmd() { vcs_info }
     
+    # Configure git status display
     zstyle ':vcs_info:git:*' formats '%F{blue}(%b)%f'
     zstyle ':vcs_info:*' enable git
     
+    # Enable prompt substitution
     setopt PROMPT_SUBST
+    
+    # Main prompt with git status
     PROMPT='%F{green}%n@%m%f:%F{cyan}%~%f${vcs_info_msg_0_} %# '
+    
+    # Right prompt with time
     RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
 }
+
+# Initialize the custom prompt
+_setup_custom_prompt
 
 # Prompt customization functions
 prompt_context() {
