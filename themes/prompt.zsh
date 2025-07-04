@@ -7,7 +7,7 @@
 if command -v oh-my-posh >/dev/null 2>&1; then
     # Initialize Oh My Posh with official theme
     # You can change the theme by modifying this line
-    eval "$(oh-my-posh init zsh --config ~/.poshthemes/M365Princess.omp.json)"
+    eval "$(oh-my-posh init zsh --config ~/.poshthemes/powerlevel10k_rainbow.omp.json)"
     
     # Popular official themes you can use:
     # eval "$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)"      # Classic powerline
