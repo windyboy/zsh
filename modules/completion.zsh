@@ -8,6 +8,12 @@ COMPLETION_CACHE_FILE="${ZSH_CACHE_DIR}/zcompdump"
 
 # Initialize completion system with caching
 _init_completion() {
+    # Check if Zinit has already initialized completion
+    if [[ -n "$ZINIT" ]] && (( ${+_comps} )); then
+        print -P "%F{33}▓▒░ Zinit has already initialized completion system%f"
+        return 0
+    fi
+    
     # Check if we need to regenerate the completion cache
     local rebuild_cache=0
     
@@ -43,6 +49,15 @@ _init_completion() {
 
 # Initialize completion system
 _init_completion
+
+# Ensure completion system is properly set up even if Zinit is present
+if [[ -n "$ZINIT" ]]; then
+    # Make sure completion styles are applied even with Zinit
+    autoload -Uz compinit
+    if (( ! ${+_comps} )); then
+        compinit -C -d "$COMPLETION_CACHE_FILE"
+    fi
+fi
 
 # =============================================================================
 # COMPLETION STYLES

@@ -52,9 +52,24 @@ bindkey ' ' magic-space                 # Space expands history
 # COMPLETION NAVIGATION
 # =============================================================================
 
-# Tab completion
+# Tab completion (ensure these are set correctly)
 bindkey '^I' complete-word              # Tab
 bindkey '^[[Z' reverse-menu-complete    # Shift+Tab
+
+# Ensure tab completion works even if other plugins override it
+_ensure_tab_completion() {
+    # Re-bind tab if it was overridden
+    bindkey '^I' complete-word 2>/dev/null || true
+    bindkey '^[[Z' reverse-menu-complete 2>/dev/null || true
+}
+
+# Set up the hook if add-zsh-hook is available
+if (( ${+functions[add-zsh-hook]} )); then
+    add-zsh-hook precmd _ensure_tab_completion
+else
+    # Fallback: call the function directly
+    _ensure_tab_completion
+fi
 
 # =============================================================================
 # CUSTOM WIDGETS AND BINDINGS
