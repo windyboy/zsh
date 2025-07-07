@@ -169,7 +169,28 @@ optimize_zsh_performance() {
     # Compile zsh files
     _compile_zsh_files
     
+    # Optimize hooks
+    _optimize_hooks
+    
     echo "✅ Performance optimization completed"
+}
+
+# Optimize hooks for better performance
+_optimize_hooks() {
+    echo "  • Optimizing hooks..."
+    
+    # Remove duplicate precmd hooks
+    local hooks=$(add-zsh-hook -L precmd 2>/dev/null)
+    local unique_hooks=$(echo "$hooks" | sort | uniq)
+    
+    if [[ "$hooks" != "$unique_hooks" ]]; then
+        # Clear all precmd hooks
+        add-zsh-hook -D precmd '*'
+        # Re-add unique hooks
+        echo "$unique_hooks" | while read hook; do
+            [[ -n "$hook" ]] && add-zsh-hook precmd "$hook"
+        done
+    fi
 }
 
 # Optimize completion cache

@@ -25,9 +25,14 @@ if command -v oh-my-posh >/dev/null 2>&1; then
 else
     # Fallback to custom prompt if Oh My Posh is not available
     _setup_custom_prompt() {
-        # Load vcs_info for git status
+        # Load vcs_info for git status (optimized)
         autoload -Uz vcs_info
-        precmd() { vcs_info }
+        precmd() { 
+            # Only run vcs_info if we're in a git repository
+            if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+                vcs_info
+            fi
+        }
         
         # Configure git status display
         zstyle ':vcs_info:git:*' formats '%F{blue}(%b)%f'

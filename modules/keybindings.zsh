@@ -56,20 +56,17 @@ bindkey ' ' magic-space                 # Space expands history
 bindkey '^I' complete-word              # Tab
 bindkey '^[[Z' reverse-menu-complete    # Shift+Tab
 
-# Ensure tab completion works even if other plugins override it
+# Ensure tab completion works (run once at startup, not after every command)
 _ensure_tab_completion() {
-    # Re-bind tab if it was overridden
-    bindkey '^I' complete-word 2>/dev/null || true
-    bindkey '^[[Z' reverse-menu-complete 2>/dev/null || true
+    # Only re-bind if needed (check if already bound correctly)
+    if ! bindkey | grep -q '\^I.*complete-word'; then
+        bindkey '^I' complete-word 2>/dev/null || true
+        bindkey '^[[Z' reverse-menu-complete 2>/dev/null || true
+    fi
 }
 
-# Set up the hook if add-zsh-hook is available
-if (( ${+functions[add-zsh-hook]} )); then
-    add-zsh-hook precmd _ensure_tab_completion
-else
-    # Fallback: call the function directly
-    _ensure_tab_completion
-fi
+# Run tab completion setup once at startup
+_ensure_tab_completion
 
 # =============================================================================
 # CUSTOM WIDGETS AND BINDINGS
@@ -296,9 +293,8 @@ _setup_menu_select() {
     fi
 }
 
-# Setup menu select bindings after completion is loaded
-autoload -Uz add-zsh-hook
-add-zsh-hook precmd _setup_menu_select
+# Setup menu select bindings once at startup
+_setup_menu_select
 
 # =============================================================================
 # HELP WIDGET

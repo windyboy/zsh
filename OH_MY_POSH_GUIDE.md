@@ -123,6 +123,8 @@ Your configuration automatically:
 - ✅ Falls back to a custom prompt if Oh My Posh is not available
 - ✅ Provides easy theme switching commands
 - ✅ Maintains compatibility with your modular zsh setup
+- ✅ Optimized git status checks (only runs in git repositories)
+- ✅ Performance-optimized prompt rendering
 
 ## 🔄 Reloading Configuration
 
@@ -175,6 +177,12 @@ oh-my-posh debug
 
 # Use a simpler theme if needed
 posh_theme robbyrussell
+
+# Check hook performance
+add-zsh-hook -L precmd
+
+# Optimize if needed
+optimize_zsh_performance
 ```
 
 ## 📚 Additional Resources
