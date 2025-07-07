@@ -8,7 +8,7 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     # Initialize Oh My Posh with optimized configuration
     # You can change the theme by modifying this line
     # Using a simpler theme for better performance
-    eval "$(oh-my-posh init zsh --config ~/.poshthemes/robbyrussell.omp.json --print)"
+    eval "$(oh-my-posh init zsh --config ~/.poshthemes/powerlevel10k_rainbow.omp.json --print)"
     
     # Optimize Oh My Posh performance
     export OMP_DEBUG=0  # Disable debug mode
