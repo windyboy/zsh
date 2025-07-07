@@ -275,14 +275,24 @@ fi
 _setup_menu_select() {
     # Load complist module if available
     if zmodload -e zsh/complist 2>/dev/null || zmodload zsh/complist 2>/dev/null; then
-        # Menu selection navigation
+        # Menu selection navigation (Vim-style)
         bindkey -M menuselect 'h' vi-backward-char
         bindkey -M menuselect 'k' vi-up-line-or-history
         bindkey -M menuselect 'l' vi-forward-char
         bindkey -M menuselect 'j' vi-down-line-or-history
+        
+        # Arrow key navigation
+        bindkey -M menuselect '^[[A' vi-up-line-or-history
+        bindkey -M menuselect '^[[B' vi-down-line-or-history
+        bindkey -M menuselect '^[[C' vi-forward-char
+        bindkey -M menuselect '^[[D' vi-backward-char
+        
+        # Other navigation keys
         bindkey -M menuselect '^[[Z' reverse-menu-complete
         bindkey -M menuselect '^M' accept-line
         bindkey -M menuselect '^[' send-break
+        bindkey -M menuselect '^I' accept-line  # Tab to accept
+        bindkey -M menuselect ' ' accept-line   # Space to accept
     fi
 }
 

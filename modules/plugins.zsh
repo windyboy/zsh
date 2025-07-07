@@ -62,6 +62,10 @@ if [[ -o interactive ]]; then
     zinit ice wait'0' lucid
     zinit light Aloxaf/fzf-tab 2>/dev/null || true
 
+    # Enhanced completion menu navigation
+    zinit ice wait'0' lucid
+    zinit light marlonrichert/zsh-autocomplete 2>/dev/null || true
+
     # Git status in prompt (lightweight)
     zinit snippet https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh
 
@@ -120,6 +124,12 @@ export ZSH_AUTOSUGGEST_HISTORY_IGNORE="cd *"
 
 # FZF tab configuration
 zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --color=always --style=numbers --line-range=:500 $realpath'
+
+# Enhanced FZF configuration for better navigation
+zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap
+zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || ls -la $realpath 2>/dev/null || echo $realpath'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la $realpath'
+zstyle ':fzf-tab:complete:ls:*' fzf-preview 'ls -la $realpath'
 
 # History substring search key bindings
 bindkey '^[[A' history-substring-search-up
