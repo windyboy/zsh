@@ -36,11 +36,14 @@ _init_completion() {
     
     if [[ $rebuild_cache -eq 1 ]]; then
         print -P "%F{33}▓▒░ Rebuilding completion cache...%f"
-        autoload -Uz compinit
-        compinit -d "$COMPLETION_CACHE_FILE"
+        # Add timeout to prevent hanging during completion cache rebuild
+        timeout 10s autoload -Uz compinit && compinit -d "$COMPLETION_CACHE_FILE" 2>/dev/null || {
+            print -P "%F{red}▓▒░ Completion cache rebuild failed, using existing cache%f"
+            compinit -C -d "$COMPLETION_CACHE_FILE" 2>/dev/null || true
+        }
         # Compile the completion cache for faster loading
         [[ -f "$COMPLETION_CACHE_FILE" ]] && [[ ! -f "${COMPLETION_CACHE_FILE}.zwc" ]] && \
-            zcompile "$COMPLETION_CACHE_FILE"
+            timeout 5s zcompile "$COMPLETION_CACHE_FILE" 2>/dev/null || true
     else
         autoload -Uz compinit
         compinit -C -d "$COMPLETION_CACHE_FILE"
@@ -159,5 +162,75 @@ _load_tool_completions() {
     fi
 }
 
-# Load tool completions asynchronously
-(( ${+functions[_load_tool_completions]} )) && _load_tool_completions &!
+# Load tool completions synchronously to prevent hanging
+if (( ${+functions[_load_tool_completions]} )); then
+    # Add timeout to prevent hanging
+    timeout 5s _load_tool_completions 2>/dev/null || true
+fi
+
+# =============================================================================
+# ENHANCED FILE & DIRECTORY COMPLETION
+# =============================================================================
+
+# Enhanced file completion with better performance
+_enhanced_file_completion() {
+    # Enable menu selection for file completion
+    zstyle ':completion:*' menu select
+    
+    # Show hidden files in completion
+    zstyle ':completion:*' file-patterns '%p(D-/):directories %p(-/):directories %p(^-/):files %p(-/):directories'
+    
+    # Better file matching
+    zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+    
+    # Show file types with colors
+    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+    
+    # Group files and directories
+    zstyle ':completion:*' group-name ''
+    zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+}
+
+# Initialize enhanced file completion
+_enhanced_file_completion
+
+# =============================================================================
+# SMART DIRECTORY COMPLETION
+# =============================================================================
+
+# Smart directory completion that shows contents
+_smart_dir_completion() {
+    # For cd command, show directory contents
+    zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
+    zstyle ':completion:*:cd:*' ignore-parents parent pwd
+    
+    # Show directory contents in completion
+    zstyle ':completion:*:cd:*' extra-verbose true
+    zstyle ':completion:*:cd:*' squeeze-slashes true
+    
+    # For ls command, show files with details
+    zstyle ':completion:*:ls:*' file-patterns '%p(D-/):directories %p(-/):directories %p(^-/):files %p(-/):directories'
+    zstyle ':completion:*:ls:*' extra-verbose true
+}
+
+# Initialize smart directory completion
+_smart_dir_completion
+
+# =============================================================================
+# REAL-TIME FILE SUGGESTIONS (SAFE VERSION)
+# =============================================================================
+
+# Safe real-time file suggestions without hanging
+_safe_file_suggestions() {
+    # Only enable for specific commands that need file suggestions
+    local file_commands=(ls cd cp mv rm cat less more head tail)
+    
+    for cmd in $file_commands; do
+        # Enable real-time suggestions with timeout protection
+        zstyle ":completion:*:$cmd:*" completer _complete _files _match
+        zstyle ":completion:*:$cmd:*" file-patterns '%p(D-/):directories %p(-/):directories %p(^-/):files %p(-/):directories'
+    done
+}
+
+# Initialize safe file suggestions
+_safe_file_suggestions

@@ -63,8 +63,9 @@ if [[ -o interactive ]]; then
     zinit light Aloxaf/fzf-tab 2>/dev/null || true
 
     # Enhanced completion menu navigation
-    zinit ice wait'0' lucid
-    zinit light marlonrichert/zsh-autocomplete 2>/dev/null || true
+    # DISABLED: This plugin can cause hanging issues
+    # zinit ice wait'0' lucid
+    # zinit light marlonrichert/zsh-autocomplete 2>/dev/null || true
 
     # Git status in prompt (lightweight)
     zinit snippet https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh
@@ -115,21 +116,42 @@ fi
 # PLUGIN CONFIGURATION
 # =============================================================================
 
-# Auto-suggestions configuration
+# Auto-suggestions configuration (optimized for performance)
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
-export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+export ZSH_AUTOSUGGEST_STRATEGY=(history)  # Use only history for better performance
 export ZSH_AUTOSUGGEST_USE_ASYNC=1
 export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 export ZSH_AUTOSUGGEST_HISTORY_IGNORE="cd *"
+export ZSH_AUTOSUGGEST_ACCEPT_WIDGETS=(end-of-line vi-end-of-line vi-add-eol)
+export ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS=(forward-char vi-forward-char)
+export ZSH_AUTOSUGGEST_EXECUTE_WIDGETS=(accept-line)
 
 # FZF tab configuration
-zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --color=always --style=numbers --line-range=:500 $realpath'
+zstyle ':fzf-tab:complete:*:*' fzf-preview 'timeout 2s bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || echo "Preview not available"'
 
 # Enhanced FZF configuration for better navigation
-zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap
-zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || ls -la $realpath 2>/dev/null || echo $realpath'
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la $realpath'
-zstyle ':fzf-tab:complete:ls:*' fzf-preview 'ls -la $realpath'
+zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --timeout=3
+zstyle ':fzf-tab:complete:*:*' fzf-preview 'timeout 2s bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || timeout 1s ls -la $realpath 2>/dev/null || echo $realpath'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "Directory preview not available"'
+zstyle ':fzf-tab:complete:ls:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "File preview not available"'
+
+# Enhanced file and directory completion with FZF
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "Directory: $realpath"'
+zstyle ':fzf-tab:complete:ls:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"'
+zstyle ':fzf-tab:complete:cp:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"'
+zstyle ':fzf-tab:complete:mv:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"'
+zstyle ':fzf-tab:complete:rm:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"'
+
+# Show file types and sizes in FZF completion
+zstyle ':fzf-tab:complete:*' fzf-preview 'if [[ -d $realpath ]]; then
+    echo "📁 Directory: $realpath"
+    timeout 1s ls -la "$realpath" | head -10 2>/dev/null || echo "Contents not available"
+elif [[ -f $realpath ]]; then
+    echo "📄 File: $realpath"
+    timeout 1s ls -lh "$realpath" 2>/dev/null || echo "File info not available"
+else
+    echo "❓ Unknown: $realpath"
+fi'
 
 # History substring search key bindings
 bindkey '^[[A' history-substring-search-up

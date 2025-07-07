@@ -907,3 +907,93 @@ export -f run_zsh_tests quick_zsh_test test_zsh_modules 2>/dev/null || true
 # Create aliases for easy access
 alias zsh-test='source $HOME/.config/zsh/tests/test_framework.zsh && run_zsh_tests'
 alias zsh-test-quick='source $HOME/.config/zsh/tests/test_framework.zsh && quick_test'
+
+# =============================================================================
+# FILE & DIRECTORY UTILITIES
+# =============================================================================
+
+# Safe real-time file suggestions (replacement for zsh-autocomplete)
+_safe_file_suggest() {
+    local current_word="${words[CURRENT]}"
+    local dir_path="."
+    
+    # If we're in the middle of a path, get the directory part
+    if [[ "$current_word" == */* ]]; then
+        dir_path="${current_word%/*}"
+        [[ "$dir_path" == "" ]] && dir_path="/"
+    fi
+    
+    # Only suggest if directory exists and is readable
+    if [[ -d "$dir_path" ]] && [[ -r "$dir_path" ]]; then
+        # Use timeout to prevent hanging
+        timeout 2s find "$dir_path" -maxdepth 1 -name "*${current_word##*/}*" 2>/dev/null | head -20
+    fi
+}
+
+# Enhanced ls with better formatting
+function lls() {
+    local path="${1:-.}"
+    if command -v eza >/dev/null 2>&1; then
+        eza -la --icons --group-directories-first "$path"
+    elif command -v ls >/dev/null 2>&1; then
+        ls -la --color=auto "$path"
+    else
+        echo "No ls command available"
+    fi
+}
+
+# Quick directory navigation with preview
+function qcd() {
+    local target="$1"
+    if [[ -z "$target" ]]; then
+        # Interactive directory selection
+        if command -v fzf >/dev/null 2>&1; then
+            target=$(find . -type d -maxdepth 2 2>/dev/null | fzf --preview 'ls -la {}' --preview-window=right:60%:wrap)
+        else
+            echo "Usage: qcd <directory>"
+            return 1
+        fi
+    fi
+    
+    if [[ -n "$target" ]] && [[ -d "$target" ]]; then
+        cd "$target"
+        echo "📁 Changed to: $(pwd)"
+        lls
+    else
+        echo "❌ Directory not found: $target"
+        return 1
+    fi
+}
+
+# Smart file finder
+function findf() {
+    local pattern="$1"
+    local path="${2:-.}"
+    
+    if [[ -z "$pattern" ]]; then
+        echo "Usage: findf <pattern> [path]"
+        return 1
+    fi
+    
+    echo "🔍 Finding files matching '$pattern' in $path..."
+    
+    if command -v fzf >/dev/null 2>&1; then
+        find "$path" -name "*$pattern*" -type f 2>/dev/null | fzf --preview 'bat --color=always --style=numbers --line-range=:500 {} 2>/dev/null || ls -la {}' --preview-window=right:60%:wrap
+    else
+        find "$path" -name "*$pattern*" -type f 2>/dev/null | head -20
+    fi
+}
+
+# Directory tree with preview
+function treef() {
+    local path="${1:-.}"
+    local depth="${2:-3}"
+    
+    if command -v eza >/dev/null 2>&1; then
+        eza -T --icons --level="$depth" "$path"
+    elif command -v tree >/dev/null 2>&1; then
+        tree -L "$depth" "$path"
+    else
+        find "$path" -maxdepth "$depth" -type d | sed -e "s/[^-][^\/]*\//  |/g" -e "s/|\([^ ]\)/|-\1/"
+    fi
+}

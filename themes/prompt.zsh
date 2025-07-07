@@ -5,9 +5,14 @@
 
 # Check if Oh My Posh is available
 if command -v oh-my-posh >/dev/null 2>&1; then
-    # Initialize Oh My Posh with official theme
+    # Initialize Oh My Posh with optimized configuration
     # You can change the theme by modifying this line
-    eval "$(oh-my-posh init zsh --config ~/.poshthemes/powerlevel10k_rainbow.omp.json)"
+    # Using a simpler theme for better performance
+    eval "$(oh-my-posh init zsh --config ~/.poshthemes/robbyrussell.omp.json --print)"
+    
+    # Optimize Oh My Posh performance
+    export OMP_DEBUG=0  # Disable debug mode
+    export OMP_TRANSIENT=1  # Enable transient prompt for better performance
     
     # Popular official themes you can use:
     # eval "$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)"      # Classic powerline
@@ -28,8 +33,8 @@ else
         # Load vcs_info for git status (optimized)
         autoload -Uz vcs_info
         precmd() { 
-            # Only run vcs_info if we're in a git repository
-            if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            # Only run vcs_info if we're in a git repository and not in a transient prompt
+            if [[ -z "$OMP_TRANSIENT" ]] && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
                 vcs_info
             fi
         }
