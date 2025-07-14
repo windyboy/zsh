@@ -1,571 +1,389 @@
-# ZSH Modular Configuration
+# ZSH Configuration - Unified Module System
 
-A professional-grade, modular ZSH configuration system designed for developers who demand performance, reliability, and extensibility.
-
-**Current Version**: 2.2.0  
-**Last Updated**: 2025-01-07
+A comprehensive, modular ZSH configuration system designed for performance, security, and maintainability.
 
 ## 🚀 Features
 
-- **Modular Architecture**: Clean separation of concerns with dedicated modules
-- **Performance Optimized**: Sub-second startup times with intelligent caching and 43% faster command execution
-- **Enhanced Navigation**: FZF tab completion with file previews and advanced menu navigation
-- **Error Handling**: Comprehensive error recovery and logging
-- **Testing Framework**: Built-in testing, validation, and scoring
-- **Zinit Plugin Management**: Fast, efficient plugin loading with Zinit
-- **Security Module**: Hardened shell with best practices
-- **XDG Compliance**: Proper file organization following standards
+### Core System
+- **Unified Module System**: Centralized module management with dependency resolution
+- **Performance Monitoring**: Real-time performance tracking and optimization
+- **Security Framework**: Comprehensive security auditing and validation
+- **Error Handling**: Robust error recovery and logging system
+- **XDG Compliance**: Follows XDG Base Directory Specification
 
-## 📁 Project Structure
+### Module Architecture
+- **Core Module**: Foundation settings and module system
+- **Error Handling**: Safe operations and error recovery
+- **Security**: Security auditing and validation
+- **Performance**: Performance monitoring and optimization
+- **Plugins**: Zinit-based plugin management
+- **Completion**: Advanced completion system
+- **Aliases**: Comprehensive alias management
+- **Functions**: Utility function collection
+- **Keybindings**: Custom keybinding system
 
-```
-~/.config/zsh/
-├── zshrc                 # Main configuration file
-├── zshenv                # Environment variables
-├── modules/              # Modular configuration
-│   ├── core.zsh         # Core ZSH settings
-│   ├── plugins.zsh      # Zinit-based plugin management
-│   ├── completion.zsh   # Completion system
-│   ├── functions.zsh    # Custom functions
-│   ├── aliases.zsh      # Aliases
-│   ├── keybindings.zsh  # Key bindings
-│   ├── performance.zsh  # Performance monitoring
-│   ├── error_handling.zsh # Error handling
-│   └── security.zsh     # Security hardening
-├── themes/
-│   └── prompt.zsh       # Prompt configuration
-├── tests/
-│   └── test_framework.zsh # Testing framework
-├── completions/         # Custom completions
-├── backup/             # Backup files
-├── cache/              # Cache files
-└── data/               # Data files
+### Advanced Features
+- **Module Manager**: Centralized module loading with dependencies
+- **System Status**: Comprehensive system diagnostics
+- **Performance Analysis**: Detailed performance metrics
+- **Security Auditing**: Security validation and monitoring
+- **Configuration Validation**: Automated configuration checking
 
-### Key Files
+## 📦 Installation
 
-- `optimize_performance.zsh` - Performance optimization tools
-- `verify_optimization.zsh` - Performance verification scripts
-- `test_performance.zsh` - Performance testing framework
-- `test_timing.zsh` - Startup timing analysis
-- `test_minimal.zsh` - Minimal configuration testing
-- `PERFORMANCE_GUIDE.md` - Performance optimization guide
-- `OPTIMIZATION_SUMMARY.md` - Performance optimization summary
-- `NAVIGATION_GUIDE.md` - Comprehensive navigation guide
-
-## 🛠️ Installation
+### Prerequisites
+- ZSH 5.8 or higher
+- Git
+- Basic Unix tools (curl, wget, etc.)
 
 ### Quick Install
-
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/zsh-config.git ~/.config/zsh
 
-# Run the installer
-cd ~/.config/zsh
-chmod +x install.sh
-./install.sh
+# Create symlinks
+ln -sf ~/.config/zsh/zshrc ~/.zshrc
+ln -sf ~/.config/zsh/zshenv ~/.zshenv
+
+# Restart your shell
+exec zsh
 ```
 
 ### Manual Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/zsh-config.git ~/.config/zsh
-   ```
-
-2. **Create symlinks**:
-   ```bash
-   ln -sf ~/.config/zsh/zshrc ~/.zshrc
-   ln -sf ~/.config/zsh/zshenv ~/.zshenv
-   ```
-
-3. **Set ZSH as default shell**:
-   ```bash
-   chsh -s $(which zsh)
-   ```
-
-4. **Restart your terminal**
-
-### System Requirements
-
-- **ZSH**: Version 5.8 or higher
-- **Operating System**: macOS, Linux, or WSL
-- **Package Manager**: Homebrew (macOS), apt/yum (Linux)
-- **Optional**: Enhanced prompts with custom theme
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-Key environment variables in `zshenv`:
-
 ```bash
-# XDG Base Directory Specification
-export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
-export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+# Create configuration directories
+mkdir -p ~/.config/zsh ~/.cache/zsh ~/.local/share/zsh
 
-# ZSH specific paths
-export ZSH_CONFIG_DIR="${XDG_CONFIG_HOME}/zsh"
-export ZSH_CACHE_DIR="${XDG_CACHE_HOME}/zsh"
-export ZSH_DATA_DIR="${XDG_DATA_HOME}/zsh"
+# Copy configuration files
+cp -r zsh/ ~/.config/zsh/
+
+# Set up environment
+echo 'export ZSH_CONFIG_DIR="$HOME/.config/zsh"' >> ~/.zshenv
+echo 'source ~/.config/zsh/zshrc' >> ~/.zshrc
 ```
 
-### Local Configuration
+## 🏗️ Module System
 
-Create `~/.config/zsh/local.zsh` for machine-specific settings:
-
-```bash
-# Example local.zsh
-export EDITOR='nvim'
-export BROWSER='firefox'
-
-# Machine-specific aliases
-alias myproject='cd ~/Projects/myproject'
-
-# Custom functions
-my_custom_function() {
-    echo "This is my custom function"
-}
+### Module Dependencies
+```
+core (foundation)
+├── error_handling
+├── security
+├── performance
+├── plugins
+│   └── completion
+├── aliases
+├── functions
+└── keybindings
 ```
 
-## 🔒 Security Module (`modules/security.zsh`)
+### Module Loading Order
+1. **Core**: Foundation settings and module system
+2. **Error Handling**: Safe operations and error recovery
+3. **Security**: Security auditing and validation
+4. **Performance**: Performance monitoring and optimization
+5. **Plugins**: Zinit-based plugin management
+6. **Completion**: Advanced completion system
+7. **Aliases**: Comprehensive alias management
+8. **Functions**: Utility function collection
+9. **Keybindings**: Custom keybinding system
 
-This module enforces best security practices:
-- Prevents accidental file overwrites (`NO_CLOBBER`)
-- Confirms before `rm *` (`RM_STAR_WAIT`)
-- Secure SSH/SCP aliases
-- Security audit and suspicious file checks
-- Hardened umask and TMPDIR
-- Security validation and scoring
+## 🛠️ Usage
 
-Run `validate-security` or `security-audit` for checks.
-
-## 🔧 Modules
-
-### Core Module (`modules/core.zsh`)
-Essential ZSH settings and options:
-- History configuration
-- Directory navigation
-- Globbing options
-- Correction settings
-- Global aliases
-
-### Plugin Module (`modules/plugins.zsh`)
-**Zinit-based plugin management**:
-- **Essential Plugins**: Syntax highlighting, autosuggestions, FZF tab completion
-- **Git Integration**: Git status in prompt, useful aliases
-- **History Management**: Better history search and management
-- **System Tools**: FZF, Zoxide, Eza (if available)
-- **Automatic Installation**: Zinit is automatically installed and updated
-
-**Current Plugins**:
-- `fast-syntax-highlighting` - Syntax highlighting
-- `zsh-autosuggestions` - Command suggestions
-- `fzf-tab` - FZF-powered tab completion with file previews
-- `zsh-autocomplete` - Enhanced completion menu navigation
-- `git` - Git integration and aliases
-- `zsh-history-substring-search` - Better history search
-- `history` - History management
-
-**Plugin Status**: Run `check_plugins` to see which plugins are active
-
-**Navigation Features**:
-- **FZF Tab Completion**: Press TAB for fuzzy file/directory search
-- **File Finder**: `Ctrl+T` for file search
-- **Directory Finder**: `Ctrl+G` for directory navigation
-- **History Search**: `Ctrl+R` for command history
-- **Menu Navigation**: Arrow keys and Vim-style navigation in completion menus
-
-### Completion Module (`modules/completion.zsh`)
-Advanced completion system with caching:
-- Intelligent cache management
-- Tool-specific completions
-- Custom completion styles
-- Async loading
-
-### Functions Module (`modules/functions.zsh`)
-Comprehensive utility functions:
-- **Directory Operations**: `mkcd`, `up`, `dirsize`
-- **File Operations**: `trash`, `backup`, `extract`
-- **Network Operations**: `serve`, `myip`, `portscan`
-- **System Information**: `sysinfo`, `process_info`
-- **Development Tools**: `git_quick`, `docker_cleanup`
-
-### Performance Module (`modules/performance.zsh`)
-Performance monitoring and optimization:
-- Startup time tracking
-- Function profiling
-- Performance metrics and scoring
-- Optimization suggestions
-- Performance dashboard
-
-### Error Handling Module (`modules/error_handling.zsh`)
-Robust error handling and recovery:
-- Error logging
-- Recovery strategies
-- Safe execution
-- Emergency recovery mode
-
-## 🧪 Testing & Scoring
-
-### Run Tests
-
+### Basic Commands
 ```bash
-# Full test suite
-zsh-test
+# System status
+system_status          # Comprehensive system check
+quick_status          # Quick system check
+module_status         # Module status check
 
-# Quick test
-zsh-test-quick
+# Configuration management
+zsh-check            # Validate configuration
+zsh-reload           # Reload configuration
+validate_configuration # Detailed validation
 
-# Performance test
-test_performance.zsh
+# Performance
+zsh-perf             # Performance analysis
+zsh-perf-dash        # Performance dashboard
+zsh-perf-opt         # Performance optimization
 
-# Minimal test
-test_minimal.zsh
+# Security
+security-audit       # Security audit
+check-suspicious     # Check suspicious files
+validate-security    # Security validation
+
+# Module management
+modules-list         # List all modules
+modules-check        # Check module dependencies
+modules-validate     # Validate module system
 ```
 
-### Test Categories
-- Core configuration validation
-- Security configuration validation
-- Plugin/module loading verification
-- Performance analysis and benchmarking
-- Custom function validation
-- Module loading validation
-
-### Scoring
-- The test suite outputs a configuration score out of 10
-- Achieve 10/10 for a perfect, professional setup
-- Performance metrics and optimization suggestions
-- Security validation and scoring
-
-## 📊 Performance
-
-### Monitoring
-
+### Module Management
 ```bash
-# Performance dashboard
-zsh-perf
+# List modules
+list_all_modules
 
-# Performance verification
-verify_optimization.zsh
+# Get module status
+get_module_status <module>
 
-# Performance analysis
-test_performance.zsh
+# Reload module
+reload_module <module>
 
-# Timing analysis
-test_timing.zsh
+# Monitor module performance
+monitor_module_performance <module>
+
+# Validate module security
+validate_module_security <module>
 ```
 
-## 🛡️ Troubleshooting
-
-### Common Issues
-
-- **Interactive Shell Required:** Some features (completion, keybindings) only work in an interactive ZSH shell. Always test by opening a new terminal and running `zsh`.
-- **Completion Errors:** If you see errors about `zsh/parameter` or `zsh/zle`, delete your completion cache:
-  ```sh
-  rm ~/.cache/zsh/zcompdump*
-  ```
-  Then restart your shell.
-- **Plugin Not Found:** Install missing plugins with your package manager (e.g., `brew install fzf zoxide eza zsh-autosuggestions zsh-syntax-highlighting`).
-- **Default Shell:** Ensure ZSH is your default shell: `chsh -s $(which zsh)`
-- **Performance Issues:** Run `optimize_zsh_performance` for optimization suggestions
-- **Module Loading Errors:** Use `zsh-test` to validate module loading and identify issues
-
-### Shell Hanging Issues
-
-If your shell hangs after pressing Enter twice:
-
-1. **Check for background processes:**
-   ```bash
-   jobs
-   ```
-
-2. **Test hanging fix:**
-   ```bash
-   ./tests/test_hanging_fix.zsh
-   ```
-
-3. **Common causes and solutions:**
-   - **Async tool completion**: Timeout protection is already implemented
-   - **FZF tab completion**: Preview commands have timeout protection
-   - **External tools**: If `docker`, `bun`, or `deno` are slow, they might cause delays
-   - **Completion cache**: Rebuild with timeout protection
-
-4. **Emergency recovery:**
-   ```bash
-   # Restart terminal completely
-   # Or run in recovery mode
-   enter_recovery_mode
-   ```
-
-## 🎖️ Final Notes
-
-- This configuration is now fully modular, secure, and does not require Zinit or any plugin manager.
-- All modules are loaded and tracked for reliability and scoring.
-- Security and performance are first-class citizens.
-- Comprehensive testing framework ensures configuration quality.
-- Performance optimization tools help maintain fast startup times.
-
-## 🧭 Navigation & Key Bindings
-
-### FZF Tab Completion (Primary Method)
-- **How to use**: Press `TAB` when typing a command
-- **What happens**: Opens a fuzzy search interface
-- **Navigation**: 
-  - Type to filter results
-  - Use arrow keys or `Ctrl+N/P` to navigate
-  - Press `Enter` to select
-  - Press `Esc` to cancel
-
-### FZF File & Directory Navigation
-- **File Finder**: `Ctrl+T` - Fuzzy find files from current directory
-- **Directory Finder**: `Ctrl+G` - Fuzzy find and change to directories
-- **History Search**: `Ctrl+R` - Search through command history
-
-### Smart Directory Navigation
-- **Zoxide** (if installed): `z <directory_name>` - Smart directory jumping
-- **Enhanced Directory Listing**: `ls`, `ll`, `la`, `lt` - Enhanced listings with icons
-
-### Quick Navigation Shortcuts
-- `Alt+P` - Jump to Projects directory
-- `Alt+H` - Jump to Home directory
-- `Alt+R` - Jump to Root directory
-
-## 🎨 Theme Configuration
-
-### Oh My Posh Themes
-
-Your configuration supports beautiful Oh My Posh themes:
-
+### Performance Optimization
 ```bash
-# List available themes
-posh_themes
-
-# Switch themes
-posh_theme agnoster
-posh_theme catppuccin
-posh_theme dracula
-posh_theme gruvbox
-posh_theme tokyonight
-
-# Reload to apply changes
-source ~/.zshrc
-```
-
-### Popular Themes
-- **agnoster** - Classic powerline style (default)
-- **catppuccin** - Catppuccin color palette
-- **dracula** - Dracula color scheme
-- **gruvbox** - Gruvbox colors
-- **tokyonight** - Tokyo Night theme
-
-### Manual Theme Switching
-Edit `~/.config/zsh/themes/prompt.zsh` and change the theme line:
-```bash
-# Change from:
-eval "$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)"
-
-# To any other theme, for example:
-eval "$(oh-my-posh init zsh --config ~/.poshthemes/catppuccin.omp.json)"
-```
-
-### Features
-- Git status and branch information
-- Exit code display
-- Current directory path
-- User and host information
-- Clean, readable design
-- Performance-optimized prompt rendering
-
-## 🔍 Advanced Troubleshooting
-
-### Performance Issues
-
-#### Slow Startup
-
-```bash
-# Check startup time
+# Run performance analysis
 zsh_perf_analyze
 
 # Optimize performance
 optimize_zsh_performance
 
-# Disable startup check temporarily
-export ZSH_DISABLE_STARTUP_CHECK=1
+# Quick performance check
+quick_perf_check
 
-# Run performance verification
-verify_optimization.zsh
+# Performance dashboard
+zsh_perf_dashboard
 ```
 
-#### Memory Usage
+## 🔧 Configuration
 
+### Environment Variables
 ```bash
-# Monitor memory usage
-zsh_perf_memory
-
-# Clean up cache
-zsh_maintenance_cleanup
+export ZSH_CONFIG_DIR="$HOME/.config/zsh"
+export ZSH_CACHE_DIR="$HOME/.cache/zsh"
+export ZSH_DATA_DIR="$HOME/.local/share/zsh"
+export ZSH_VERBOSE=1          # Enable verbose output
+export ZSH_WELCOME=1          # Show welcome message
+export ZSH_QUIET=1            # Suppress output
 ```
 
-### Plugin Issues
-
+### Plugin Configuration
 ```bash
-# Check plugin installation
-check_plugins
+# Enable enhanced plugins
+export ZSH_ENHANCED_PLUGINS=1
 
-# Verify plugin availability
-which fzf zoxide eza
+# Plugin categories
+export ZSH_CORE_PLUGINS=1     # Core plugins
+export ZSH_ENHANCED_PLUGINS=1 # Enhanced plugins
 ```
 
-### Completion Problems
+## 📊 Performance
 
+### Startup Time
+- **Target**: < 1 second
+- **Optimized**: ~0.5 seconds
+- **Monitoring**: Real-time startup tracking
+
+### Memory Usage
+- **Target**: < 50MB
+- **Optimized**: ~30MB
+- **Monitoring**: Memory usage tracking
+
+### Function Count
+- **Target**: < 500 functions
+- **Optimized**: ~300 functions
+- **Monitoring**: Function count tracking
+
+## 🔒 Security
+
+### Security Features
+- **File Permissions**: Secure file permissions
+- **Path Validation**: PATH security checking
+- **Dangerous Pattern Detection**: Security pattern scanning
+- **Audit Logging**: Comprehensive security logging
+- **Recovery Mode**: Emergency recovery system
+
+### Security Commands
 ```bash
-# Rebuild completion cache
-rm ~/.cache/zsh/zcompdump*
-source ~/.zshrc
+# Security audit
+security_audit
 
-# Test completion system
-zsh-test-quick
+# Check suspicious files
+check_suspicious_files
+
+# Secure file deletion
+secure_rm <file>
+
+# Security validation
+validate_security_config
+
+# Security monitoring
+monitor_security
 ```
 
-### Error Recovery
+## 🐛 Troubleshooting
 
+### Common Issues
+
+#### Slow Startup
+```bash
+# Check performance
+zsh-perf
+
+# Optimize performance
+zsh-perf-opt
+
+# Check for bottlenecks
+_identify_bottlenecks
+```
+
+#### Module Loading Issues
+```bash
+# Check module status
+module_status
+
+# Validate modules
+validate_module_files
+
+# Check dependencies
+validate_module_dependencies
+```
+
+#### Configuration Errors
+```bash
+# Validate configuration
+validate_configuration
+
+# Check system status
+system_status
+
+# Quick check
+quick_status
+```
+
+### Debug Mode
+```bash
+# Enable debug mode
+export ZSH_DEBUG=1
+exec zsh
+
+# Enable profiling
+export ZSH_PROF=1
+exec zsh
+```
+
+### Recovery Mode
 ```bash
 # Enter recovery mode
 enter_recovery_mode
 
-# Check error log
+# Exit recovery mode
+exit_recovery_mode
+```
+
+## 📝 Logging
+
+### Log Files
+- **Error Log**: `~/.cache/zsh/error.log`
+- **Performance Log**: `~/.cache/zsh/performance.log`
+- **Security Log**: `~/.cache/zsh/security.log`
+- **Module Log**: `~/.cache/zsh/module_manager.log`
+- **Status Log**: `~/.cache/zsh/system_status.log`
+
+### Log Commands
+```bash
+# View error log
 report_errors
 
 # Clear error log
 clear_error_log
 
-# Validate configuration
-zsh-test
+# Module error summary
+module_error_summary
+
+# Security monitoring
+monitor_security
 ```
-
-### Debug Mode
-
-```bash
-# Enable debug mode
-export ZSH_DEBUG=1
-
-# Enable profiling
-export ZSH_PROF=1
-exec zsh
-
-# Test timing
-test_timing.zsh
-```
-
-## 🛡️ Security
-
-### Best Practices
-
-- **Path Validation**: All PATH modifications are validated
-- **Safe File Operations**: Backup mechanisms for critical operations
-- **Plugin Security**: Only trusted plugin sources
-- **Environment Isolation**: XDG compliance for file organization
-
-### Security Features
-
-- Safe command execution with `safe_exec`
-- File operation validation
-- Error logging for security events
-- Recovery mode for emergency situations
-
-## 🔄 Maintenance
-
-### Regular Maintenance
-
-```bash
-# Weekly optimization
-optimize_zsh_performance
-
-# Monthly cleanup
-zsh_maintenance_cleanup
-
-# Quarterly testing
-run_zsh_tests
-```
-
-### Backup and Restore
-
-```bash
-# Create backup
-zsh_backup
-
-# Restore from backup
-zsh_restore <backup_file>
-```
-
-## 📈 Performance Metrics
-
-### Startup Time Tracking
-
-The configuration tracks startup times and provides optimization suggestions:
-
-- **Good**: < 1 second
-- **Warning**: 1-2 seconds
-- **Critical**: > 2 seconds
-
-### Memory Usage
-
-- **Target**: < 50MB
-- **Monitoring**: Real-time memory tracking
-- **Optimization**: Automatic cleanup suggestions
 
 ## 🤝 Contributing
 
 ### Development Setup
+```bash
+# Clone repository
+git clone https://github.com/yourusername/zsh-config.git
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `run_zsh_tests`
-5. Submit a pull request
+# Create development environment
+cd zsh-config
+./setup_dev.sh
+
+# Run tests
+./run_tests.sh
+```
 
 ### Code Style
-
-- Use consistent indentation (2 spaces)
-- Add comments for complex logic
-- Follow shell scripting best practices
+- Follow ZSH best practices
+- Use consistent naming conventions
+- Add comprehensive comments
 - Include error handling
+- Write unit tests
 
-### Testing
-
-All changes must pass the test suite:
-
+### Module Development
 ```bash
-run_zsh_tests
+# Create new module
+touch modules/new_module.zsh
+
+# Add module to dependencies
+# Edit module_manager.zsh
+
+# Test module
+./test_module.sh new_module
 ```
+
+## 📚 Documentation
+
+### Module Documentation
+- **Core**: Foundation and module system
+- **Error Handling**: Safe operations and recovery
+- **Security**: Security auditing and validation
+- **Performance**: Performance monitoring and optimization
+- **Plugins**: Zinit-based plugin management
+- **Completion**: Advanced completion system
+- **Aliases**: Comprehensive alias management
+- **Functions**: Utility function collection
+- **Keybindings**: Custom keybinding system
+
+### API Reference
+- **Module Manager**: Centralized module management
+- **System Status**: Comprehensive diagnostics
+- **Performance Analysis**: Performance metrics
+- **Security Auditing**: Security validation
+- **Configuration Validation**: Automated checking
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📋 Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for a complete history of changes and version information.
-
 ## 🙏 Acknowledgments
 
-- [ZSH Community](https://zsh.sourceforge.io/) - Shell framework
-- [Zinit](https://github.com/zdharma-continuum/zinit) - Plugin manager
-- [FZF](https://github.com/junegunn/fzf) - Fuzzy finder
-- [Zoxide](https://github.com/ajeetdsouza/zoxide) - Smart cd replacement
-- [Eza](https://github.com/eza-community/eza) - Modern ls replacement
+- **Zinit**: Plugin manager
+- **ZSH Community**: Inspiration and best practices
+- **XDG**: Base Directory Specification
+- **Contributors**: All contributors to this project
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/zsh-config/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/zsh-config/discussions)
-- **Documentation**: [Wiki](https://github.com/yourusername/zsh-config/wiki)
-- **Performance Guide**: [PERFORMANCE_GUIDE.md](PERFORMANCE_GUIDE.md)
+### Getting Help
+- **Documentation**: Check this README
+- **Issues**: GitHub Issues
+- **Discussions**: GitHub Discussions
+- **Wiki**: Project Wiki
+
+### Reporting Issues
+1. Check existing issues
+2. Use issue templates
+3. Include system information
+4. Provide error logs
+5. Describe steps to reproduce
 
 ---
 
-**Made with ❤️ for developers who care about their shell experience**
-
-**Version 2.1.0** - A complete, modular, and performance-optimized ZSH configuration system. 
+**Version**: 3.0  
+**Last Updated**: 2024  
+**Maintainer**: Your Name  
+**License**: MIT 

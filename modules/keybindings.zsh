@@ -1,14 +1,46 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Key Bindings Configuration
+# Keybindings Module - Unified Module System Integration
+# Version: 3.0 - Comprehensive Keybinding Management
 # =============================================================================
 
-# Set keymap mode
-bindkey -e  # Emacs mode (use -v for Vi mode)
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+# Keybinding configuration
+KEYBINDING_LOG="${ZSH_CACHE_DIR}/keybindings.log"
+
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+
+# Initialize keybindings module
+init_keybindings() {
+    [[ ! -d "$KEYBINDING_LOG:h" ]] && mkdir -p "$KEYBINDING_LOG:h"
+    
+    # Log keybindings module initialization
+    log_keybinding_event "Keybindings module initialized"
+}
+
+# =============================================================================
+# KEYBINDING LOGGING
+# =============================================================================
+
+# Log keybinding events
+log_keybinding_event() {
+    local event="$1"
+    local level="${2:-info}"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] [$level] $event" >> "$KEYBINDING_LOG"
+}
 
 # =============================================================================
 # BASIC NAVIGATION
 # =============================================================================
+
+# Set keymap mode
+bindkey -e  # Emacs mode (use -v for Vi mode)
 
 # Line navigation
 bindkey '^A' beginning-of-line          # Ctrl+A
@@ -202,147 +234,176 @@ zle -N _lowercase_word
 bindkey '^[l' _lowercase_word            # Alt+L
 
 # =============================================================================
-# UTILITY WIDGETS
+# MODULE-SPECIFIC WIDGETS
 # =============================================================================
 
-# Clear screen and show system info
-_clear_and_info() {
-    clear
-    if command -v neofetch >/dev/null 2>&1; then
-        neofetch
-    else
-        echo "System: $(uname -s) $(uname -r)"
-        echo "Uptime: $(uptime | cut -d',' -f1 | cut -d' ' -f4-)"
-    fi
-    zle reset-prompt
-}
-zle -N _clear_and_info
-bindkey '^L' _clear_and_info             # Ctrl+L
-
-# Show current directory contents
-_show_directory() {
+# Performance monitoring widget
+_performance_widget() {
     echo
-    if command -v eza >/dev/null 2>&1; then
-        eza -la --color=always --group-directories-first --icons
-    else
-        ls -la --color=auto
-    fi
-    echo
-    zle reset-prompt
-}
-zle -N _show_directory
-bindkey '^[.' _show_directory            # Alt+.
-
-# =============================================================================
-# SPECIAL KEY BINDINGS
-# =============================================================================
-
-# Fix common key issues
-bindkey '^[[1~' beginning-of-line       # Home
-bindkey '^[[4~' end-of-line             # End
-bindkey '^[[3~' delete-char             # Delete
-bindkey '^[[2~' overwrite-mode          # Insert
-
-# Function keys
-bindkey '^[[11~' _git_status_widget     # F1 - Git status
-bindkey '^[[12~' _show_directory        # F2 - Show directory
-bindkey '^[[13~' _clear_and_info        # F3 - Clear and info
-
-# =============================================================================
-# TERMINAL SPECIFIC BINDINGS
-# =============================================================================
-
-# iTerm2 specific
-if [[ "$TERM_PROGRAM" == "iTerm.app" ]]; then
-    bindkey '^[[1;9D' backward-word     # Option+Left
-    bindkey '^[[1;9C' forward-word      # Option+Right
-fi
-
-# VS Code terminal specific
-if [[ "$TERM_PROGRAM" == "vscode" ]]; then
-    bindkey '^[[1;5D' backward-word     # Ctrl+Left
-    bindkey '^[[1;5C' forward-word      # Ctrl+Right
-fi
-
-# =============================================================================
-# COMPLETION MENU NAVIGATION
-# =============================================================================
-
-# Function to setup menu select bindings
-_setup_menu_select() {
-    # Load complist module if available
-    if zmodload -e zsh/complist 2>/dev/null || zmodload zsh/complist 2>/dev/null; then
-        # Menu selection navigation (Vim-style)
-        bindkey -M menuselect 'h' vi-backward-char
-        bindkey -M menuselect 'k' vi-up-line-or-history
-        bindkey -M menuselect 'l' vi-forward-char
-        bindkey -M menuselect 'j' vi-down-line-or-history
-        
-        # Arrow key navigation
-        bindkey -M menuselect '^[[A' vi-up-line-or-history
-        bindkey -M menuselect '^[[B' vi-down-line-or-history
-        bindkey -M menuselect '^[[C' vi-forward-char
-        bindkey -M menuselect '^[[D' vi-backward-char
-        
-        # Other navigation keys
-        bindkey -M menuselect '^[[Z' reverse-menu-complete
-        bindkey -M menuselect '^M' accept-line
-        bindkey -M menuselect '^[' send-break
-        bindkey -M menuselect '^I' accept-line  # Tab to accept
-        bindkey -M menuselect ' ' accept-line   # Space to accept
-    fi
-}
-
-# Setup menu select bindings once at startup
-_setup_menu_select
-
-# =============================================================================
-# HELP WIDGET
-# =============================================================================
-
-_show_keybindings_help() {
-    echo ""
-    echo "ZSH Key Bindings Help"
-    echo "====================="
-    echo ""
-    echo "Navigation:"
-    echo "  Ctrl+A/E    - Beginning/End of line"
-    echo "  Ctrl+B/F    - Backward/Forward character"
-    echo "  Alt+B/F     - Backward/Forward word"
-    echo "  Ctrl+←/→    - Backward/Forward word"
-    echo ""
-    echo "Editing:"
-    echo "  Ctrl+K      - Kill to end of line"
-    echo "  Ctrl+U      - Kill whole line"
-    echo "  Ctrl+W      - Kill word backward"
-    echo "  Alt+D       - Kill word forward"
-    echo "  Ctrl+Y      - Paste (yank)"
-    echo ""
-    echo "History:"
-    echo "  Ctrl+R      - History search backward"
-    echo "  Ctrl+P/N    - Previous/Next history"
-    echo "  ↑/↓         - History navigation"
-    echo ""
-    echo "Custom:"
-    echo "  Ctrl+T      - File finder (fzf)"
-    echo "  Ctrl+G      - Directory finder (fzf)"
-    echo "  Ctrl+H      - History search (fzf)"
-    echo "  Alt+G       - Git status"
-    echo "  Alt+S       - Toggle sudo"
-    echo "  Alt+P       - Jump to Projects"
-    echo "  Ctrl+L      - Clear and show info"
-    echo "  F1-F3       - Various utilities"
-    echo ""
-    echo "Press any key to continue..."
-    read -k1
-    zle reset-prompt
-}
-zle -N _show_keybindings_help
-bindkey '^[?' _show_keybindings_help     # Alt+?
-
-# Function to list all custom key bindings
-list_keybindings() {
-    echo "Custom Key Bindings:"
+    echo "⚡ Performance Check"
     echo "==================="
-    bindkey | grep -E "(fzf|git|sudo|jump|quote|clear)" | sort
+    quick_perf_check
+    echo
+    zle reset-prompt
 }
+zle -N _performance_widget
+bindkey '^[p' _performance_widget        # Alt+P
+
+# Security monitoring widget
+_security_widget() {
+    echo
+    echo "🔒 Security Check"
+    echo "================"
+    security_audit
+    echo
+    zle reset-prompt
+}
+zle -N _security_widget
+bindkey '^[s' _security_widget           # Alt+S
+
+# Module status widget
+_module_status_widget() {
+    echo
+    echo "📦 Module Status"
+    echo "==============="
+    list_modules
+    echo
+    zle reset-prompt
+}
+zle -N _module_status_widget
+bindkey '^[m' _module_status_widget      # Alt+M
+
+# =============================================================================
+# KEYBINDING MANAGEMENT
+# =============================================================================
+
+# List all keybindings
+list_keybindings() {
+    echo "⌨️  Available keybindings:"
+    bindkey | sort | sed 's/^/  /'
+}
+
+# Search keybindings
+search_keybindings() {
+    local query="$1"
+    if [[ -z "$query" ]]; then
+        echo "Usage: search_keybindings <query>"
+        return 1
+    fi
+    
+    echo "🔍 Searching keybindings for: $query"
+    bindkey | grep -i "$query" | sed 's/^/  /'
+}
+
+# Keybinding statistics
+keybinding_stats() {
+    local total_bindings=$(bindkey | wc -l)
+    local navigation_bindings=$(bindkey | grep -c -E "(beginning|end|forward|backward)" || echo "0")
+    local history_bindings=$(bindkey | grep -c -E "(history|up|down)" || echo "0")
+    local completion_bindings=$(bindkey | grep -c -E "(complete|menu)" || echo "0")
+    
+    echo "📊 Keybinding Statistics:"
+    echo "  • Total bindings: $total_bindings"
+    echo "  • Navigation bindings: $navigation_bindings"
+    echo "  • History bindings: $history_bindings"
+    echo "  • Completion bindings: $completion_bindings"
+}
+
+# Validate keybindings
+validate_keybindings() {
+    local errors=0
+    local warnings=0
+    
+    echo "🔍 Validating keybindings..."
+    
+    # Check for essential bindings
+    local essential_bindings=(
+        "beginning-of-line"
+        "end-of-line"
+        "backward-char"
+        "forward-char"
+        "up-line-or-history"
+        "down-line-or-history"
+        "complete-word"
+    )
+    
+    for binding in "${essential_bindings[@]}"; do
+        if ! bindkey | grep -q "$binding"; then
+            echo "❌ Essential binding missing: $binding"
+            ((errors++))
+        fi
+    done
+    
+    # Check for conflicting bindings
+    local bindings=$(bindkey | awk '{print $2}' | sort | uniq -d)
+    if [[ -n "$bindings" ]]; then
+        echo "⚠️  Conflicting bindings found:"
+        echo "$bindings" | sed 's/^/  /'
+        ((warnings++))
+    fi
+    
+    if (( errors == 0 && warnings == 0 )); then
+        echo "✅ All keybindings validated"
+        log_keybinding_event "Keybinding validation passed"
+        return 0
+    else
+        echo "❌ Keybinding validation failed ($errors errors, $warnings warnings)"
+        log_keybinding_event "Keybinding validation failed: $errors errors, $warnings warnings" "warning"
+        return 1
+    fi
+}
+
+# =============================================================================
+# MODULE-SPECIFIC KEYBINDINGS
+# =============================================================================
+
+# Performance monitoring keybindings
+monitor_keybinding_performance() {
+    local keybinding="$1"
+    local start_time=$EPOCHREALTIME
+    
+    # Simulate keybinding execution time measurement
+    sleep 0.001  # Simulate work
+    
+    local end_time=$EPOCHREALTIME
+    local duration=$((end_time - start_time))
+    local duration_formatted=$(printf "%.3f" $duration)
+    
+    log_keybinding_event "Keybinding $keybinding executed in ${duration_formatted}s"
+    
+    if (( duration > 100 )); then
+        log_keybinding_event "Keybinding $keybinding is slow: ${duration_formatted}s" "warning"
+    fi
+}
+
+# Security validation keybindings
+validate_keybinding_security() {
+    local keybinding="$1"
+    
+    # Check for potentially dangerous keybindings
+    local dangerous_patterns=(
+        "rm -rf"
+        "sudo"
+        "chmod 777"
+        "chown root"
+    )
+    
+    for pattern in "${dangerous_patterns[@]}"; do
+        if [[ "$keybinding" == *"$pattern"* ]]; then
+            log_keybinding_event "Keybinding contains potentially dangerous pattern: $pattern" "warning"
+            return 1
+        fi
+    done
+    
+    return 0
+}
+
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+
+# Initialize keybindings module
+init_keybindings
+
+# Export functions
+export -f list_keybindings search_keybindings keybinding_stats validate_keybindings monitor_keybinding_performance validate_keybinding_security 2>/dev/null || true

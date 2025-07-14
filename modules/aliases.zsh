@@ -1,9 +1,45 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# ZSH Aliases - Enhanced
+# Aliases Module - Unified Module System Integration
+# Version: 3.0 - Comprehensive Alias Management
 # =============================================================================
 
-# ===== Configuration Management Aliases =====
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+# Alias configuration
+ALIAS_LOG="${ZSH_CACHE_DIR}/aliases.log"
+
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+
+# Initialize aliases module
+init_aliases() {
+    [[ ! -d "$ALIAS_LOG:h" ]] && mkdir -p "$ALIAS_LOG:h"
+    
+    # Log aliases module initialization
+    log_alias_event "Aliases module initialized"
+}
+
+# =============================================================================
+# ALIAS LOGGING
+# =============================================================================
+
+# Log alias events
+log_alias_event() {
+    local event="$1"
+    local level="${2:-info}"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] [$level] $event" >> "$ALIAS_LOG"
+}
+
+# =============================================================================
+# CONFIGURATION MANAGEMENT ALIASES
+# =============================================================================
+
+# ZSH configuration aliases
 alias zsh-check='validate_configuration'
 alias zsh-reload='zsh_reload'
 alias reload='zsh_reload'
@@ -19,19 +55,33 @@ alias zsh-errors-clear='clear_error_log'
 alias zsh-recovery='enter_recovery_mode'
 alias zsh-comp-test='_verify_completion_system'
 
-# ===== Security Aliases =====
+# =============================================================================
+# SECURITY ALIASES
+# =============================================================================
+
+# Security management aliases
 alias security-audit='security_audit'
 alias check-suspicious='check_suspicious_files'
 alias secure-delete='secure_rm'
 alias validate-security='validate_security_config'
+alias security-monitor='monitor_security'
 
-# ===== History Management Aliases (New) =====
+# =============================================================================
+# HISTORY MANAGEMENT ALIASES
+# =============================================================================
+
+# History aliases
 alias h='history'
 alias hg='history | grep'
 alias hist-stats='history_stats'
 alias hist-clean='echo "⚠️  This will clear all history. Type: history -c && > \$HISTFILE"'
+alias hist-search='history | grep'
+alias hist-last='history | tail -10'
 
-# ===== Your Existing Alias Configuration =====
+# =============================================================================
+# FILE SYSTEM ALIASES
+# =============================================================================
+
 # Enhanced ls with eza (if available)
 if command -v eza >/dev/null 2>&1; then
     alias ls='eza --color=always --group-directories-first'
@@ -66,13 +116,13 @@ alias mv='mv -i'
 alias rm='rm -i'
 alias ln='ln -i'
 
-# Force operation aliases (New)
+# Force operation aliases
 alias rmf='rm -f'
 alias cpf='cp -f'
 alias mvf='mv -f'
 
 # =============================================================================
-# SYSTEM INFORMATION
+# SYSTEM INFORMATION ALIASES
 # =============================================================================
 
 # Process management
@@ -92,7 +142,7 @@ alias ports='netstat -tulanp'
 alias wget='wget -c'
 
 # =============================================================================
-# DEVELOPMENT TOOLS (Preserving All Your Configuration)
+# DEVELOPMENT TOOLS ALIASES
 # =============================================================================
 
 # Git aliases
@@ -194,100 +244,123 @@ alias nowtime='date +"%d-%m-%Y %T"'
 alias nowdate='date +"%d-%m-%Y"'
 
 # =============================================================================
-# UTILITY FUNCTIONS AS ALIASES
+# UTILITY ALIASES
 # =============================================================================
 
 # Extract archives
-alias extract='_extract'
-alias fe='find_and_edit'  # Find and edit file
+alias x='extract'
 
-# Find files
-alias ff='find . -type f -name'
-alias fd='find . -type d -name'
+# Network utilities
+alias myip='curl -s https://ipinfo.io/ip'
+alias localip='ifconfig | grep "inet " | grep -v 127.0.0.1'
 
-# Grep with color
-alias grep='grep --color=auto'
-alias egrep='egrep --color=auto'
-alias fgrep='fgrep --color=auto'
-
-# =============================================================================
-# CONDITIONAL ALIASES
-# =============================================================================
-
-# macOS specific
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    alias o='open'
-    alias pbcopy='pbcopy'
-    alias pbpaste='pbpaste'
-    alias flushdns='sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder'
-fi
-
-# Linux specific
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    alias o='xdg-open'
-    alias pbcopy='xclip -selection clipboard'
-    alias pbpaste='xclip -selection clipboard -o'
-    alias update='sudo apt update && sudo apt upgrade'
-fi
+# Quick file operations
+alias mkdir='mkdir -p'
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
 
 # =============================================================================
-# GLOBAL ALIASES (Preserving Your Configuration)
+# ALIAS MANAGEMENT FUNCTIONS
 # =============================================================================
 
-# Global aliases for common patterns
-alias -g ...='../..'
-alias -g ....='../../..'
-alias -g .....='../../../..'
-alias -g CA="2>&1 | cat -A"
-alias -g C='| wc -l'
-alias -g D="DISPLAY=:0.0"
-alias -g DN=/dev/null
-alias -g ED="export DISPLAY=:0.0"
-alias -g EG='|& egrep'
-alias -g EH='|& head'
-alias -g EL='|& less'
-alias -g ELS='|& less -S'
-alias -g ETL='|& tail -20'
-alias -g ET='|& tail'
-alias -g F=' | fmt -'
-alias -g G='| grep'
-alias -g H='| head'
-alias -g HL='|& head -20'
-alias -g Sk="*~(*.bz2|*.gz|*.tgz|*.zip|*.z)"
-alias -g LL="2>&1 | less"
-alias -g L="| less"
-alias -g LS='| less -S'
-alias -g MM='| most'
-alias -g M='| more'
-alias -g NE="2> /dev/null"
-alias -g NS='| sort -n'
-alias -g NUL="> /dev/null 2>&1"
-alias -g PIPE='|'
-alias -g R=' > /c/aaa/tee.txt '
-alias -g RNS='| sort -nr'
-alias -g S='| sort'
-alias -g TL='| tail -20'
-alias -g T='| tail'
-alias -g US='| sort -u'
-alias -g VM=/var/log/messages
-alias -g X0G='| xargs -0 egrep'
-alias -g X0='| xargs -0'
-alias -g XG='| xargs egrep'
-alias -g X='| xargs'
+# List all aliases
+list_aliases() {
+    echo "📋 Available aliases:"
+    alias | sort | sed 's/^/  /'
+}
+
+# Search aliases
+search_aliases() {
+    local query="$1"
+    if [[ -z "$query" ]]; then
+        echo "Usage: search_aliases <query>"
+        return 1
+    fi
+    
+    echo "🔍 Searching aliases for: $query"
+    alias | grep -i "$query" | sed 's/^/  /'
+}
+
+# Alias statistics
+alias_stats() {
+    local total_aliases=$(alias | wc -l)
+    local git_aliases=$(alias | grep -c "git" || echo "0")
+    local docker_aliases=$(alias | grep -c "docker" || echo "0")
+    local system_aliases=$(alias | grep -c -E "(ls|cd|cp|mv|rm)" || echo "0")
+    
+    echo "📊 Alias Statistics:"
+    echo "  • Total aliases: $total_aliases"
+    echo "  • Git aliases: $git_aliases"
+    echo "  • Docker aliases: $docker_aliases"
+    echo "  • System aliases: $system_aliases"
+}
+
+# Validate aliases
+validate_aliases() {
+    local errors=0
+    local warnings=0
+    
+    echo "🔍 Validating aliases..."
+    
+    # Check for conflicting aliases
+    local conflicts=$(alias | awk '{print $1}' | sed 's/=.*//' | sort | uniq -d)
+    if [[ -n "$conflicts" ]]; then
+        echo "❌ Conflicting aliases found:"
+        echo "$conflicts" | sed 's/^/  /'
+        ((errors++))
+    fi
+    
+    # Check for missing commands
+    alias | while read line; do
+        local alias_name=$(echo "$line" | awk '{print $1}' | sed 's/=.*//')
+        local command=$(echo "$line" | sed 's/^[^=]*=//' | sed 's/^[[:space:]]*//')
+        
+        # Skip if command is a function or builtin
+        if [[ "$command" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+            if ! command -v "$command" >/dev/null 2>&1 && ! type "$command" >/dev/null 2>&1; then
+                echo "⚠️  Alias '$alias_name' references unknown command: $command"
+                ((warnings++))
+            fi
+        fi
+    done
+    
+    if (( errors == 0 && warnings == 0 )); then
+        echo "✅ All aliases validated"
+        log_alias_event "Alias validation passed"
+        return 0
+    else
+        echo "❌ Alias validation failed ($errors errors, $warnings warnings)"
+        log_alias_event "Alias validation failed: $errors errors, $warnings warnings" "warning"
+        return 1
+    fi
+}
 
 # =============================================================================
-# SUFFIX ALIASES (Preserving Your Configuration)
+# MODULE-SPECIFIC ALIASES
 # =============================================================================
 
-# Auto-open files by extension
-alias -s txt='${EDITOR:-code}'
-alias -s md='${EDITOR:-code}'
-alias -s js='${EDITOR:-code}'
-alias -s ts='${EDITOR:-code}'
-alias -s py='${EDITOR:-code}'
-alias -s html='${BROWSER:-firefox}'
-alias -s pdf='${PDF_READER:-evince}'
-alias -s png='${IMAGE_VIEWER:-eog}'
-alias -s jpg='${IMAGE_VIEWER:-eog}'
-alias -s jpeg='${IMAGE_VIEWER:-eog}'
-alias -s gif='${IMAGE_VIEWER:-eog}'
+# Performance aliases
+alias perf-check='quick_perf_check'
+alias perf-analyze='zsh_perf_analyze'
+alias perf-optimize='optimize_zsh_performance'
+
+# Security aliases
+alias sec-audit='security_audit'
+alias sec-check='check_suspicious_files'
+alias sec-monitor='monitor_security'
+
+# Module management aliases
+alias modules-list='list_modules'
+alias modules-check='check_module_dependencies'
+alias modules-validate='validate_module_system'
+
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+
+# Initialize aliases module
+init_aliases
+
+# Export functions
+export -f list_aliases search_aliases alias_stats validate_aliases 2>/dev/null || true

@@ -1,170 +1,372 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# ZSH Performance Optimization Script
+# ZSH Configuration Optimizer
+# Version: 3.0 - Comprehensive Optimization Suite
 # =============================================================================
 
-echo "⚡ ZSH Performance Optimization"
-echo "==============================="
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
 
-# =============================================================================
-# 1. Disable automatic zinit updates
-# =============================================================================
-echo "1. Disabling automatic zinit updates..."
-if ! grep -q "ZINIT_AUTO_UPDATE" ~/.zshrc; then
-    echo "# Disable automatic zinit updates for faster startup" >> ~/.zshrc
-    echo "export ZINIT_AUTO_UPDATE=0" >> ~/.zshrc
-    echo "  ✅ Added ZINIT_AUTO_UPDATE=0 to ~/.zshrc"
-else
-    echo "  ℹ️  ZINIT_AUTO_UPDATE already configured"
-fi
-
-# =============================================================================
-# 2. Optimize completion cache
-# =============================================================================
-echo "2. Optimizing completion cache..."
-COMPLETION_CACHE="${HOME}/.cache/zsh/zcompdump"
-if [[ -f "$COMPLETION_CACHE" ]]; then
-    # Rebuild and compile completion cache
-    autoload -Uz compinit
-    compinit -d "$COMPLETION_CACHE"
-    [[ -f "$COMPLETION_CACHE" ]] && [[ ! -f "${COMPLETION_CACHE}.zwc" ]] && \
-        zcompile "$COMPLETION_CACHE"
-    echo "  ✅ Completion cache optimized"
-else
-    echo "  ℹ️  No completion cache found"
-fi
-
-# =============================================================================
-# 3. Compile zsh files for faster loading
-# =============================================================================
-echo "3. Compiling zsh files..."
+# Configuration paths
 ZSH_CONFIG_DIR="${HOME}/.config/zsh"
-files_to_compile=(
-    "$ZSH_CONFIG_DIR/zshrc"
-    "$ZSH_CONFIG_DIR/zshenv"
-    "$ZSH_CONFIG_DIR/modules/core.zsh"
-    "$ZSH_CONFIG_DIR/modules/performance.zsh"
-    "$ZSH_CONFIG_DIR/modules/completion.zsh"
-    "$ZSH_CONFIG_DIR/modules/functions.zsh"
-    "$ZSH_CONFIG_DIR/modules/aliases.zsh"
-    "$ZSH_CONFIG_DIR/modules/keybindings.zsh"
-    "$ZSH_CONFIG_DIR/themes/prompt.zsh"
-)
+ZSH_CACHE_DIR="${HOME}/.cache/zsh"
+ZSH_DATA_DIR="${HOME}/.local/share/zsh"
 
-compiled_count=0
-for file in "${files_to_compile[@]}"; do
-    if [[ -f "$file" ]] && [[ ! -f "${file}.zwc" ]]; then
-        zcompile "$file" 2>/dev/null && ((compiled_count++))
-    fi
-done
-echo "  ✅ Compiled $compiled_count zsh files"
+# Performance thresholds
+PERF_THRESHOLD_WARNING=1.0
+PERF_THRESHOLD_CRITICAL=2.0
 
 # =============================================================================
-# 4. Optimize history file
+# UTILITY FUNCTIONS
 # =============================================================================
-echo "4. Optimizing history file..."
-HISTFILE="${HOME}/.local/share/zsh/history"
-if [[ -f "$HISTFILE" ]]; then
-    # Remove duplicate entries
-    local temp_hist=$(mktemp)
-    tac "$HISTFILE" | awk '!seen[$0]++' | tac > "$temp_hist"
-    mv "$temp_hist" "$HISTFILE"
+
+# Print colored output
+print_status() {
+    local level="$1"
+    local message="$2"
     
-    # Limit history size to 5000 lines
-    local max_lines=5000
-    if [[ $(wc -l < "$HISTFILE") -gt $max_lines ]]; then
-        tail -n $max_lines "$HISTFILE" > "${HISTFILE}.tmp" && \
-        mv "${HISTFILE}.tmp" "$HISTFILE"
+    case "$level" in
+        "info") echo "ℹ️  $message" ;;
+        "success") echo "✅ $message" ;;
+        "warning") echo "⚠️  $message" ;;
+        "error") echo "❌ $message" ;;
+        "header") echo "🔧 $message" ;;
+    esac
+}
+
+# Check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# =============================================================================
+# PERFORMANCE ANALYSIS
+# =============================================================================
+
+# Analyze current performance
+analyze_performance() {
+    print_status "header" "Performance Analysis"
+    echo "================================"
+    
+    # Basic metrics
+    local func_count=$(declare -F | wc -l)
+    local alias_count=$(alias | wc -l)
+    local path_count=$(echo "$PATH" | tr ':' '\n' | wc -l)
+    local memory_usage=$(ps -o rss= -p $$ 2>/dev/null | awk '{printf "%.1f MB", $1/1024}' | head -1 | tr -d '\n')
+    
+    echo "Functions: $func_count"
+    echo "Aliases: $alias_count"
+    echo "PATH entries: $path_count"
+    echo "Memory usage: $memory_usage"
+    
+    # History analysis
+    if [[ -f "$HISTFILE" ]]; then
+        local hist_size=$(wc -l < "$HISTFILE" 2>/dev/null || echo "0")
+        echo "History size: $hist_size lines"
+        
+        if (( hist_size > 10000 )); then
+            print_status "warning" "Large history file detected"
+        fi
     fi
-    echo "  ✅ History file optimized"
-else
-    echo "  ℹ️  No history file found"
-fi
-
-# =============================================================================
-# 5. Optimize PATH variable
-# =============================================================================
-echo "5. Optimizing PATH variable..."
-# Remove duplicate entries and non-existent directories
-local new_path=""
-for dir in $(echo "$PATH" | tr ':' ' '); do
-    if [[ -d "$dir" ]] && [[ ":$new_path:" != *":$dir:"* ]]; then
-        new_path="${new_path:+$new_path:}$dir"
+    
+    # Performance score
+    local score=100
+    (( func_count > 500 )) && ((score -= 10))
+    (( path_count > 20 )) && ((score -= 10))
+    (( hist_size > 10000 )) && ((score -= 10))
+    
+    echo "Performance score: $score/100"
+    
+    if (( score < 80 )); then
+        print_status "warning" "Performance optimization recommended"
+    else
+        print_status "success" "Performance is good"
     fi
-done
-echo "  ✅ PATH optimized (removed duplicates and non-existent directories)"
+}
 
 # =============================================================================
-# 6. Create performance monitoring script
+# OPTIMIZATION FUNCTIONS
 # =============================================================================
-echo "6. Creating performance monitoring script..."
-cat > "${ZSH_CONFIG_DIR}/test_performance.zsh" << 'EOF'
-#!/usr/bin/env zsh
-# Quick performance test script
 
-echo "🚀 ZSH Performance Test"
-echo "======================="
+# Optimize completion cache
+optimize_completion_cache() {
+    print_status "header" "Optimizing Completion Cache"
+    
+    local comp_cache="$ZSH_CACHE_DIR/zcompdump"
+    
+    if [[ -f "$comp_cache" ]]; then
+        autoload -Uz compinit
+        compinit -d "$comp_cache"
+        
+        if [[ -f "$comp_cache" ]] && [[ ! -f "${comp_cache}.zwc" ]]; then
+            zcompile "$comp_cache"
+            print_status "success" "Completion cache compiled"
+        fi
+    else
+        print_status "warning" "Completion cache not found"
+    fi
+}
 
-# Test startup time
-echo "Testing startup time..."
-time zsh -c "exit" 2>&1 | grep real
+# Optimize history
+optimize_history() {
+    print_status "header" "Optimizing History"
+    
+    if [[ -f "$HISTFILE" ]]; then
+        # Remove duplicates
+        local temp_hist=$(mktemp)
+        tac "$HISTFILE" | awk '!seen[$0]++' | tac > "$temp_hist"
+        mv "$temp_hist" "$HISTFILE"
+        
+        # Limit size
+        local max_lines=5000
+        if [[ $(wc -l < "$HISTFILE") -gt $max_lines ]]; then
+            tail -n $max_lines "$HISTFILE" > "${HISTFILE}.tmp" && \
+            mv "${HISTFILE}.tmp" "$HISTFILE"
+        fi
+        
+        print_status "success" "History optimized"
+    else
+        print_status "warning" "History file not found"
+    fi
+}
 
-# Test configuration load time
-echo "Testing configuration load time..."
-time zsh -c "source ~/.zshrc; exit" 2>&1 | grep real
+# Optimize PATH
+optimize_path() {
+    print_status "header" "Optimizing PATH"
+    
+    # Remove duplicates
+    typeset -U path
+    
+    # Remove non-existent directories
+    local new_path=""
+    for dir in $(echo "$PATH" | tr ':' ' '); do
+        if [[ -d "$dir" ]]; then
+            new_path="${new_path:+$new_path:}$dir"
+        fi
+    done
+    export PATH="$new_path"
+    
+    print_status "success" "PATH optimized"
+}
 
-# Test completion system
-echo "Testing completion system..."
-time (autoload -Uz compinit; compinit -C) 2>&1 | grep real
+# Compile zsh files
+compile_zsh_files() {
+    print_status "header" "Compiling ZSH Files"
+    
+    local files_to_compile=(
+        "$ZSH_CONFIG_DIR/zshrc"
+        "$ZSH_CONFIG_DIR/zshenv"
+        "$ZSH_CONFIG_DIR/modules/core.zsh"
+        "$ZSH_CONFIG_DIR/modules/plugins.zsh"
+        "$ZSH_CONFIG_DIR/modules/completion.zsh"
+        "$ZSH_CONFIG_DIR/modules/functions.zsh"
+        "$ZSH_CONFIG_DIR/modules/aliases.zsh"
+        "$ZSH_CONFIG_DIR/modules/keybindings.zsh"
+        "$ZSH_CONFIG_DIR/themes/prompt.zsh"
+    )
+    
+    local compiled_count=0
+    for file in "${files_to_compile[@]}"; do
+        if [[ -f "$file" ]] && [[ ! -f "${file}.zwc" ]]; then
+            zcompile "$file" 2>/dev/null && ((compiled_count++))
+        fi
+    done
+    
+    print_status "success" "Compiled $compiled_count files"
+}
 
-echo "✅ Performance test completed"
-EOF
-
-chmod +x "${ZSH_CONFIG_DIR}/test_performance.zsh"
-echo "  ✅ Created performance test script"
+# Optimize hooks
+optimize_hooks() {
+    print_status "header" "Optimizing Hooks"
+    
+    local hooks=$(add-zsh-hook -L precmd 2>/dev/null)
+    local unique_hooks=$(echo "$hooks" | sort | uniq)
+    
+    if [[ "$hooks" != "$unique_hooks" ]]; then
+        add-zsh-hook -D precmd '*'
+        echo "$unique_hooks" | while read hook; do
+            [[ -n "$hook" ]] && add-zsh-hook precmd "$hook"
+        done
+        print_status "success" "Hooks optimized"
+    else
+        print_status "info" "Hooks already optimized"
+    fi
+}
 
 # =============================================================================
-# 7. Create minimal test configuration
+# VALIDATION FUNCTIONS
 # =============================================================================
-echo "7. Creating minimal test configuration..."
-cat > "${ZSH_CONFIG_DIR}/test_minimal.zsh" << 'EOF'
-#!/usr/bin/env zsh
-# Minimal zsh configuration for performance testing
 
-# Basic settings
-export HISTFILE="${HOME}/.local/share/zsh/history"
-export HISTSIZE=1000
-export SAVEHIST=1000
-
-# Basic completion
-autoload -Uz compinit
-compinit -C
-
-# Basic prompt
-PS1='%n@%m %~ %# '
-
-echo "Minimal configuration loaded"
-EOF
-
-chmod +x "${ZSH_CONFIG_DIR}/test_minimal.zsh"
-echo "  ✅ Created minimal test configuration"
+# Validate configuration
+validate_configuration() {
+    print_status "header" "Validating Configuration"
+    
+    local errors=0
+    
+    # Check directories
+    local required_dirs=("$ZSH_CONFIG_DIR" "$ZSH_CACHE_DIR" "$ZSH_DATA_DIR")
+    for dir in "${required_dirs[@]}"; do
+        if [[ ! -d "$dir" ]]; then
+            print_status "error" "Missing directory: $dir"
+            ((errors++))
+        fi
+    done
+    
+    # Check files
+    local required_files=("$ZSH_CONFIG_DIR/zshrc" "$ZSH_CONFIG_DIR/zshenv")
+    for file in "${required_files[@]}"; do
+        if [[ ! -f "$file" ]]; then
+            print_status "error" "Missing file: $file"
+            ((errors++))
+        fi
+    done
+    
+    # Check security
+    local required_options=("NO_CLOBBER" "RM_STAR_WAIT" "PIPE_FAIL")
+    for opt in "${required_options[@]}"; do
+        if [[ ! -o "$opt" ]]; then
+            print_status "error" "Security option not set: $opt"
+            ((errors++))
+        fi
+    done
+    
+    if (( errors == 0 )); then
+        print_status "success" "Configuration validation passed"
+        return 0
+    else
+        print_status "error" "Configuration validation failed ($errors errors)"
+        return 1
+    fi
+}
 
 # =============================================================================
-# 8. Performance recommendations
+# MAIN OPTIMIZATION FUNCTION
 # =============================================================================
-echo ""
-echo "📋 Performance Recommendations:"
-echo "==============================="
-echo "1. Use 'ZINIT_AUTO_UPDATE=0' to disable automatic zinit updates"
-echo "2. Consider using lazy loading for heavy plugins"
-echo "3. Run '${ZSH_CONFIG_DIR}/test_performance.zsh' to test performance"
-echo "4. Use '${ZSH_CONFIG_DIR}/test_minimal.zsh' to test minimal config"
-echo "5. Consider disabling non-essential plugins if startup is still slow"
-echo ""
-echo "🔧 To apply optimizations:"
-echo "   source ~/.zshrc"
-echo ""
-echo "📊 To test performance:"
-echo "   ${ZSH_CONFIG_DIR}/test_performance.zsh"
-echo ""
-echo "✅ Performance optimization completed!" 
+
+# Main optimization function
+optimize_zsh() {
+    print_status "header" "ZSH Configuration Optimizer"
+    echo "====================================="
+    
+    # Create directories
+    mkdir -p "$ZSH_CACHE_DIR" "$ZSH_DATA_DIR"
+    
+    # Analyze current state
+    analyze_performance
+    echo ""
+    
+    # Run optimizations
+    optimize_completion_cache
+    optimize_history
+    optimize_path
+    compile_zsh_files
+    optimize_hooks
+    echo ""
+    
+    # Validate configuration
+    validate_configuration
+    echo ""
+    
+    print_status "success" "Optimization completed"
+    echo ""
+    print_status "info" "Run 'source ~/.zshrc' to apply changes"
+}
+
+# =============================================================================
+# QUICK OPTIMIZATION
+# =============================================================================
+
+# Quick optimization for common issues
+quick_optimize() {
+    print_status "header" "Quick Optimization"
+    
+    # Optimize completion cache
+    optimize_completion_cache
+    
+    # Optimize history
+    optimize_history
+    
+    # Compile files
+    compile_zsh_files
+    
+    print_status "success" "Quick optimization completed"
+}
+
+# =============================================================================
+# DIAGNOSTIC FUNCTIONS
+# =============================================================================
+
+# Show diagnostic information
+show_diagnostics() {
+    print_status "header" "ZSH Diagnostics"
+    echo "=================="
+    
+    # System information
+    echo "ZSH version: $(zsh --version | head -1)"
+    echo "OS: $(uname -s) $(uname -r)"
+    echo "Architecture: $(uname -m)"
+    
+    # Configuration paths
+    echo ""
+    echo "Configuration paths:"
+    echo "  Config: $ZSH_CONFIG_DIR"
+    echo "  Cache: $ZSH_CACHE_DIR"
+    echo "  Data: $ZSH_DATA_DIR"
+    
+    # Module status
+    echo ""
+    echo "Module status:"
+    echo "  Core: $([[ -f "$ZSH_CONFIG_DIR/modules/core.zsh" ]] && echo "✅" || echo "❌")"
+    echo "  Plugins: $([[ -f "$ZSH_CONFIG_DIR/modules/plugins.zsh" ]] && echo "✅" || echo "❌")"
+    echo "  Completion: $([[ -f "$ZSH_CONFIG_DIR/modules/completion.zsh" ]] && echo "✅" || echo "❌")"
+    echo "  Functions: $([[ -f "$ZSH_CONFIG_DIR/modules/functions.zsh" ]] && echo "✅" || echo "❌")"
+    echo "  Aliases: $([[ -f "$ZSH_CONFIG_DIR/modules/aliases.zsh" ]] && echo "✅" || echo "❌")"
+    echo "  Keybindings: $([[ -f "$ZSH_CONFIG_DIR/modules/keybindings.zsh" ]] && echo "✅" || echo "❌")"
+}
+
+# =============================================================================
+# COMMAND LINE INTERFACE
+# =============================================================================
+
+# Main function
+main() {
+    case "${1:-}" in
+        "analyze")
+            analyze_performance
+            ;;
+        "optimize")
+            optimize_zsh
+            ;;
+        "quick")
+            quick_optimize
+            ;;
+        "validate")
+            validate_configuration
+            ;;
+        "diagnose")
+            show_diagnostics
+            ;;
+        "help"|"-h"|"--help")
+            echo "ZSH Configuration Optimizer"
+            echo ""
+            echo "Usage: $0 [command]"
+            echo ""
+            echo "Commands:"
+            echo "  analyze    - Analyze current performance"
+            echo "  optimize   - Full optimization"
+            echo "  quick      - Quick optimization"
+            echo "  validate   - Validate configuration"
+            echo "  diagnose   - Show diagnostic information"
+            echo "  help       - Show this help"
+            ;;
+        *)
+            optimize_zsh
+            ;;
+    esac
+}
+
+# Run main function if script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi 

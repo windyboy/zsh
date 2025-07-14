@@ -1,7 +1,28 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Security Module - Essential Security Features
+# Security Module - Unified Module System Integration
+# Version: 3.0 - Comprehensive Security Features
 # =============================================================================
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+# Security configuration
+SECURITY_LOG="${ZSH_CACHE_DIR}/security.log"
+SECURITY_AUDIT_FILE="${ZSH_CACHE_DIR}/security_audit.json"
+
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+
+# Initialize security module
+init_security() {
+    [[ ! -d "$SECURITY_LOG:h" ]] && mkdir -p "$SECURITY_LOG:h"
+    
+    # Log security module initialization
+    log_security_event "Security module initialized"
+}
 
 # =============================================================================
 # FILE SYSTEM SECURITY
@@ -24,12 +45,6 @@ alias rmdir='rmdir -i'
 # Fail on any command in pipeline that fails
 setopt PIPE_FAIL
 
-# Don't execute commands with syntax errors (commented out - not a valid option)
-# setopt NO_EXEC
-
-# Don't allow empty commands (commented out - not a valid option)
-# setopt NO_EMPTY_CMDS
-
 # =============================================================================
 # HISTORY SECURITY
 # =============================================================================
@@ -39,16 +54,6 @@ setopt HIST_IGNORE_SPACE
 
 # Don't save duplicate commands
 setopt HIST_IGNORE_ALL_DUPS
-
-# Don't save commands with leading space (for sensitive data)
-setopt HIST_IGNORE_SPACE
-
-# =============================================================================
-# ENVIRONMENT SECURITY
-# =============================================================================
-
-# Prevent unset variables from being used
-# setopt NO_UNSET  # Commented out as it may break some plugins
 
 # =============================================================================
 # NETWORK SECURITY
@@ -73,11 +78,25 @@ if command -v docker >/dev/null 2>&1; then
 fi
 
 # =============================================================================
+# SECURITY LOGGING
+# =============================================================================
+
+# Log security events
+log_security_event() {
+    local event="$1"
+    local level="${2:-info}"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] [$level] $event" >> "$SECURITY_LOG"
+}
+
+# =============================================================================
 # SECURITY FUNCTIONS
 # =============================================================================
 
 # Check for suspicious files
 check_suspicious_files() {
+    log_security_event "Starting suspicious file check"
+    
     echo "🔍 Checking for suspicious files..."
     
     # Check for files with unusual permissions
@@ -88,6 +107,8 @@ check_suspicious_files() {
     
     # Check for files with no extension
     find . -type f ! -name "*.*" -ls 2>/dev/null | head -10
+    
+    log_security_event "Suspicious file check completed"
 }
 
 # Secure file operations
@@ -97,34 +118,73 @@ secure_rm() {
         return 1
     fi
     
+    log_security_event "Secure deletion started"
+    
     for file in "$@"; do
         if [[ -f "$file" ]]; then
             echo "Securely removing: $file"
             # Overwrite with zeros before deletion
             dd if=/dev/zero of="$file" bs=1M count=1 2>/dev/null
             rm -f "$file"
+            log_security_event "Securely deleted: $file"
         else
             echo "File not found: $file"
+            log_security_event "Failed to delete (not found): $file" "warning"
         fi
     done
 }
 
-# Check for security issues
+# Security audit
 security_audit() {
+    log_security_event "Security audit started"
+    
     echo "🔒 Security Audit"
     echo "================"
     
+    local issues=0
+    
     # Check file permissions
     echo "📁 Checking file permissions..."
-    find ~/.config/zsh -type f -exec ls -la {} \; 2>/dev/null | grep -E "^-rwx|^-rw-rw-rw"
-    
-    # Check for world-writable files
-    echo "🌍 Checking world-writable files..."
-    find ~/.config/zsh -type f -perm -002 -ls 2>/dev/null
+    local world_writable=$(find ~/.config/zsh -type f -perm -002 2>/dev/null | wc -l)
+    if (( world_writable > 0 )); then
+        echo "⚠️  Found $world_writable world-writable files"
+        ((issues++))
+    fi
     
     # Check for setuid/setgid files
     echo "🔐 Checking setuid/setgid files..."
-    find ~/.config/zsh -type f -perm -4000 -o -perm -2000 -ls 2>/dev/null
+    local setuid_files=$(find ~/.config/zsh -type f -perm -4000 -o -perm -2000 2>/dev/null | wc -l)
+    if (( setuid_files > 0 )); then
+        echo "⚠️  Found $setuid_files setuid/setgid files"
+        ((issues++))
+    fi
+    
+    # Check security options
+    echo "🛡️  Checking security options..."
+    local security_options=("NO_CLOBBER" "RM_STAR_WAIT" "PIPE_FAIL")
+    for opt in "${security_options[@]}"; do
+        if [[ ! -o "$opt" ]]; then
+            echo "❌ Security option not set: $opt"
+            ((issues++))
+        fi
+    done
+    
+    # Check PATH security
+    echo "🛣️  Checking PATH security..."
+    if [[ "$PATH" == *"::"* ]]; then
+        echo "⚠️  PATH contains empty entries"
+        ((issues++))
+    fi
+    
+    if (( issues == 0 )); then
+        echo "✅ Security audit passed"
+        log_security_event "Security audit passed"
+    else
+        echo "❌ Security audit failed ($issues issues)"
+        log_security_event "Security audit failed with $issues issues" "warning"
+    fi
+    
+    return $issues
 }
 
 # =============================================================================
@@ -132,16 +192,16 @@ security_audit() {
 # =============================================================================
 
 # Secure file viewing
-alias view='view -R'  # Read-only mode
+alias view='view -R'
 
 # Secure file editing
-alias vi='vi -R'      # Read-only mode for unknown files
+alias vi='vi -R'
 
 # Secure directory listing
 alias lsa='ls -la --time-style=long-iso'
 
 # =============================================================================
-# SECURITY ENVIRONMENT VARIABLES
+# SECURITY ENVIRONMENT
 # =============================================================================
 
 # Secure umask
@@ -154,33 +214,114 @@ export TMPDIR="/tmp/$(whoami)-$(date +%s)"
 # SECURITY VALIDATION
 # =============================================================================
 
+# Validate security configuration
 validate_security_config() {
     local errors=0
     
-    # Check if security options are set
-    if [[ ! -o NO_CLOBBER ]]; then
-        echo "❌ NO_CLOBBER not set"
-        ((errors++))
-    fi
+    # Check security options
+    local required_options=("NO_CLOBBER" "RM_STAR_WAIT" "PIPE_FAIL")
     
-    if [[ ! -o RM_STAR_WAIT ]]; then
-        echo "❌ RM_STAR_WAIT not set"
-        ((errors++))
-    fi
+    for opt in "${required_options[@]}"; do
+        if [[ ! -o "$opt" ]]; then
+            echo "❌ $opt not set"
+            ((errors++))
+        fi
+    done
     
-    if [[ ! -o PIPE_FAIL ]]; then
-        echo "❌ PIPE_FAIL not set"
-        ((errors++))
-    fi
+    # Check security aliases
+    local required_aliases=("rm" "rmdir" "ssh" "scp")
+    for alias_name in "${required_aliases[@]}"; do
+        if ! alias "$alias_name" >/dev/null 2>&1; then
+            echo "❌ Security alias not set: $alias_name"
+            ((errors++))
+        fi
+    done
     
     if (( errors == 0 )); then
         echo "✅ Security configuration validated"
+        log_security_event "Security configuration validated"
         return 0
     else
         echo "❌ Security configuration has $errors issues"
+        log_security_event "Security configuration validation failed with $errors issues" "warning"
         return 1
     fi
 }
 
+# =============================================================================
+# MODULE-SPECIFIC SECURITY
+# =============================================================================
+
+# Plugin security validation
+validate_plugin_security() {
+    local plugin="$1"
+    log_security_event "Validating plugin security: $plugin"
+    
+    case "$plugin" in
+        "zinit")
+            # Check zinit installation
+            if [[ ! -d "$HOME/.local/share/zinit" ]]; then
+                log_security_event "Zinit not properly installed" "warning"
+                return 1
+            fi
+            ;;
+        "fzf")
+            # Check fzf installation
+            if ! command -v fzf >/dev/null 2>&1; then
+                log_security_event "FZF not installed" "warning"
+                return 1
+            fi
+            ;;
+    esac
+    
+    return 0
+}
+
+# Completion security validation
+validate_completion_security() {
+    log_security_event "Validating completion security"
+    
+    # Check completion cache permissions
+    local comp_cache="$ZSH_CACHE_DIR/zcompdump"
+    if [[ -f "$comp_cache" ]]; then
+        local perms=$(stat -c "%a" "$comp_cache" 2>/dev/null || stat -f "%Lp" "$comp_cache" 2>/dev/null)
+        if [[ "$perms" != "600" ]]; then
+            log_security_event "Completion cache has insecure permissions: $perms" "warning"
+            return 1
+        fi
+    fi
+    
+    return 0
+}
+
+# =============================================================================
+# SECURITY MONITORING
+# =============================================================================
+
+# Monitor security events
+monitor_security() {
+    echo "🔍 Security Monitoring"
+    echo "====================="
+    
+    # Recent security events
+    if [[ -f "$SECURITY_LOG" ]]; then
+        echo "Recent security events:"
+        tail -5 "$SECURITY_LOG" | sed 's/^/  /'
+    fi
+    
+    # Security audit summary
+    if [[ -f "$SECURITY_AUDIT_FILE" ]]; then
+        echo "Last security audit:"
+        cat "$SECURITY_AUDIT_FILE" | head -10
+    fi
+}
+
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+
+# Initialize security module
+init_security
+
 # Export security functions
-export -f check_suspicious_files secure_rm security_audit validate_security_config 2>/dev/null || true 
+export -f check_suspicious_files secure_rm security_audit validate_security_config validate_plugin_security validate_completion_security monitor_security 2>/dev/null || true 

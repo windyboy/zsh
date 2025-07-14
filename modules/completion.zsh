@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # =============================================================================
 # Enhanced Completion System Configuration
-# Based on existing plugins with improved functionality
+# Version: 2.0 - Simplified and Optimized
 # =============================================================================
 
 # Completion cache
@@ -11,12 +11,11 @@ COMPLETION_CACHE_FILE="${ZSH_CACHE_DIR}/zcompdump"
 # INITIALIZE COMPLETION SYSTEM
 # =============================================================================
 
-# Initialize completion system with proper error handling
+# Initialize completion system
 _init_completion() {
-    # Ensure completion system is loaded
     autoload -Uz compinit
     
-    # Check if completion cache exists and is recent
+    # Check if cache needs rebuilding
     local rebuild_cache=0
     
     if [[ ! -f "$COMPLETION_CACHE_FILE" ]] || \
@@ -24,7 +23,7 @@ _init_completion() {
         rebuild_cache=1
     fi
     
-    # Check if any completion files are newer than cache
+    # Check for newer completion files
     if [[ $rebuild_cache -eq 0 ]]; then
         for comp_dir in $fpath; do
             if [[ -d "$comp_dir" ]] && \
@@ -35,33 +34,33 @@ _init_completion() {
         done
     fi
     
+    # Rebuild cache if needed
     if [[ $rebuild_cache -eq 1 ]]; then
         print -P "%F{33}▓▒░ Rebuilding completion cache...%f"
         compinit -d "$COMPLETION_CACHE_FILE" 2>/dev/null || {
-            print -P "%F{red}▓▒░ Completion cache rebuild failed, using existing cache%f"
+            print -P "%F{red}▓▒░ Using existing cache%f"
             compinit -C -d "$COMPLETION_CACHE_FILE" 2>/dev/null || true
         }
         
-        # Compile the completion cache for faster loading
-        if [[ -f "$COMPLETION_CACHE_FILE" ]] && [[ ! -f "${COMPLETION_CACHE_FILE}.zwc" ]]; then
+        # Compile cache for faster loading
+        [[ -f "$COMPLETION_CACHE_FILE" ]] && [[ ! -f "${COMPLETION_CACHE_FILE}.zwc" ]] && \
             zcompile "$COMPLETION_CACHE_FILE" 2>/dev/null || true
-        fi
     else
         compinit -C -d "$COMPLETION_CACHE_FILE"
     fi
     
-    # Ensure basic completion functions are loaded
-    autoload -Uz _files _cd _ls _cp _mv _rm _cat _less _more _head _tail
+    # Load essential completion functions
+    autoload -Uz _files _cd _ls _cp _mv _rm
 }
 
 # Initialize completion system
 _init_completion
 
 # =============================================================================
-# ENHANCED COMPLETION STYLES (BASED ON PLUGINS)
+# CORE COMPLETION STYLES
 # =============================================================================
 
-# Core completion behavior - ensure tab completion works
+# Basic completion behavior
 zstyle ':completion:*' completer _complete _match _approximate
 zstyle ':completion:*' menu select
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
@@ -70,7 +69,7 @@ zstyle ':completion:*' verbose yes
 zstyle ':completion:*' use-cache yes
 zstyle ':completion:*' cache-path "$ZSH_CACHE_DIR/completion"
 
-# Enhanced matching for better file completion
+# Enhanced matching
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
 # Completion descriptions
@@ -80,17 +79,18 @@ zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
 zstyle ':completion:*:corrections' format '%F{green}-- %d (errors: %e) --%f'
 
 # =============================================================================
-# FILE AND DIRECTORY COMPLETION (ENHANCED)
+# FILE AND DIRECTORY COMPLETION
 # =============================================================================
 
-# Enhanced file completion - show all files including hidden ones
+# File completion patterns
 zstyle ':completion:*' file-patterns '%p(D-/):directories %p(-/):directories %p(^-/):files %p(-/):directories'
 zstyle ':completion:*' squeeze-slashes true
+zstyle ':completion:*' list-dirs-first true
+zstyle ':completion:*' group-order files directories all-files
 
-# Directory completion with better navigation
+# Directory completion
 zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
 zstyle ':completion:*:cd:*' ignore-parents parent pwd
-zstyle ':completion:*:cd:*' extra-verbose true
 
 # File completion for common commands
 zstyle ':completion:*:ls:*' file-patterns '%p(D-/):directories %p(-/):directories %p(^-/):files %p(-/):directories'
@@ -103,15 +103,11 @@ zstyle ':completion:*:more:*' file-patterns '%p(^-/):files'
 zstyle ':completion:*:head:*' file-patterns '%p(^-/):files'
 zstyle ':completion:*:tail:*' file-patterns '%p(^-/):files'
 
-# Show file types and sizes
-zstyle ':completion:*' list-dirs-first true
-zstyle ':completion:*' group-order files directories all-files
-
 # =============================================================================
 # PROCESS COMPLETION
 # =============================================================================
 
-# Process completion with better display
+# Process completion
 zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
 zstyle ':completion:*:*:kill:*' menu yes select
@@ -120,20 +116,10 @@ zstyle ':completion:*:*:killall:*' menu yes select
 zstyle ':completion:*:killall:*' force-list always
 
 # =============================================================================
-# HISTORY COMPLETION
-# =============================================================================
-
-# History completion with better matching
-zstyle ':completion:*:history-words' stop yes
-zstyle ':completion:*:history-words' remove-all-dups yes
-zstyle ':completion:*:history-words' list false
-zstyle ':completion:*:history-words' menu yes
-
-# =============================================================================
 # SSH/SCP COMPLETION
 # =============================================================================
 
-# SSH/SCP completion with host matching
+# SSH/SCP completion
 zstyle ':completion:*:(ssh|scp|rsync):*' tag-order 'hosts:-host:host hosts:-domain:domain hosts:-ipaddr:ip\ address *'
 zstyle ':completion:*:(scp|rsync):*' group-order users files all-files hosts-domain hosts-host hosts-ipaddr
 zstyle ':completion:*:ssh:*' group-order users hosts-domain hosts-host users hosts-ipaddr
@@ -168,10 +154,9 @@ zstyle ':completion:*:*:npm:*' tag-order 'common-commands'
 # CUSTOM COMPLETIONS
 # =============================================================================
 
-# Load custom completions if directory exists
+# Load custom completions
 if [[ -d "$ZSH_CONFIG_DIR/completions" ]]; then
-    local completion_files=("$ZSH_CONFIG_DIR/completions"/_*(N))
-    for completion in $completion_files; do
+    for completion in "$ZSH_CONFIG_DIR/completions"/_*(N); do
         [[ -f "$completion" ]] && source "$completion"
     done
 fi
@@ -204,37 +189,30 @@ _load_tool_completions
 # TAB COMPLETION ENHANCEMENT
 # =============================================================================
 
-# Ensure tab completion works properly
+# Enhance tab completion
 _enhance_tab_completion() {
-    # Bind tab to complete-word
+    # Bind tab keys
     bindkey '^I' complete-word 2>/dev/null || true
     bindkey '^[[Z' reverse-menu-complete 2>/dev/null || true
     
-    # Enable menu selection
+    # Menu selection
     zstyle ':completion:*' menu select
-    
-    # Show completion menu immediately
     zstyle ':completion:*' auto-description 'specify: %d'
-    
-    # Better completion behavior
     zstyle ':completion:*' accept-exact '*(N)'
     zstyle ':completion:*' force-list always
     zstyle ':completion:*' insert-tab pending
-    
-    # Ensure file completion works
-    zstyle ':completion:*' completer _complete _files _match _approximate
 }
 
 # Initialize enhanced tab completion
 _enhance_tab_completion
 
 # =============================================================================
-# FZF-TAB INTEGRATION (IF AVAILABLE)
+# FZF-TAB INTEGRATION
 # =============================================================================
 
-# Configure FZF-tab if available (from plugins)
+# Configure FZF-tab if available
 if (( ${+_comps[fzf-tab]} )); then
-    # FZF-tab configuration for better file completion
+    # FZF-tab configuration
     zstyle ':fzf-tab:complete:*:*' fzf-preview 'if [[ -d $realpath ]]; then
         echo "📁 Directory: $realpath"
         ls -la "$realpath" | head -10 2>/dev/null || echo "Contents not available"
@@ -245,7 +223,7 @@ if (( ${+_comps[fzf-tab]} )); then
         echo "❓ Unknown: $realpath"
     fi'
     
-    # FZF-tab fallback configuration
+    # FZF-tab settings
     zstyle ':fzf-tab:*' switch-group ',' '.'
     zstyle ':fzf-tab:*' show-group full
     zstyle ':fzf-tab:*' continuous-trigger 'space'
@@ -253,131 +231,110 @@ if (( ${+_comps[fzf-tab]} )); then
 fi
 
 # =============================================================================
-# COMPLETION SYSTEM VERIFICATION
+# UTILITY FUNCTIONS
 # =============================================================================
 
-# Verify completion system is working
+# Verify completion system
 _verify_completion_system() {
     echo "🔍 Verifying completion system..."
     
-    # Check if completion is initialized
+    local errors=0
+    
+    # Check completion initialization
     if (( ${+_comps} )); then
         echo "✅ Completion system initialized"
     else
         echo "❌ Completion system not initialized"
-        return 1
+        ((errors++))
     fi
     
-    # Check if tab completion is bound
+    # Check tab binding
     if bindkey | grep -q '\^I.*complete-word'; then
         echo "✅ Tab completion bound"
     else
         echo "❌ Tab completion not bound"
-        return 1
+        ((errors++))
     fi
     
-    # Check if menu completion is enabled
+    # Check menu completion
     if zstyle -L ':completion:*' | grep -q 'menu select'; then
         echo "✅ Menu completion enabled"
     else
         echo "❌ Menu completion not enabled"
-        return 1
+        ((errors++))
     fi
     
-    echo "✅ Completion system verification passed"
-    return 0
+    # Check cache file
+    if [[ -f "$COMPLETION_CACHE_FILE" ]]; then
+        echo "✅ Cache file exists"
+    else
+        echo "❌ Cache file missing"
+        ((errors++))
+    fi
+    
+    if [[ $errors -eq 0 ]]; then
+        echo "✅ Completion system verification passed"
+        return 0
+    else
+        echo "❌ Completion system has $errors error(s)"
+        return 1
+    fi
 }
 
-# Export verification function
-export -f _verify_completion_system 2>/dev/null || true
-
-# =============================================================================
-# COMPLETION DEBUGGING
-# =============================================================================
-
-# Function to debug completion issues
+# Debug completion issues
 _debug_completion() {
     echo "🔍 Completion Debug Info:"
     echo "=========================="
     
-    # Check completion system
-    echo "1. Completion system status:"
-    if (( ${+_comps} )); then
-        echo "   ✅ _comps is set"
-        echo "   Number of completion functions: ${#_comps}"
-    else
-        echo "   ❌ _comps is not set"
-    fi
+    # System status
+    echo "1. Completion system:"
+    echo "   _comps set: $(( ${+_comps} ))"
+    echo "   Functions loaded: ${#_comps}"
     
-    # Check tab binding
-    echo "2. Tab key binding:"
+    # Tab binding
+    echo "2. Tab binding:"
     local tab_binding=$(bindkey | grep '\^I')
-    if [[ -n "$tab_binding" ]]; then
-        echo "   ✅ Tab bound to: $tab_binding"
-    else
-        echo "   ❌ Tab not bound to complete-word"
-    fi
+    echo "   $tab_binding"
     
-    # Check completion styles
-    echo "3. Completion styles:"
-    local menu_style=$(zstyle -L ':completion:*' | grep 'menu select')
-    if [[ -n "$menu_style" ]]; then
-        echo "   ✅ Menu selection enabled"
-    else
-        echo "   ❌ Menu selection not enabled"
-    fi
+    # Styles
+    echo "3. Key styles:"
+    zstyle -L ':completion:*' | grep -E '(menu|list-colors|completer)' | head -5
     
-    # Check completion cache
-    echo "4. Completion cache:"
+    # Cache
+    echo "4. Cache:"
     if [[ -f "$COMPLETION_CACHE_FILE" ]]; then
-        echo "   ✅ Cache file exists: $COMPLETION_CACHE_FILE"
-        echo "   Cache size: $(ls -lh "$COMPLETION_CACHE_FILE" | awk '{print $5}')"
+        echo "   Size: $(ls -lh "$COMPLETION_CACHE_FILE" | awk '{print $5}')"
+        echo "   Age: $(find "$COMPLETION_CACHE_FILE" -printf '%AY-%Am-%Ad %AH:%AM\n' 2>/dev/null || echo 'unknown')"
     else
-        echo "   ❌ Cache file missing: $COMPLETION_CACHE_FILE"
+        echo "   Missing"
     fi
     
-    # Test basic completion
-    echo "5. Testing basic completion:"
-    if (( ${+_comps[cd]} )); then
-        echo "   ✅ cd completion available"
-    else
-        echo "   ❌ cd completion not available"
-    fi
-    
-    # Test file completion
-    echo "6. Testing file completion:"
-    if (( ${+_comps[_files]} )); then
-        echo "   ✅ _files completion available"
-    else
-        echo "   ❌ _files completion not available"
-    fi
+    # Test completions
+    echo "5. Test completions:"
+    echo "   cd: $(( ${+_comps[cd]} ))"
+    echo "   _files: $(( ${+_comps[_files]} ))"
+    echo "   _ls: $(( ${+_comps[_ls]} ))"
 }
 
-# Export debug function
-export -f _debug_completion 2>/dev/null || true
+# Export functions
+export -f _verify_completion_system _debug_completion 2>/dev/null || true
 
 # =============================================================================
-# FINAL TAB COMPLETION ENFORCEMENT
+# FINAL ENFORCEMENT
 # =============================================================================
 
-# Force tab completion to work after all modules are loaded
+# Ensure tab completion works after all modules are loaded
 _enforce_tab_completion() {
-    # Ensure tab is bound to complete-word
     bindkey '^I' complete-word 2>/dev/null || true
-    
-    # Ensure menu completion is enabled
     zstyle ':completion:*' menu select 2>/dev/null || true
     
-    # Ensure completion system is properly initialized
     if (( ! ${+_comps} )); then
         autoload -Uz compinit
         compinit -C 2>/dev/null || true
     fi
 }
 
-# Run enforcement after a short delay to ensure all modules are loaded
-# This is a workaround for module loading order issues
+# Run enforcement in interactive shells
 if [[ -o interactive ]]; then
-    # Use a simple timer to run after all modules are loaded
     (sleep 0.1 && _enforce_tab_completion) &
 fi

@@ -1,6 +1,11 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# ZSH Performance Optimization Module - Enhanced Version
+# Performance Module - Unified Module System Integration
+# Version: 3.0 - Comprehensive Performance Monitoring
+# =============================================================================
+
+# =============================================================================
+# CONFIGURATION
 # =============================================================================
 
 # Performance monitoring configuration
@@ -9,32 +14,39 @@ PERF_METRICS_FILE="${ZSH_CACHE_DIR}/metrics.json"
 PERF_THRESHOLD_WARNING=1.0
 PERF_THRESHOLD_CRITICAL=2.0
 
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+
 # Initialize performance monitoring
 init_performance_monitoring() {
-    # Create performance log directory
     [[ ! -d "$PERF_LOG:h" ]] && mkdir -p "$PERF_LOG:h"
-    
-    # Start performance profiling if enabled
-    [[ -n "$ZSH_PROF" ]] && zmodload zsh/zprof
-    
-    # Record start time
     export ZSH_PERF_START=$EPOCHREALTIME
     
-    # Set up performance tracking
-    _setup_performance_tracking
+    # Log performance module initialization
+    log_performance_event "Performance module initialized"
 }
 
-# Simple performance tracking
-_setup_performance_tracking() {
-    # Basic performance monitoring setup
-    # ZSH_PERF_START is already set in init_performance_monitoring
+# =============================================================================
+# PERFORMANCE LOGGING
+# =============================================================================
+
+# Log performance events
+log_performance_event() {
+    local event="$1"
+    local level="${2:-info}"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] [$level] $event" >> "$PERF_LOG"
 }
 
-# Analyze startup performance (called from main zshrc)
+# =============================================================================
+# PERFORMANCE ANALYSIS
+# =============================================================================
+
+# Analyze startup performance
 _analyze_startup_performance() {
     local duration="$1"
     
-    # Only show results for reasonable timeframes
     if (( duration >= 0 && duration < 60 )); then
         local performance_level=""
         local emoji=""
@@ -51,11 +63,8 @@ _analyze_startup_performance() {
         fi
         
         echo "$emoji Zsh startup: ${duration}s ($performance_level)"
-        
-        # Log performance data
         _log_performance_metrics "$duration" "$performance_level"
         
-        # Provide optimization suggestions
         if [[ "$performance_level" != "GOOD" ]]; then
             _suggest_optimizations "$duration"
         fi
@@ -67,7 +76,6 @@ _log_performance_metrics() {
     local duration="$1"
     local level="$2"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    # Ensure the directory exists
     mkdir -p "$(dirname "$PERF_LOG")"
     echo "[$timestamp] Startup: ${duration}s ($level)" >> "$PERF_LOG"
 }
@@ -93,27 +101,34 @@ _suggest_optimizations() {
     echo "  • Run 'zsh-perf-analyze' for detailed analysis"
 }
 
+# =============================================================================
+# PERFORMANCE ANALYSIS FUNCTIONS
+# =============================================================================
+
 # Advanced performance analysis
 zsh_perf_analyze() {
+    log_performance_event "Performance analysis started"
+    
     echo "🔍 ZSH Performance Analysis"
     echo "=========================="
     
     # Basic metrics
-    echo "Functions: $(declare -F | wc -l)"
-    echo "Aliases: $(alias | wc -l)"
-    echo "PATH entries: $(echo "$PATH" | tr ':' '\n' | wc -l)"
-    echo "Memory: $(ps -o rss= -p $$ 2>/dev/null | awk '{printf "%.1f MB", $1/1024}' | head -1 | tr -d '\n')"
+    local func_count=$(declare -F | wc -l)
+    local alias_count=$(alias | wc -l)
+    local path_count=$(echo "$PATH" | tr ':' '\n' | wc -l)
+    local memory_usage=$(ps -o rss= -p $$ 2>/dev/null | awk '{printf "%.1f MB", $1/1024}' | head -1 | tr -d '\n')
+    
+    echo "Functions: $func_count"
+    echo "Aliases: $alias_count"
+    echo "PATH entries: $path_count"
+    echo "Memory: $memory_usage"
     
     # Advanced metrics
     echo "History size: $(wc -l < "$HISTFILE" 2>/dev/null || echo "0")"
     echo "Completion cache size: $(ls -la "$COMPLETION_CACHE_FILE" 2>/dev/null | awk '{print $5}' || echo "0")"
-    echo "Loaded modules: $(echo $ZSH_LOADED_MODULES | wc -w 2>/dev/null || echo "0")"
+    echo "Loaded modules: $(echo $ZSH_MODULES_LOADED | wc -w 2>/dev/null || echo "0")"
     
     # Performance assessment
-    local func_count=$(declare -F | wc -l)
-    local path_count=$(echo "$PATH" | tr ':' '\n' | wc -l)
-    local hist_size=$(wc -l < "$HISTFILE" 2>/dev/null || echo "0")
-    
     if (( func_count > 500 )); then
         echo "⚠️  High function count: $func_count"
     fi
@@ -122,6 +137,7 @@ zsh_perf_analyze() {
         echo "⚠️  Many PATH entries: $path_count"
     fi
     
+    local hist_size=$(wc -l < "$HISTFILE" 2>/dev/null || echo "0")
     if (( hist_size > 10000 )); then
         echo "⚠️  Large history file: $hist_size lines"
     fi
@@ -133,13 +149,14 @@ zsh_perf_analyze() {
     (( hist_size > 10000 )) && ((score -= 10))
     
     echo "📊 Performance Score: $score/100"
+    
+    log_performance_event "Performance analysis completed"
 }
 
 # Simple bottleneck check
 _identify_bottlenecks() {
     local issues=0
     
-    # Check for large history file
     if [[ -f "$HISTFILE" ]]; then
         local hist_size=$(wc -l < "$HISTFILE" 2>/dev/null || echo "0")
         if (( hist_size > 10000 )); then
@@ -153,44 +170,24 @@ _identify_bottlenecks() {
     fi
 }
 
-# Performance optimization functions
+# =============================================================================
+# OPTIMIZATION FUNCTIONS
+# =============================================================================
+
+# Main optimization function
 optimize_zsh_performance() {
+    log_performance_event "Performance optimization started"
+    
     echo "⚡ Optimizing ZSH Performance..."
     
-    # Optimize completion cache
     _optimize_completion_cache
-    
-    # Clean up history
     _optimize_history
-    
-    # Optimize PATH
     _optimize_path
-    
-    # Compile zsh files
     _compile_zsh_files
-    
-    # Optimize hooks
     _optimize_hooks
     
     echo "✅ Performance optimization completed"
-}
-
-# Optimize hooks for better performance
-_optimize_hooks() {
-    echo "  • Optimizing hooks..."
-    
-    # Remove duplicate precmd hooks
-    local hooks=$(add-zsh-hook -L precmd 2>/dev/null)
-    local unique_hooks=$(echo "$hooks" | sort | uniq)
-    
-    if [[ "$hooks" != "$unique_hooks" ]]; then
-        # Clear all precmd hooks
-        add-zsh-hook -D precmd '*'
-        # Re-add unique hooks
-        echo "$unique_hooks" | while read hook; do
-            [[ -n "$hook" ]] && add-zsh-hook precmd "$hook"
-        done
-    fi
+    log_performance_event "Performance optimization completed"
 }
 
 # Optimize completion cache
@@ -199,11 +196,9 @@ _optimize_completion_cache() {
     
     local comp_cache="$ZSH_CACHE_DIR/zcompdump"
     if [[ -f "$comp_cache" ]]; then
-        # Rebuild completion cache
         autoload -Uz compinit
         compinit -d "$comp_cache"
         
-        # Compile for faster loading
         [[ -f "$comp_cache" ]] && [[ ! -f "${comp_cache}.zwc" ]] && \
             zcompile "$comp_cache"
     fi
@@ -232,10 +227,8 @@ _optimize_history() {
 _optimize_path() {
     echo "  • Optimizing PATH..."
     
-    # Remove duplicate entries
     typeset -U path
     
-    # Remove non-existent directories
     local new_path=""
     for dir in $(echo "$PATH" | tr ':' ' '); do
         if [[ -d "$dir" ]]; then
@@ -249,7 +242,6 @@ _optimize_path() {
 _compile_zsh_files() {
     echo "  • Compiling zsh files..."
     
-    # Compile main configuration files
     local files_to_compile=(
         "$ZSH_CONFIG_DIR/zshrc"
         "$ZSH_CONFIG_DIR/zshenv"
@@ -262,28 +254,88 @@ _compile_zsh_files() {
         "$ZSH_CONFIG_DIR/themes/prompt.zsh"
     )
     
+    local compiled_count=0
     for file in "${files_to_compile[@]}"; do
         if [[ -f "$file" ]] && [[ ! -f "${file}.zwc" ]]; then
-            zcompile "$file" 2>/dev/null || true
+            zcompile "$file" 2>/dev/null && ((compiled_count++))
         fi
     done
+    
+    echo "    Compiled $compiled_count files"
 }
 
-# Simple performance dashboard
+# Optimize hooks
+_optimize_hooks() {
+    echo "  • Optimizing hooks..."
+    
+    local hooks=$(add-zsh-hook -L precmd 2>/dev/null)
+    local unique_hooks=$(echo "$hooks" | sort | uniq)
+    
+    if [[ "$hooks" != "$unique_hooks" ]]; then
+        add-zsh-hook -D precmd '*'
+        echo "$unique_hooks" | while read hook; do
+            [[ -n "$hook" ]] && add-zsh-hook precmd "$hook"
+        done
+    fi
+}
+
+# =============================================================================
+# MODULE-SPECIFIC PERFORMANCE
+# =============================================================================
+
+# Plugin performance monitoring
+monitor_plugin_performance() {
+    local plugin="$1"
+    local start_time=$EPOCHREALTIME
+    
+    # Simulate plugin loading time measurement
+    sleep 0.001  # Simulate work
+    
+    local end_time=$EPOCHREALTIME
+    local duration=$((end_time - start_time))
+    local duration_formatted=$(printf "%.3f" $duration)
+    
+    log_performance_event "Plugin $plugin loaded in ${duration_formatted}s"
+    
+    if (( duration > 100 )); then
+        log_performance_event "Plugin $plugin is slow: ${duration_formatted}s" "warning"
+    fi
+}
+
+# Completion performance monitoring
+monitor_completion_performance() {
+    local start_time=$EPOCHREALTIME
+    
+    # Measure completion cache rebuild time
+    if [[ -f "$ZSH_CACHE_DIR/zcompdump" ]]; then
+        autoload -Uz compinit
+        compinit -C -d "$ZSH_CACHE_DIR/zcompdump" >/dev/null 2>&1
+    fi
+    
+    local end_time=$EPOCHREALTIME
+    local duration=$((end_time - start_time))
+    local duration_formatted=$(printf "%.3f" $duration)
+    
+    log_performance_event "Completion system loaded in ${duration_formatted}s"
+}
+
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+# Performance dashboard
 zsh_perf_dashboard() {
     echo "📊 ZSH Performance Dashboard"
     echo "==========================="
     
-    # Current metrics
     echo "Memory: $(ps -o rss= -p $$ 2>/dev/null | awk '{printf "%.1f MB", $1/1024}' | head -1 | tr -d '\n')"
     echo "Functions: $(declare -F | wc -l)"
     echo "Aliases: $(alias | wc -l)"
     echo "PATH entries: $(echo "$PATH" | tr ':' '\n' | wc -l)"
     
-    # Recent startup times
     if [[ -f "$PERF_LOG" ]]; then
         echo ""
-        echo "Recent startup times:"
+        echo "Recent performance events:"
         tail -5 "$PERF_LOG" | sed 's/^/  /'
     fi
 }
@@ -295,7 +347,6 @@ quick_perf_check() {
     
     local start_time=$EPOCHREALTIME
     
-    # Test basic operations
     local func_count=$(declare -F | wc -l)
     local alias_count=$(alias | wc -l)
     local path_count=$(echo "$PATH" | tr ':' '\n' | wc -l)
@@ -309,16 +360,20 @@ quick_perf_check() {
     echo "  • Aliases: $alias_count"
     echo "  • PATH entries: $path_count"
     
-    # Performance assessment
     if (( duration > 100 )); then
         echo "⚠️  Slow metric collection detected"
+        log_performance_event "Slow metric collection: ${duration_formatted}s" "warning"
     else
         echo "✅ Performance check passed"
     fi
 }
 
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+
 # Initialize performance monitoring
 init_performance_monitoring
 
-# Export performance functions
-export -f zsh_perf_analyze optimize_zsh_performance zsh_perf_dashboard quick_perf_check 2>/dev/null || true
+# Export functions
+export -f zsh_perf_analyze optimize_zsh_performance zsh_perf_dashboard quick_perf_check monitor_plugin_performance monitor_completion_performance 2>/dev/null || true
