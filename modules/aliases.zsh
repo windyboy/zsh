@@ -17,6 +17,7 @@ alias zsh-test-quick='quick_test'
 alias zsh-errors='report_errors'
 alias zsh-errors-clear='clear_error_log'
 alias zsh-recovery='enter_recovery_mode'
+alias zsh-comp-test='_verify_completion_system'
 
 # ===== Security Aliases =====
 alias security-audit='security_audit'

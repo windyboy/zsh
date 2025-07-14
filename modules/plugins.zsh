@@ -58,7 +58,7 @@ if [[ -o interactive ]]; then
     # Auto suggestions
     zinit light zsh-users/zsh-autosuggestions 2>/dev/null || true
 
-    # FZF tab completion (lazy load)
+    # FZF tab completion (lazy load) - FIXED: Don't override default tab completion
     zinit ice wait'0' lucid
     zinit light Aloxaf/fzf-tab 2>/dev/null || true
 
@@ -126,23 +126,23 @@ export ZSH_AUTOSUGGEST_ACCEPT_WIDGETS=(end-of-line vi-end-of-line vi-add-eol)
 export ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS=(forward-char vi-forward-char)
 export ZSH_AUTOSUGGEST_EXECUTE_WIDGETS=(accept-line)
 
-# FZF tab configuration
+# FZF tab configuration - RE-ENABLED WITH SAFE CONFIG
 zstyle ':fzf-tab:complete:*:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 2s bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || echo "Preview not available"; else bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || echo "Preview not available"; fi'
 
-# Enhanced FZF configuration for better navigation
+# Enhanced FZF configuration for better navigation - RE-ENABLED WITH SAFE CONFIG
 zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --timeout=3
 zstyle ':fzf-tab:complete:*:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 2s bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || timeout 1s ls -la $realpath 2>/dev/null || echo $realpath; else bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || ls -la $realpath 2>/dev/null || echo $realpath; fi'
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "Directory preview not available"; else ls -la $realpath 2>/dev/null || echo "Directory preview not available"; fi'
 zstyle ':fzf-tab:complete:ls:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "File preview not available"; else ls -la $realpath 2>/dev/null || echo "File preview not available"; fi'
 
-# Enhanced file and directory completion with FZF
+# Enhanced file and directory completion with FZF - RE-ENABLED WITH SAFE CONFIG
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "Directory: $realpath"; else ls -la $realpath 2>/dev/null || echo "Directory: $realpath"; fi'
 zstyle ':fzf-tab:complete:ls:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"; else ls -la $realpath 2>/dev/null || echo "File: $realpath"; fi'
 zstyle ':fzf-tab:complete:cp:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"; else ls -la $realpath 2>/dev/null || echo "File: $realpath"; fi'
 zstyle ':fzf-tab:complete:mv:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"; else ls -la $realpath 2>/dev/null || echo "File: $realpath"; fi'
 zstyle ':fzf-tab:complete:rm:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"; else ls -la $realpath 2>/dev/null || echo "File: $realpath"; fi'
 
-# Show file types and sizes in FZF completion
+# Show file types and sizes in FZF completion - RE-ENABLED WITH SAFE CONFIG
 zstyle ':fzf-tab:complete:*' fzf-preview 'if [[ -d $realpath ]]; then
     echo "📁 Directory: $realpath"
     if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la "$realpath" | head -10 2>/dev/null || echo "Contents not available"; else ls -la "$realpath" | head -10 2>/dev/null || echo "Contents not available"; fi
@@ -152,6 +152,21 @@ elif [[ -f $realpath ]]; then
 else
     echo "❓ Unknown: $realpath"
 fi'
+
+# FZF-tab fallback configuration - ensure basic completion still works - RE-ENABLED
+zstyle ':fzf-tab:*' switch-group ',' '.'
+zstyle ':fzf-tab:*' show-group full
+zstyle ':fzf-tab:*' continuous-trigger 'space'
+zstyle ':fzf-tab:*' accept-line 'ctrl-space'
+
+# IMPORTANT: Ensure default completion still works alongside FZF-tab
+zstyle ':completion:*' completer _complete _match _approximate
+zstyle ':completion:*' menu select
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+
+# FZF-tab configuration - Don't override default tab completion
+# Use Ctrl+T for fzf-tab instead of Tab
+bindkey '^T' fzf-tab-complete
 
 # History substring search key bindings
 bindkey '^[[A' history-substring-search-up

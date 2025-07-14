@@ -75,8 +75,11 @@ load_module "performance"
 # 5. Plugins (Zinit-based plugin management)
 load_module "plugins"
 
-# 6. Completion system
+# 6. Completion system (with tab completion fix)
 load_module "completion"
+
+# 6.1 Ensure default tab completion works (fix for fzf-tab override)
+bindkey '^I' complete-word
 
 # 8. Functions
 load_module "functions"
@@ -155,3 +158,22 @@ fi
 [ -s "${HOME}/.bun/_bun" ] && source "${HOME}/.bun/_bun"
 # Disable automatic zinit updates for faster startup
 export ZINIT_AUTO_UPDATE=0
+
+# =============================================================================
+# FINAL TAB COMPLETION ENFORCEMENT
+# =============================================================================
+
+# Ensure tab completion works after all modules and plugins are loaded
+if [[ -o interactive ]]; then
+    # Force tab binding to complete-word
+    bindkey '^I' complete-word 2>/dev/null || true
+    
+    # Ensure menu completion is enabled
+    zstyle ':completion:*' menu select 2>/dev/null || true
+    
+    # Verify tab completion is working
+    if ! bindkey | grep -q '\^I.*complete-word'; then
+        echo "⚠️  Tab completion binding failed, attempting to fix..."
+        bindkey '^I' complete-word
+    fi
+fi
