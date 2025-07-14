@@ -17,9 +17,7 @@ ALIAS_LOG="${ZSH_CACHE_DIR}/aliases.log"
 
 # Initialize aliases module
 init_aliases() {
-    [[ ! -d "$ALIAS_LOG:h" ]] && mkdir -p "$ALIAS_LOG:h"
-    
-    # Log aliases module initialization
+    # Log aliases module initialization (log function will ensure directory)
     log_alias_event "Aliases module initialized"
 }
 
@@ -32,6 +30,8 @@ log_alias_event() {
     local event="$1"
     local level="${2:-info}"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    # Always ensure log directory exists before writing
+    [[ ! -d "${ALIAS_LOG:h}" ]] && mkdir -p "${ALIAS_LOG:h}"
     echo "[$timestamp] [$level] $event" >> "$ALIAS_LOG"
 }
 

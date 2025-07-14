@@ -17,9 +17,7 @@ FUNCTION_LOG="${ZSH_CACHE_DIR}/functions.log"
 
 # Initialize functions module
 init_functions() {
-    [[ ! -d "$FUNCTION_LOG:h" ]] && mkdir -p "$FUNCTION_LOG:h"
-    
-    # Log functions module initialization
+    # Log functions module initialization (log function will ensure directory)
     log_function_event "Functions module initialized"
 }
 
@@ -32,6 +30,8 @@ log_function_event() {
     local event="$1"
     local level="${2:-info}"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    # Always ensure log directory exists before writing
+    [[ ! -d "${FUNCTION_LOG:h}" ]] && mkdir -p "${FUNCTION_LOG:h}"
     echo "[$timestamp] [$level] $event" >> "$FUNCTION_LOG"
 }
 
@@ -245,8 +245,8 @@ function myip() {
     for service in "${services[@]}"; do
         ip=$(curl -s --connect-timeout 5 "$service" 2>/dev/null)
         if [[ -n "$ip" ]] && [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "External IP: $ip"
-            return 0
+                echo "External IP: $ip"
+                return 0
         fi
     done
     
@@ -445,7 +445,7 @@ validate_function_security() {
         fi
     done
     
-    return 0
+        return 0
 }
 
 # =============================================================================

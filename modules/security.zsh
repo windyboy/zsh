@@ -18,9 +18,7 @@ SECURITY_AUDIT_FILE="${ZSH_CACHE_DIR}/security_audit.json"
 
 # Initialize security module
 init_security() {
-    [[ ! -d "$SECURITY_LOG:h" ]] && mkdir -p "$SECURITY_LOG:h"
-    
-    # Log security module initialization
+    # Log security module initialization (log function will ensure directory)
     log_security_event "Security module initialized"
 }
 
@@ -86,6 +84,8 @@ log_security_event() {
     local event="$1"
     local level="${2:-info}"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    # Always ensure log directory exists before writing
+    [[ ! -d "${SECURITY_LOG:h}" ]] && mkdir -p "${SECURITY_LOG:h}"
     echo "[$timestamp] [$level] $event" >> "$SECURITY_LOG"
 }
 

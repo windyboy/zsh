@@ -17,7 +17,8 @@ STATUS_LOG="${ZSH_CACHE_DIR}/system_status.log"
 
 # Initialize status checker
 init_status_checker() {
-    [[ ! -d "$STATUS_LOG:h" ]] && mkdir -p "$STATUS_LOG:h"
+    # Log status checker initialization (log function will ensure directory)
+    log_status_event "System status checker initialized"
 }
 
 # =============================================================================
@@ -29,6 +30,8 @@ log_status_event() {
     local event="$1"
     local level="${2:-info}"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    # Always ensure log directory exists before writing
+    [[ ! -d "${STATUS_LOG:h}" ]] && mkdir -p "${STATUS_LOG:h}"
     echo "[$timestamp] [$level] $event" >> "$STATUS_LOG"
 }
 

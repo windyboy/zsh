@@ -20,11 +20,9 @@ PERF_THRESHOLD_CRITICAL=2.0
 
 # Initialize performance monitoring
 init_performance_monitoring() {
-    [[ ! -d "$PERF_LOG:h" ]] && mkdir -p "$PERF_LOG:h"
-    export ZSH_PERF_START=$EPOCHREALTIME
-    
-    # Log performance module initialization
+    # Log performance module initialization (log function will ensure directory)
     log_performance_event "Performance module initialized"
+    export ZSH_PERF_START=$EPOCHREALTIME
 }
 
 # =============================================================================
@@ -36,6 +34,8 @@ log_performance_event() {
     local event="$1"
     local level="${2:-info}"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    # Always ensure log directory exists before writing
+    [[ ! -d "${PERF_LOG:h}" ]] && mkdir -p "${PERF_LOG:h}"
     echo "[$timestamp] [$level] $event" >> "$PERF_LOG"
 }
 

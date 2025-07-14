@@ -18,8 +18,8 @@ ERROR_RECOVERY_MODE=false
 
 # Initialize error handling
 init_error_handling() {
-    [[ ! -d "$ERROR_LOG:h" ]] && mkdir -p "$ERROR_LOG:h"
-    
+    # Log error handling initialization (log function will ensure directory)
+    log_error "Error handling module initialized" "init"
     if [[ -z "$ERROR_RECOVERY_MODE" ]] && [[ -z "$ZSH_ERROR_TRAP_SET" ]]; then
         trap 'echo "Warning: Error in line $LINENO" >&2' ERR
         export ZSH_ERROR_TRAP_SET=1
@@ -35,6 +35,8 @@ log_error() {
     local message="$1"
     local module="${2:-unknown}"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    # Always ensure log directory exists before writing
+    [[ ! -d "${ERROR_LOG:h}" ]] && mkdir -p "${ERROR_LOG:h}"
     echo "[$timestamp] [$module] $message" >> "$ERROR_LOG"
     [[ -z "$ZSH_QUIET" ]] && echo "❌ [$module] $message" >&2
 }

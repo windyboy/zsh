@@ -17,9 +17,7 @@ KEYBINDING_LOG="${ZSH_CACHE_DIR}/keybindings.log"
 
 # Initialize keybindings module
 init_keybindings() {
-    [[ ! -d "$KEYBINDING_LOG:h" ]] && mkdir -p "$KEYBINDING_LOG:h"
-    
-    # Log keybindings module initialization
+    # Log keybindings module initialization (log function will ensure directory)
     log_keybinding_event "Keybindings module initialized"
 }
 
@@ -32,6 +30,8 @@ log_keybinding_event() {
     local event="$1"
     local level="${2:-info}"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    # Always ensure log directory exists before writing
+    [[ ! -d "${KEYBINDING_LOG:h}" ]] && mkdir -p "${KEYBINDING_LOG:h}"
     echo "[$timestamp] [$level] $event" >> "$KEYBINDING_LOG"
 }
 

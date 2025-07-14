@@ -18,9 +18,7 @@ MODULE_DEPENDENCIES_FILE="${ZSH_CACHE_DIR}/module_dependencies.json"
 
 # Initialize module manager
 init_module_manager() {
-    [[ ! -d "$MODULE_MANAGER_LOG:h" ]] && mkdir -p "$MODULE_MANAGER_LOG:h"
-    
-    # Log module manager initialization
+    # Log module manager initialization (log function will ensure directory)
     log_module_manager_event "Module manager initialized"
 }
 
@@ -33,6 +31,8 @@ log_module_manager_event() {
     local event="$1"
     local level="${2:-info}"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    # Always ensure log directory exists before writing
+    [[ ! -d "${MODULE_MANAGER_LOG:h}" ]] && mkdir -p "${MODULE_MANAGER_LOG:h}"
     echo "[$timestamp] [$level] $event" >> "$MODULE_MANAGER_LOG"
 }
 
@@ -70,6 +70,20 @@ MODULE_LOAD_ORDER=(
 # MODULE LOADING
 # =============================================================================
 
+# Basic safe source function (fallback)
+safe_source_fallback() {
+    local file="$1"
+    local module="${2:-unknown}"
+    
+    if [[ -f "$file" ]] && [[ -r "$file" ]]; then
+        source "$file" 2>/dev/null
+        return $?
+    else
+        echo "Cannot read file: $file" >&2
+        return 1
+    fi
+}
+
 # Load module with dependencies
 load_module_with_deps() {
     local module="$1"
@@ -95,13 +109,27 @@ load_module_with_deps() {
     # Load the module
     if [[ -f "$module_file" ]]; then
         log_module_manager_event "Loading module: $module"
-        if safe_source "$module_file" "module_manager"; then
-            export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED $module"
-            log_module_manager_event "Module $module loaded successfully"
-            return 0
+        
+        # Use safe_source if available, otherwise use fallback
+        if command -v safe_source >/dev/null 2>&1; then
+            if safe_source "$module_file" "module_manager"; then
+                export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED $module"
+                log_module_manager_event "Module $module loaded successfully"
+                return 0
+            else
+                log_module_manager_event "Failed to load module: $module" "error"
+                return 1
+            fi
         else
-            log_module_manager_event "Failed to load module: $module" "error"
-            return 1
+            # Use fallback method
+            if safe_source_fallback "$module_file" "module_manager"; then
+                export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED $module"
+                log_module_manager_event "Module $module loaded successfully"
+                return 0
+            else
+                log_module_manager_event "Failed to load module: $module" "error"
+                return 1
+            fi
         fi
     else
         log_module_manager_event "Module file not found: $module_file" "error"

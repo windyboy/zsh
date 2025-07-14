@@ -24,6 +24,9 @@ export ZSH_DATA_DIR="${ZSH_DATA_DIR:-$HOME/.local/share/zsh}"
 [[ ! -d "$ZSH_CACHE_DIR" ]] && mkdir -p "$ZSH_CACHE_DIR"
 [[ ! -d "$ZSH_DATA_DIR" ]] && mkdir -p "$ZSH_DATA_DIR"
 
+# Create subdirectories for logs
+[[ ! -d "$ZSH_CACHE_DIR" ]] && mkdir -p "$ZSH_CACHE_DIR"
+
 # =============================================================================
 # CORE CONFIGURATION
 # =============================================================================
