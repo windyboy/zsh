@@ -35,14 +35,14 @@ _analyze_startup_performance() {
     local duration="$1"
     
     # Only show results for reasonable timeframes
-    if (( $(echo "$duration >= 0 && $duration < 60" | bc -l 2>/dev/null) )); then
+    if (( duration >= 0 && duration < 60 )); then
         local performance_level=""
         local emoji=""
         
-        if (( $(echo "$duration > $PERF_THRESHOLD_CRITICAL" | bc -l 2>/dev/null) )); then
+        if (( duration > PERF_THRESHOLD_CRITICAL )); then
             performance_level="CRITICAL"
             emoji="🔴"
-        elif (( $(echo "$duration > $PERF_THRESHOLD_WARNING" | bc -l 2>/dev/null) )); then
+        elif (( duration > PERF_THRESHOLD_WARNING )); then
             performance_level="WARNING"
             emoji="🟡"
         else
@@ -78,13 +78,13 @@ _suggest_optimizations() {
     
     echo "💡 Performance optimization suggestions:"
     
-    if (( $(echo "$duration > 2.0" | bc -l 2>/dev/null) )); then
+    if (( duration > 2.0 )); then
         echo "  • Consider disabling heavy plugins"
         echo "  • Review completion cache settings"
         echo "  • Check for slow-loading modules"
     fi
     
-    if (( $(echo "$duration > 1.0" | bc -l 2>/dev/null) )); then
+    if (( duration > 1.0 )); then
         echo "  • Enable lazy loading for non-critical plugins"
         echo "  • Optimize PATH variable"
         echo "  • Review custom functions"
@@ -301,15 +301,16 @@ quick_perf_check() {
     local path_count=$(echo "$PATH" | tr ':' '\n' | wc -l)
     
     local end_time=$EPOCHREALTIME
-    local duration=$(printf "%.3f" $(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "0"))
+    local duration=$((end_time - start_time))
+    local duration_formatted=$(printf "%.3f" $duration)
     
-    echo "Metrics collected in ${duration}s:"
+    echo "Metrics collected in ${duration_formatted}s:"
     echo "  • Functions: $func_count"
     echo "  • Aliases: $alias_count"
     echo "  • PATH entries: $path_count"
     
     # Performance assessment
-    if (( $(echo "$duration > 0.1" | bc -l 2>/dev/null) )); then
+    if (( duration > 100 )); then
         echo "⚠️  Slow metric collection detected"
     else
         echo "✅ Performance check passed"

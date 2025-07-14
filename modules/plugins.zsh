@@ -127,28 +127,28 @@ export ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS=(forward-char vi-forward-char)
 export ZSH_AUTOSUGGEST_EXECUTE_WIDGETS=(accept-line)
 
 # FZF tab configuration
-zstyle ':fzf-tab:complete:*:*' fzf-preview 'timeout 2s bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || echo "Preview not available"'
+zstyle ':fzf-tab:complete:*:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 2s bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || echo "Preview not available"; else bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || echo "Preview not available"; fi'
 
 # Enhanced FZF configuration for better navigation
 zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --timeout=3
-zstyle ':fzf-tab:complete:*:*' fzf-preview 'timeout 2s bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || timeout 1s ls -la $realpath 2>/dev/null || echo $realpath'
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "Directory preview not available"'
-zstyle ':fzf-tab:complete:ls:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "File preview not available"'
+zstyle ':fzf-tab:complete:*:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 2s bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || timeout 1s ls -la $realpath 2>/dev/null || echo $realpath; else bat --color=always --style=numbers --line-range=:500 $realpath 2>/dev/null || ls -la $realpath 2>/dev/null || echo $realpath; fi'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "Directory preview not available"; else ls -la $realpath 2>/dev/null || echo "Directory preview not available"; fi'
+zstyle ':fzf-tab:complete:ls:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "File preview not available"; else ls -la $realpath 2>/dev/null || echo "File preview not available"; fi'
 
 # Enhanced file and directory completion with FZF
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "Directory: $realpath"'
-zstyle ':fzf-tab:complete:ls:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"'
-zstyle ':fzf-tab:complete:cp:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"'
-zstyle ':fzf-tab:complete:mv:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"'
-zstyle ':fzf-tab:complete:rm:*' fzf-preview 'timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "Directory: $realpath"; else ls -la $realpath 2>/dev/null || echo "Directory: $realpath"; fi'
+zstyle ':fzf-tab:complete:ls:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"; else ls -la $realpath 2>/dev/null || echo "File: $realpath"; fi'
+zstyle ':fzf-tab:complete:cp:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"; else ls -la $realpath 2>/dev/null || echo "File: $realpath"; fi'
+zstyle ':fzf-tab:complete:mv:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"; else ls -la $realpath 2>/dev/null || echo "File: $realpath"; fi'
+zstyle ':fzf-tab:complete:rm:*' fzf-preview 'if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la $realpath 2>/dev/null || echo "File: $realpath"; else ls -la $realpath 2>/dev/null || echo "File: $realpath"; fi'
 
 # Show file types and sizes in FZF completion
 zstyle ':fzf-tab:complete:*' fzf-preview 'if [[ -d $realpath ]]; then
     echo "📁 Directory: $realpath"
-    timeout 1s ls -la "$realpath" | head -10 2>/dev/null || echo "Contents not available"
+    if command -v timeout >/dev/null 2>&1; then timeout 1s ls -la "$realpath" | head -10 2>/dev/null || echo "Contents not available"; else ls -la "$realpath" | head -10 2>/dev/null || echo "Contents not available"; fi
 elif [[ -f $realpath ]]; then
     echo "📄 File: $realpath"
-    timeout 1s ls -lh "$realpath" 2>/dev/null || echo "File info not available"
+    if command -v timeout >/dev/null 2>&1; then timeout 1s ls -lh "$realpath" 2>/dev/null || echo "File info not available"; else ls -lh "$realpath" 2>/dev/null || echo "File info not available"; fi
 else
     echo "❓ Unknown: $realpath"
 fi'

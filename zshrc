@@ -16,7 +16,7 @@ fi
 
 # ===== Performance Monitoring Start =====
 zmodload zsh/zprof
-ZSHRC_LOAD_START=$EPOCHREALTIME
+export ZSHRC_LOAD_START=$EPOCHREALTIME
 
 # Performance monitoring (enhanced)
 [[ -n "$ZSH_PROF" ]] && echo "🔍 ZSH Performance profiling enabled"
@@ -75,7 +75,7 @@ load_module "performance"
 # 5. Plugins (Zinit-based plugin management)
 load_module "plugins"
 
-# 7. Completion system
+# 6. Completion system
 load_module "completion"
 
 # 8. Functions
@@ -103,17 +103,14 @@ fi
 # =============================================================================
 
 # ===== Performance Monitoring End =====
-ZSHRC_LOAD_END=$EPOCHREALTIME
+export ZSHRC_LOAD_END=$EPOCHREALTIME
 
 # Calculate timing (only show for new shell starts, not reloads)
 if [[ -n "$ZSH_STARTUP_TIME_BEGIN" ]] && [[ -o interactive ]]; then
     # This is a new shell start, calculate full startup time
-    ZSH_STARTUP_TIME_END=$EPOCHREALTIME
-    if command -v bc >/dev/null 2>&1; then
-        FULL_STARTUP_TIME=$(printf "%.3f" $(echo "$ZSH_STARTUP_TIME_END - $ZSH_STARTUP_TIME_BEGIN" | bc -l 2>/dev/null || echo "0"))
-    else
-        FULL_STARTUP_TIME=$(printf "%.3f" $((ZSH_STARTUP_TIME_END - ZSH_STARTUP_TIME_BEGIN)))
-    fi
+    export ZSH_STARTUP_TIME_END=$EPOCHREALTIME
+    local startup_duration=$((ZSH_STARTUP_TIME_END - ZSH_STARTUP_TIME_BEGIN))
+    FULL_STARTUP_TIME=$(printf "%.3f" $startup_duration)
     
     # Performance monitoring output (enhanced)
     if [[ -n "$ZSH_PROF" ]]; then
@@ -126,7 +123,7 @@ if [[ -n "$ZSH_STARTUP_TIME_BEGIN" ]] && [[ -o interactive ]]; then
         _analyze_startup_performance "$FULL_STARTUP_TIME"
     else
         # Fallback to simple timing display
-        if (( $(echo "$FULL_STARTUP_TIME > 0.5" | bc -l) )); then
+        if (( startup_duration > 500000 )); then
             echo "⚠️  Zsh startup time: ${FULL_STARTUP_TIME}s (consider optimization)"
         elif [[ -z "$ZSH_QUIET" ]]; then
             echo "⚡ Zsh loaded in ${FULL_STARTUP_TIME}s"
@@ -137,11 +134,8 @@ if [[ -n "$ZSH_STARTUP_TIME_BEGIN" ]] && [[ -o interactive ]]; then
     unset ZSH_STARTUP_TIME_BEGIN
 else
     # This is a reload, only show config load time
-    if command -v bc >/dev/null 2>&1; then
-        LOAD_TIME=$(printf "%.3f" $(echo "$ZSHRC_LOAD_END - $ZSHRC_LOAD_START" | bc -l 2>/dev/null || echo "0"))
-    else
-        LOAD_TIME=$(printf "%.3f" $((ZSHRC_LOAD_END - ZSHRC_LOAD_START)))
-    fi
+    local load_duration=$((ZSHRC_LOAD_END - ZSHRC_LOAD_START))
+    LOAD_TIME=$(printf "%.3f" $load_duration)
     
     if [[ -n "$ZSH_PROF" ]]; then
         echo "📊 Detailed performance report:"

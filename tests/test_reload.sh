@@ -43,6 +43,7 @@ echo "4. Checking essential modules..."
 modules=(
     "core.zsh"
     "error_handling.zsh"
+    "security.zsh"
     "performance.zsh"
     "plugins.zsh"
     "completion.zsh"

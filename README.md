@@ -272,6 +272,33 @@ test_timing.zsh
 - **Performance Issues:** Run `optimize_zsh_performance` for optimization suggestions
 - **Module Loading Errors:** Use `zsh-test` to validate module loading and identify issues
 
+### Shell Hanging Issues
+
+If your shell hangs after pressing Enter twice:
+
+1. **Check for background processes:**
+   ```bash
+   jobs
+   ```
+
+2. **Test hanging fix:**
+   ```bash
+   ./tests/test_hanging_fix.zsh
+   ```
+
+3. **Common causes and solutions:**
+   - **Async tool completion**: Timeout protection is already implemented
+   - **FZF tab completion**: Preview commands have timeout protection
+   - **External tools**: If `docker`, `bun`, or `deno` are slow, they might cause delays
+   - **Completion cache**: Rebuild with timeout protection
+
+4. **Emergency recovery:**
+   ```bash
+   # Restart terminal completely
+   # Or run in recovery mode
+   enter_recovery_mode
+   ```
+
 ## 🎖️ Final Notes
 
 - This configuration is now fully modular, secure, and does not require Zinit or any plugin manager.
@@ -280,18 +307,67 @@ test_timing.zsh
 - Comprehensive testing framework ensures configuration quality.
 - Performance optimization tools help maintain fast startup times.
 
-## 🎨 Prompt Configuration
+## 🧭 Navigation & Key Bindings
 
-### Theme Configuration
+### FZF Tab Completion (Primary Method)
+- **How to use**: Press `TAB` when typing a command
+- **What happens**: Opens a fuzzy search interface
+- **Navigation**: 
+  - Type to filter results
+  - Use arrow keys or `Ctrl+N/P` to navigate
+  - Press `Enter` to select
+  - Press `Esc` to cancel
 
-The prompt theme is configured in `themes/prompt.zsh` with a clean, professional design:
+### FZF File & Directory Navigation
+- **File Finder**: `Ctrl+T` - Fuzzy find files from current directory
+- **Directory Finder**: `Ctrl+G` - Fuzzy find and change to directories
+- **History Search**: `Ctrl+R` - Search through command history
+
+### Smart Directory Navigation
+- **Zoxide** (if installed): `z <directory_name>` - Smart directory jumping
+- **Enhanced Directory Listing**: `ls`, `ll`, `la`, `lt` - Enhanced listings with icons
+
+### Quick Navigation Shortcuts
+- `Alt+P` - Jump to Projects directory
+- `Alt+H` - Jump to Home directory
+- `Alt+R` - Jump to Root directory
+
+## 🎨 Theme Configuration
+
+### Oh My Posh Themes
+
+Your configuration supports beautiful Oh My Posh themes:
 
 ```bash
-# Custom prompt configuration
-_setup_prompt() {
-    # Professional prompt with git status
-    # Clean, readable design for any terminal
-}
+# List available themes
+posh_themes
+
+# Switch themes
+posh_theme agnoster
+posh_theme catppuccin
+posh_theme dracula
+posh_theme gruvbox
+posh_theme tokyonight
+
+# Reload to apply changes
+source ~/.zshrc
+```
+
+### Popular Themes
+- **agnoster** - Classic powerline style (default)
+- **catppuccin** - Catppuccin color palette
+- **dracula** - Dracula color scheme
+- **gruvbox** - Gruvbox colors
+- **tokyonight** - Tokyo Night theme
+
+### Manual Theme Switching
+Edit `~/.config/zsh/themes/prompt.zsh` and change the theme line:
+```bash
+# Change from:
+eval "$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)"
+
+# To any other theme, for example:
+eval "$(oh-my-posh init zsh --config ~/.poshthemes/catppuccin.omp.json)"
 ```
 
 ### Features
@@ -300,6 +376,7 @@ _setup_prompt() {
 - Current directory path
 - User and host information
 - Clean, readable design
+- Performance-optimized prompt rendering
 
 ## 🔍 Advanced Troubleshooting
 

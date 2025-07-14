@@ -36,14 +36,22 @@ _init_completion() {
     
     if [[ $rebuild_cache -eq 1 ]]; then
         print -P "%F{33}▓▒░ Rebuilding completion cache...%f"
-        # Add timeout to prevent hanging during completion cache rebuild
-        timeout 10s autoload -Uz compinit && compinit -d "$COMPLETION_CACHE_FILE" 2>/dev/null || {
-            print -P "%F{red}▓▒░ Completion cache rebuild failed, using existing cache%f"
-            compinit -C -d "$COMPLETION_CACHE_FILE" 2>/dev/null || true
-        }
+        # Add timeout protection (macOS compatible)
+        if command -v timeout >/dev/null 2>&1; then
+            timeout 10s autoload -Uz compinit && compinit -d "$COMPLETION_CACHE_FILE" 2>/dev/null || {
+                print -P "%F{red}▓▒░ Completion cache rebuild failed, using existing cache%f"
+                compinit -C -d "$COMPLETION_CACHE_FILE" 2>/dev/null || true
+            }
+        else
+            # Fallback for macOS (no timeout command)
+            autoload -Uz compinit && compinit -d "$COMPLETION_CACHE_FILE" 2>/dev/null || {
+                print -P "%F{red}▓▒░ Completion cache rebuild failed, using existing cache%f"
+                compinit -C -d "$COMPLETION_CACHE_FILE" 2>/dev/null || true
+            }
+        fi
         # Compile the completion cache for faster loading
         [[ -f "$COMPLETION_CACHE_FILE" ]] && [[ ! -f "${COMPLETION_CACHE_FILE}.zwc" ]] && \
-            timeout 5s zcompile "$COMPLETION_CACHE_FILE" 2>/dev/null || true
+            (command -v timeout >/dev/null 2>&1 && timeout 5s zcompile "$COMPLETION_CACHE_FILE" 2>/dev/null || zcompile "$COMPLETION_CACHE_FILE" 2>/dev/null) || true
     else
         autoload -Uz compinit
         compinit -C -d "$COMPLETION_CACHE_FILE"
@@ -164,8 +172,13 @@ _load_tool_completions() {
 
 # Load tool completions synchronously to prevent hanging
 if (( ${+functions[_load_tool_completions]} )); then
-    # Add timeout to prevent hanging
-    timeout 5s _load_tool_completions 2>/dev/null || true
+    # Add timeout protection (macOS compatible)
+    if command -v timeout >/dev/null 2>&1; then
+        timeout 5s _load_tool_completions 2>/dev/null || true
+    else
+        # Fallback for macOS (no timeout command)
+        _load_tool_completions 2>/dev/null || true
+    fi
 fi
 
 # =============================================================================

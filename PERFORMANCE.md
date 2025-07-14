@@ -57,12 +57,7 @@
 
 ### Quick Performance Test
 ```bash
-./test_performance.zsh
-```
-
-### Minimal Configuration Test
-```bash
-./test_minimal.zsh
+./verify_optimization.zsh
 ```
 
 ### Performance Analysis
@@ -209,6 +204,6 @@ time (ls -la >/dev/null 2>&1)
 
 ---
 
-**Last Updated**: $(date)
+**Last Updated**: 2025-01-07
 **Performance Score**: 90/100
 **Status**: Optimized ✅ 
