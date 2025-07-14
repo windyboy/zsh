@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # =============================================================================
 # ZSH Plugins Module - Enhanced with Community Plugins
-# Version: 3.1 - Community-Recommended Plugins
+# Version: 3.1 - Community-Recommended Plugins (Conflict-Free)
 # =============================================================================
 
 # Add completions to FPATH
@@ -120,16 +120,19 @@ if command -v zoxide >/dev/null 2>&1; then
     eval "$(zoxide init zsh)"
 fi
 
-# Enhanced directory listing with eza
+# Enhanced directory listing with eza (only if not already aliased)
 if command -v eza >/dev/null 2>&1; then
-    alias ls='eza --icons --group-directories-first'
-    alias ll='eza -la --icons --group-directories-first'
-    alias la='eza -a --icons --group-directories-first'
-    alias lt='eza -T --icons --group-directories-first'
+    # Check if ls alias already exists to avoid conflicts
+    if ! alias ls >/dev/null 2>&1; then
+        alias ls='eza --icons --group-directories-first'
+        alias ll='eza -la --icons --group-directories-first'
+        alias la='eza -a --icons --group-directories-first'
+        alias lt='eza -T --icons --group-directories-first'
+    fi
 fi
 
 # =============================================================================
-# PLUGIN CONFIGURATION
+# PLUGIN CONFIGURATION (Conflict-Free)
 # =============================================================================
 
 # Auto-suggestions optimization
@@ -149,24 +152,47 @@ else
     local preview_cmd='ls -la'
 fi
 
-# Unified FZF tab configuration
-zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --timeout=3
-zstyle ':fzf-tab:complete:*:*' fzf-preview "timeout 2s $preview_cmd \$realpath 2>/dev/null || ls -la \$realpath 2>/dev/null || echo \$realpath"
-zstyle ':fzf-tab:*' switch-group ',' '.'
-zstyle ':fzf-tab:*' show-group full
-zstyle ':fzf-tab:*' continuous-trigger 'space'
-zstyle ':fzf-tab:*' accept-line 'ctrl-space'
+# FZF tab configuration (only if not already configured)
+if ! zstyle -L ':fzf-tab:*' >/dev/null 2>&1; then
+    zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --timeout=3
+    zstyle ':fzf-tab:complete:*:*' fzf-preview "timeout 2s $preview_cmd \$realpath 2>/dev/null || ls -la \$realpath 2>/dev/null || echo \$realpath"
+    zstyle ':fzf-tab:*' switch-group ',' '.'
+    zstyle ':fzf-tab:*' show-group full
+    zstyle ':fzf-tab:*' continuous-trigger 'space'
+    zstyle ':fzf-tab:*' accept-line 'ctrl-space'
+fi
 
-# Ensure default completion works alongside FZF-tab
-zstyle ':completion:*' completer _complete _match _approximate
-zstyle ':completion:*' menu select
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+# Plugin-specific key bindings (only if not already bound)
+_configure_plugin_keybindings() {
+    # FZF tab completion
+    if ! bindkey | grep -q '\^T.*fzf-tab-complete'; then
+        bindkey '^T' fzf-tab-complete 2>/dev/null || true
+    fi
+    
+    # History substring search (only if not already bound)
+    if ! bindkey | grep -q '\^\[\[A.*history-substring-search-up'; then
+        bindkey '^[[A' history-substring-search-up 2>/dev/null || true
+    fi
+    
+    if ! bindkey | grep -q '\^\[\[B.*history-substring-search-down'; then
+        bindkey '^[[B' history-substring-search-down 2>/dev/null || true
+    fi
+    
+    # History incremental search (only if not already bound and not conflicting)
+    if ! bindkey | grep -q '\^R.*history-incremental-search-backward'; then
+        # Check if Ctrl+R is already bound to something else
+        local ctrl_r_binding=$(bindkey | grep '\^R' | head -1)
+        if [[ -z "$ctrl_r_binding" ]] || [[ "$ctrl_r_binding" == *"history-incremental-search-backward"* ]]; then
+            bindkey '^R' history-incremental-search-backward 2>/dev/null || true
+        else
+            echo "⚠️  Ctrl+R already bound to: $ctrl_r_binding"
+            echo "💡 Skipping history-incremental-search-backward binding"
+        fi
+    fi
+}
 
-# Key bindings
-bindkey '^T' fzf-tab-complete
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
-bindkey '^R' history-incremental-search-backward
+# Configure plugin key bindings
+_configure_plugin_keybindings
 
 # =============================================================================
 # ENHANCED PLUGIN CONFIGURATIONS
@@ -259,5 +285,281 @@ check_plugins() {
     fi
 }
 
+# Conflict detection function
+check_plugin_conflicts() {
+    echo "🔍 Plugin Conflict Check:"
+    echo "========================"
+    
+    local conflicts=0
+    
+    # Check for duplicate key bindings (excluding normal zsh behavior)
+    local duplicate_bindings=$(bindkey | awk '{print $2}' | sort | uniq -d)
+    if [[ -n "$duplicate_bindings" ]]; then
+        echo "🔍 Analyzing key bindings..."
+        
+        # Filter out normal zsh bindings that are supposed to have multiple keys
+        local normal_bindings=(
+            "accept-line"      # ^J and ^M are both normal
+            "self-insert"      # Multiple key ranges are normal
+            "vi-backward-char" # Multiple arrow keys are normal
+            "vi-backward-delete-char"
+            "vi-forward-char"
+            "vi-quoted-insert"
+        )
+        
+        local real_conflicts=""
+        while IFS= read -r binding; do
+            if [[ -n "$binding" ]]; then
+                # Check if this is a normal binding
+                local is_normal=0
+                for normal in "${normal_bindings[@]}"; do
+                    if [[ "$binding" == "$normal" ]]; then
+                        is_normal=1
+                        break
+                    fi
+                done
+                
+                if [[ $is_normal -eq 0 ]]; then
+                    real_conflicts="$real_conflicts$binding"$'\n'
+                fi
+            fi
+        done <<< "$duplicate_bindings"
+        
+        if [[ -n "$real_conflicts" ]]; then
+            echo "❌ Real duplicate key bindings found:"
+            echo "$real_conflicts" | sed 's/^/  • /'
+            ((conflicts++))
+        else
+            echo "✅ No real duplicate key bindings (normal zsh behavior detected)"
+        fi
+    else
+        echo "✅ No duplicate key bindings"
+    fi
+    
+    # Check for duplicate aliases
+    local duplicate_aliases=$(alias | awk '{print $1}' | sort | uniq -d)
+    if [[ -n "$duplicate_aliases" ]]; then
+        echo "❌ Duplicate aliases found:"
+        echo "$duplicate_aliases" | sed 's/^/  • /'
+        ((conflicts++))
+    else
+        echo "✅ No duplicate aliases"
+    fi
+    
+    # Check for duplicate zstyle configurations
+    local duplicate_zstyles=$(zstyle -L | grep -E '^[[:space:]]*:' | awk '{print $1}' | sort | uniq -d)
+    if [[ -n "$duplicate_zstyles" ]]; then
+        echo "❌ Duplicate zstyle configurations found:"
+        echo "$duplicate_zstyles" | sed 's/^/  • /'
+        ((conflicts++))
+    else
+        echo "✅ No duplicate zstyle configurations"
+    fi
+    
+    # Check for specific plugin conflicts
+    echo ""
+    echo "🔍 Checking specific plugin conflicts..."
+    
+    # Check Ctrl+R conflicts (only exact ^R conflicts)
+    local ctrl_r_exact=$(bindkey | grep '^\^R' | wc -l)
+    if [[ $ctrl_r_exact -gt 1 ]]; then
+        echo "⚠️  Ctrl+R bound multiple times:"
+        bindkey | grep '^\^R' | sed 's/^/  • /'
+        ((conflicts++))
+    else
+        echo "✅ Ctrl+R binding is unique"
+    fi
+    
+    # Check Ctrl+T conflicts
+    local ctrl_t_bindings=$(bindkey | grep '\^T' | wc -l)
+    if [[ $ctrl_t_bindings -gt 1 ]]; then
+        echo "⚠️  Ctrl+T bound multiple times:"
+        bindkey | grep '\^T' | sed 's/^/  • /'
+        ((conflicts++))
+    else
+        echo "✅ Ctrl+T binding is unique"
+    fi
+    
+    if [[ $conflicts -eq 0 ]]; then
+        echo ""
+        echo "🎉 No conflicts detected!"
+    else
+        echo ""
+        echo "⚠️  $conflicts conflict(s) detected"
+    fi
+    
+    return $conflicts
+}
+
+# Smart conflict resolution function
+resolve_plugin_conflicts() {
+    echo "🔧 Resolving Plugin Conflicts..."
+    echo "==============================="
+    
+    local resolved=0
+    
+    # Resolve duplicate key bindings (excluding normal zsh behavior)
+    local duplicate_bindings=$(bindkey | awk '{print $2}' | sort | uniq -d)
+    if [[ -n "$duplicate_bindings" ]]; then
+        echo "🔧 Analyzing key bindings for real conflicts..."
+        
+        # Filter out normal zsh bindings that are supposed to have multiple keys
+        local normal_bindings=(
+            "accept-line"      # ^J and ^M are both normal
+            "self-insert"      # Multiple key ranges are normal
+            "vi-backward-char" # Multiple arrow keys are normal
+            "vi-backward-delete-char"
+            "vi-forward-char"
+            "vi-quoted-insert"
+        )
+        
+        local real_conflicts=""
+        while IFS= read -r binding; do
+            if [[ -n "$binding" ]]; then
+                # Check if this is a normal binding
+                local is_normal=0
+                for normal in "${normal_bindings[@]}"; do
+                    if [[ "$binding" == "$normal" ]]; then
+                        is_normal=1
+                        break
+                    fi
+                done
+                
+                if [[ $is_normal -eq 0 ]]; then
+                    real_conflicts="$real_conflicts$binding"$'\n'
+                fi
+            fi
+        done <<< "$duplicate_bindings"
+        
+        if [[ -n "$real_conflicts" ]]; then
+            echo "🔧 Resolving real duplicate key bindings..."
+            
+            # Get all bindings
+            local all_bindings=$(bindkey)
+            
+            # For each real duplicate binding, keep only the first occurrence
+            while IFS= read -r binding; do
+                if [[ -n "$binding" ]]; then
+                    # Get all occurrences of this binding
+                    local occurrences=$(echo "$all_bindings" | grep "$binding")
+                    local first_occurrence=$(echo "$occurrences" | head -1)
+                    local key=$(echo "$first_occurrence" | awk '{print $1}')
+                    local function=$(echo "$first_occurrence" | awk '{print $2}')
+                    
+                    # Count how many times this binding appears
+                    local count=$(echo "$occurrences" | wc -l)
+                    
+                    if [[ $count -gt 1 ]]; then
+                        echo "  🔧 Resolving '$binding' ($count occurrences)..."
+                        
+                        # Unbind all occurrences of this binding
+                        while IFS= read -r occurrence; do
+                            local occ_key=$(echo "$occurrence" | awk '{print $1}')
+                            if [[ -n "$occ_key" ]]; then
+                                bindkey -r "$occ_key" 2>/dev/null || true
+                            fi
+                        done <<< "$occurrences"
+                        
+                        # Rebind only the first occurrence
+                        if [[ -n "$key" ]] && [[ -n "$function" ]]; then
+                            bindkey "$key" "$function" 2>/dev/null || true
+                            echo "    ✅ Kept: $key -> $function"
+                            ((resolved++))
+                        fi
+                    fi
+                fi
+            done <<< "$real_conflicts"
+        else
+            echo "✅ No real key binding conflicts to resolve"
+        fi
+    fi
+    
+    # Resolve duplicate aliases
+    local duplicate_aliases=$(alias | awk '{print $1}' | sort | uniq -d)
+    if [[ -n "$duplicate_aliases" ]]; then
+        echo "🔧 Resolving duplicate aliases..."
+        
+        while IFS= read -r alias_name; do
+            if [[ -n "$alias_name" ]]; then
+                # Get all alias definitions for this name
+                local alias_definitions=$(alias | grep "^$alias_name=")
+                local first_alias=$(echo "$alias_definitions" | head -1)
+                local count=$(echo "$alias_definitions" | wc -l)
+                
+                if [[ $count -gt 1 ]]; then
+                    echo "  🔧 Resolving alias '$alias_name' ($count definitions)..."
+                    
+                    # Remove all definitions
+                    unalias "$alias_name" 2>/dev/null || true
+                    
+                    # Restore only the first definition
+                    if [[ -n "$first_alias" ]]; then
+                        eval "$first_alias" 2>/dev/null || true
+                        echo "    ✅ Kept: $first_alias"
+                        ((resolved++))
+                    fi
+                fi
+            fi
+        done <<< "$duplicate_aliases"
+    fi
+    
+    # Resolve specific plugin conflicts
+    echo "🔧 Checking specific plugin conflicts..."
+    
+    # Resolve Ctrl+R conflicts (only exact ^R conflicts)
+    local ctrl_r_exact=$(bindkey | grep '^\^R')
+    local ctrl_r_count=$(echo "$ctrl_r_exact" | wc -l)
+    if [[ $ctrl_r_count -gt 1 ]]; then
+        echo "  🔧 Resolving Ctrl+R conflicts ($ctrl_r_count bindings)..."
+        
+        # Keep only the first Ctrl+R binding
+        local first_ctrl_r=$(echo "$ctrl_r_exact" | head -1)
+        local first_key=$(echo "$first_ctrl_r" | awk '{print $1}')
+        local first_func=$(echo "$first_ctrl_r" | awk '{print $2}')
+        
+        # Unbind all Ctrl+R
+        bindkey -r '^R' 2>/dev/null || true
+        
+        # Rebind only the first
+        if [[ -n "$first_key" ]] && [[ -n "$first_func" ]]; then
+            bindkey "$first_key" "$first_func" 2>/dev/null || true
+            echo "    ✅ Kept: $first_key -> $first_func"
+            ((resolved++))
+        fi
+    fi
+    
+    # Resolve Ctrl+T conflicts
+    local ctrl_t_bindings=$(bindkey | grep '\^T')
+    local ctrl_t_count=$(echo "$ctrl_t_bindings" | wc -l)
+    if [[ $ctrl_t_count -gt 1 ]]; then
+        echo "  🔧 Resolving Ctrl+T conflicts ($ctrl_t_count bindings)..."
+        
+        # Keep only the first Ctrl+T binding
+        local first_ctrl_t=$(echo "$ctrl_t_bindings" | head -1)
+        local first_key=$(echo "$first_ctrl_t" | awk '{print $1}')
+        local first_func=$(echo "$first_ctrl_t" | awk '{print $2}')
+        
+        # Unbind all Ctrl+T
+        bindkey -r '^T' 2>/dev/null || true
+        
+        # Rebind only the first
+        if [[ -n "$first_key" ]] && [[ -n "$first_func" ]]; then
+            bindkey "$first_key" "$first_func" 2>/dev/null || true
+            echo "    ✅ Kept: $first_key -> $first_func"
+            ((resolved++))
+        fi
+    fi
+    
+    if [[ $resolved -gt 0 ]]; then
+        echo ""
+        echo "🎉 Resolved $resolved conflict(s)!"
+    else
+        echo ""
+        echo "✅ No conflicts to resolve"
+    fi
+    
+    return $resolved
+}
+
 # Export functions
-export -f check_plugins 2>/dev/null || true
+export -f check_plugins check_plugin_conflicts resolve_plugin_conflicts 2>/dev/null || true
