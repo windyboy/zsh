@@ -9,37 +9,47 @@ if [[ -f "$ZSH_CONFIG_DIR/modules/logging.zsh" ]]; then
 fi
 
 # Performance metrics cache
-typeset -A _PERF_CACHE
+typeset -A _PERF_CACHE=()
 
 # Calculate and cache performance metrics
 calculate_performance_metrics() {
+    # Ensure cache is initialized
+    if [[ -z "$_PERF_CACHE" ]]; then
+        typeset -A _PERF_CACHE=()
+    fi
+    
     # Function count
-    _PERF_CACHE[func_count]=$(declare -F 2>/dev/null | wc -l || echo "0")
+    local func_count=$(declare -F 2>/dev/null | wc -l 2>/dev/null)
+    _PERF_CACHE[func_count]="${func_count:-0}"
     
     # Alias count
-    _PERF_CACHE[alias_count]=$(alias 2>/dev/null | wc -l || echo "0")
+    local alias_count=$(alias 2>/dev/null | wc -l 2>/dev/null)
+    _PERF_CACHE[alias_count]="${alias_count:-0}"
     
     # PATH entries
-    _PERF_CACHE[path_count]=$(echo "$PATH" | tr ':' '\n' | wc -l)
+    local path_count=$(echo "$PATH" | tr ':' '\n' | wc -l 2>/dev/null)
+    _PERF_CACHE[path_count]="${path_count:-0}"
     
     # Memory usage
     local memory_kb=$(ps -o rss= -p $$ 2>/dev/null | tr -d ' ')
     if [[ -n "$memory_kb" && "$memory_kb" =~ ^[0-9]+$ ]]; then
-        _PERF_CACHE[memory_mb]=$(echo "scale=1; $memory_kb / 1024" | bc 2>/dev/null || echo "0")
+        local memory_mb=$(echo "scale=1; $memory_kb / 1024" | bc 2>/dev/null)
+        _PERF_CACHE[memory_mb]="${memory_mb:-0}"
     else
-        _PERF_CACHE[memory_mb]=0
+        _PERF_CACHE[memory_mb]="0"
     fi
     
     # History size
     if [[ -f "$HISTFILE" ]]; then
-        _PERF_CACHE[hist_size]=$(wc -l < "$HISTFILE")
+        local hist_size=$(wc -l < "$HISTFILE" 2>/dev/null)
+        _PERF_CACHE[hist_size]="${hist_size:-0}"
     else
-        _PERF_CACHE[hist_size]=0
+        _PERF_CACHE[hist_size]="0"
     fi
     
     # Startup time (if available)
     if [[ -n "$ZSH_STARTUP_TIME" ]]; then
-        _PERF_CACHE[startup_time]=$ZSH_STARTUP_TIME
+        _PERF_CACHE[startup_time]="$ZSH_STARTUP_TIME"
     fi
 }
 

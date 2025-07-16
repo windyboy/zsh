@@ -98,7 +98,6 @@ CONFIG_COMMANDS=(
 # Show help for a specific category
 show_category_help() {
     local category="$1"
-    local commands_var="${category:u}_COMMANDS"
     
     if [[ -z "$category" ]]; then
         echo "Usage: help <category>"
@@ -109,20 +108,59 @@ show_category_help() {
         return 1
     fi
     
-    if [[ -z "${(P)commands_var}" ]]; then
+    # Check if category exists
+    if [[ -z "${HELP_CATEGORIES[$category]}" ]]; then
         error "Unknown category: $category"
         return 1
     fi
     
-    echo "📚 $category Commands"
-    echo "====================="
+    echo "$category Commands"
+    echo "=================="
     echo "${HELP_CATEGORIES[$category]}"
     echo ""
     
-    local commands="${(P)commands_var}"
-    for cmd in "${(@k)commands}"; do
-        echo "  $cmd - ${commands[$cmd]}"
-    done
+    # Handle each category specifically
+    case "$category" in
+        "system")
+            for cmd in "${(@k)SYSTEM_COMMANDS}"; do
+                echo "  $cmd - ${SYSTEM_COMMANDS[$cmd]}"
+            done
+            ;;
+        "performance")
+            for cmd in "${(@k)PERFORMANCE_COMMANDS}"; do
+                echo "  $cmd - ${PERFORMANCE_COMMANDS[$cmd]}"
+            done
+            ;;
+        "development")
+            for cmd in "${(@k)DEVELOPMENT_COMMANDS}"; do
+                echo "  $cmd - ${DEVELOPMENT_COMMANDS[$cmd]}"
+            done
+            ;;
+        "files")
+            for cmd in "${(@k)FILE_COMMANDS}"; do
+                echo "  $cmd - ${FILE_COMMANDS[$cmd]}"
+            done
+            ;;
+        "network")
+            for cmd in "${(@k)NETWORK_COMMANDS}"; do
+                echo "  $cmd - ${NETWORK_COMMANDS[$cmd]}"
+            done
+            ;;
+        "debug")
+            for cmd in "${(@k)DEBUG_COMMANDS}"; do
+                echo "  $cmd - ${DEBUG_COMMANDS[$cmd]}"
+            done
+            ;;
+        "config")
+            for cmd in "${(@k)CONFIG_COMMANDS}"; do
+                echo "  $cmd - ${CONFIG_COMMANDS[$cmd]}"
+            done
+            ;;
+        *)
+            error "Unknown category: $category"
+            return 1
+            ;;
+    esac
 }
 
 # Show help for a specific command
@@ -137,13 +175,36 @@ show_command_help() {
     # Check all command categories
     local found=0
     for category in system performance development files network debug config; do
-        local commands_var="${category:u}_COMMANDS"
-        local commands="${(P)commands_var}"
+        local description=""
         
-        if [[ -n "${commands[$command]}" ]]; then
-            echo "📖 $command"
+        case "$category" in
+            "system")
+                description="${SYSTEM_COMMANDS[$command]}"
+                ;;
+            "performance")
+                description="${PERFORMANCE_COMMANDS[$command]}"
+                ;;
+            "development")
+                description="${DEVELOPMENT_COMMANDS[$command]}"
+                ;;
+            "files")
+                description="${FILE_COMMANDS[$command]}"
+                ;;
+            "network")
+                description="${NETWORK_COMMANDS[$command]}"
+                ;;
+            "debug")
+                description="${DEBUG_COMMANDS[$command]}"
+                ;;
+            "config")
+                description="${CONFIG_COMMANDS[$command]}"
+                ;;
+        esac
+        
+        if [[ -n "$description" ]]; then
+            echo "$command"
             echo "=========="
-            echo "${commands[$command]}"
+            echo "$description"
             echo ""
             echo "Category: $category"
             found=1
@@ -162,8 +223,8 @@ help() {
     local topic="$1"
     
     if [[ -z "$topic" ]]; then
-        echo "🔧 ZSH Configuration Help"
-        echo "========================"
+        echo "ZSH Configuration Help"
+        echo "====================="
         echo ""
         echo "Quick commands:"
         echo "  status          - Check system status"
