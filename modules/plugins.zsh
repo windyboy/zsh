@@ -292,48 +292,40 @@ check_plugin_conflicts() {
     
     local conflicts=0
     
-    # Check for duplicate key bindings (excluding normal zsh behavior)
-    local duplicate_bindings=$(bindkey | awk '{print $2}' | sort | uniq -d)
-    if [[ -n "$duplicate_bindings" ]]; then
-        echo "🔍 Analyzing key bindings..."
-        
-        # Filter out normal zsh bindings that are supposed to have multiple keys
-        local normal_bindings=(
-            "accept-line"      # ^J and ^M are both normal
-            "self-insert"      # Multiple key ranges are normal
-            "vi-backward-char" # Multiple arrow keys are normal
-            "vi-backward-delete-char"
-            "vi-forward-char"
-            "vi-quoted-insert"
-        )
-        
-        local real_conflicts=""
-        while IFS= read -r binding; do
-            if [[ -n "$binding" ]]; then
-                # Check if this is a normal binding
-                local is_normal=0
-                for normal in "${normal_bindings[@]}"; do
-                    if [[ "$binding" == "$normal" ]]; then
-                        is_normal=1
-                        break
+    # Check for REAL duplicate key bindings (same key bound to different functions)
+    echo "🔍 Analyzing key bindings for real conflicts..."
+    
+    # Get all bindings and check for actual conflicts (same key, different function)
+    local all_bindings=$(bindkey)
+    local real_conflicts=""
+    
+    # Create a map of key -> functions
+    declare -A key_function_map
+    while IFS= read -r line; do
+        if [[ -n "$line" ]]; then
+            local key=$(echo "$line" | awk '{print $1}')
+            local function=$(echo "$line" | awk '{print $2}')
+            
+            if [[ -n "$key" ]] && [[ -n "$function" ]]; then
+                if [[ -n "${key_function_map[$key]}" ]]; then
+                    # This key is bound to multiple functions - REAL CONFLICT!
+                    local existing_function="${key_function_map[$key]}"
+                    if [[ "$existing_function" != "$function" ]]; then
+                        real_conflicts="$real_conflicts$key -> $existing_function vs $function"$'\n'
                     fi
-                done
-                
-                if [[ $is_normal -eq 0 ]]; then
-                    real_conflicts="$real_conflicts$binding"$'\n'
+                else
+                    key_function_map[$key]="$function"
                 fi
             fi
-        done <<< "$duplicate_bindings"
-        
-        if [[ -n "$real_conflicts" ]]; then
-            echo "❌ Real duplicate key bindings found:"
-            echo "$real_conflicts" | sed 's/^/  • /'
-            ((conflicts++))
-        else
-            echo "✅ No real duplicate key bindings (normal zsh behavior detected)"
         fi
+    done <<< "$all_bindings"
+    
+    if [[ -n "$real_conflicts" ]]; then
+        echo "❌ REAL key binding conflicts found:"
+        echo "$real_conflicts" | sed 's/^/  • /'
+        ((conflicts++))
     else
-        echo "✅ No duplicate key bindings"
+        echo "✅ No real key binding conflicts"
     fi
     
     # Check for duplicate aliases

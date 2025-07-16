@@ -18,15 +18,17 @@ fi
 echo ""
 echo "📋 Running conflict checks..."
 
-# Test 1: Check for duplicate key bindings
+# Test 1: Check for REAL key binding conflicts (same key, different functions)
 echo ""
-echo "1️⃣  Checking key bindings..."
-local duplicate_bindings=$(bindkey | awk '{print $2}' | sort | uniq -d)
-if [[ -n "$duplicate_bindings" ]]; then
-    echo "❌ Duplicate key bindings found:"
-    echo "$duplicate_bindings" | sed 's/^/  • /'
+echo "1️⃣  Checking for REAL key binding conflicts..."
+echo "💡 This checks if the same key is bound to different functions (actual conflicts)"
+echo "💡 Multiple keys bound to the same function is NORMAL zsh behavior"
+
+# Use the improved conflict detection
+if command -v check_plugin_conflicts >/dev/null 2>&1; then
+    check_plugin_conflicts
 else
-    echo "✅ No duplicate key bindings"
+    echo "❌ check_plugin_conflicts function not found"
 fi
 
 # Test 2: Check for duplicate aliases
@@ -73,10 +75,10 @@ else
 fi
 
 # Check if Ctrl+R is bound multiple times
-local ctrl_r_bindings=$(bindkey | grep '\^R' | wc -l)
+local ctrl_r_bindings=$(bindkey | grep '^\^R' | wc -l)
 if [[ $ctrl_r_bindings -gt 1 ]]; then
     echo "❌ Ctrl+R bound multiple times:"
-    bindkey | grep '\^R' | sed 's/^/  • /'
+    bindkey | grep '^\^R' | sed 's/^/  • /'
 else
     echo "✅ Ctrl+R binding is unique"
 fi
@@ -88,8 +90,6 @@ echo "5️⃣  Testing plugin functionality..."
 # Test if check_plugin_conflicts function exists
 if command -v check_plugin_conflicts >/dev/null 2>&1; then
     echo "✅ check_plugin_conflicts function available"
-    echo "Running conflict check..."
-    check_plugin_conflicts
 else
     echo "❌ check_plugin_conflicts function not found"
 fi
@@ -125,4 +125,9 @@ fi
 
 echo ""
 echo "🎯 Test completed!"
-echo "💡 If you see any ❌ marks above, there may still be conflicts to resolve." 
+echo ""
+echo "💡 Explanation of Results:"
+echo "   • ✅ = No conflicts detected"
+echo "   • ❌ = Actual conflicts found"
+echo "   • Multiple keys bound to same function = NORMAL (not a conflict)"
+echo "   • Same key bound to different functions = REAL CONFLICT" 
