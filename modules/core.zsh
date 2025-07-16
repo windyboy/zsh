@@ -5,24 +5,128 @@
 # =============================================================================
 
 # =============================================================================
-# MODULE SYSTEM INITIALIZATION
+# UNIFIED LOGGING SYSTEM
 # =============================================================================
 
-# Module tracking
-export ZSH_MODULES_LOADED=""
-export ZSH_MODULE_LOAD_START=$EPOCHREALTIME
+# Unified logging function
+log_event() {
+    local message="$1"
+    local level="${2:-info}"
+    local module="${3:-core}"
+    local log_file="${4:-$ZSH_CACHE_DIR/system.log}"
+    
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    
+    # Ensure log directory exists
+    [[ ! -d "${log_file:h}" ]] && mkdir -p "${log_file:h}"
+    
+    # Write to log file
+    echo "[$timestamp] [$level] [$module] $message" >> "$log_file"
+    
+    # Console output based on level
+    case "$level" in
+        "error") echo "❌ [$module] $message" >&2 ;;
+        "warning") echo "⚠️  [$module] $message" >&2 ;;
+        "success") echo "✅ [$module] $message" ;;
+        "info") [[ -n "$ZSH_VERBOSE" ]] && echo "ℹ️  [$module] $message" ;;
+    esac
+}
 
-# Module loading helper
-load_module() {
+# Module-specific logging functions
+log_module_event() {
+    log_event "$1" "$2" "module_manager" "$MODULE_MANAGER_LOG"
+}
+
+log_error() {
+    log_event "$1" "error" "$2" "$ERROR_LOG"
+}
+
+log_security_event() {
+    log_event "$1" "$2" "security" "$SECURITY_LOG"
+}
+
+log_performance_event() {
+    log_event "$1" "$2" "performance" "$PERF_LOG"
+}
+
+log_status_event() {
+    log_event "$1" "$2" "status" "$STATUS_LOG"
+}
+
+# =============================================================================
+# UNIFIED DIRECTORY MANAGEMENT
+# =============================================================================
+
+# Ensure directory exists with logging
+ensure_directory() {
+    local dir="$1"
+    local module="${2:-core}"
+    
+    if [[ ! -d "$dir" ]]; then
+        mkdir -p "$dir"
+        log_event "Created directory: $dir" "success" "$module"
+    fi
+}
+
+# Initialize all required directories
+init_directories() {
+    local dirs=(
+        "$ZSH_CACHE_DIR"
+        "$ZSH_DATA_DIR"
+        "$ZSH_CONFIG_DIR/modules"
+        "$ZSH_CONFIG_DIR/themes"
+        "$ZSH_CONFIG_DIR/completions"
+    )
+    
+    for dir in "${dirs[@]}"; do
+        ensure_directory "$dir" "core"
+    done
+}
+
+# =============================================================================
+# UNIFIED ENVIRONMENT VARIABLES
+# =============================================================================
+
+# Set up environment variables
+setup_environment() {
+    # XDG Base Directory Specification
+    export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
+    export ZSH_CACHE_DIR="${ZSH_CACHE_DIR:-$HOME/.cache/zsh}"
+    export ZSH_DATA_DIR="${ZSH_DATA_DIR:-$HOME/.local/share/zsh}"
+    
+    # Performance settings
+    export ZSH_PERF_START=$EPOCHREALTIME
+    export ZSH_VERBOSE="${ZSH_VERBOSE:-0}"
+    export ZSH_WELCOME="${ZSH_WELCOME:-1}"
+    export ZSH_QUIET="${ZSH_QUIET:-0}"
+    
+    # Module tracking
+    export ZSH_MODULES_LOADED=""
+    export ZSH_MODULE_LOAD_START=$EPOCHREALTIME
+    
+    log_event "Environment variables initialized" "success" "core"
+}
+
+# =============================================================================
+# UNIFIED MODULE LOADING
+# =============================================================================
+
+# Safe module loading with error handling
+safe_load_module() {
     local module="$1"
     local module_file="${ZSH_CONFIG_DIR}/modules/${module}.zsh"
     
     if [[ -f "$module_file" ]]; then
-        source "$module_file"
-        export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED $module"
-        return 0
+        if safe_source "$module_file" "$module"; then
+            export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED $module"
+            log_event "Module loaded: $module" "success" "core"
+            return 0
+        else
+            log_event "Failed to load module: $module" "error" "core"
+            return 1
+        fi
     else
-        echo "⚠️  Module not found: $module_file" >&2
+        log_event "Module not found: $module_file" "error" "core"
         return 1
     fi
 }
@@ -30,6 +134,41 @@ load_module() {
 # Module status checker
 module_loaded() {
     [[ " $ZSH_MODULES_LOADED " == *" $1 "* ]]
+}
+
+# =============================================================================
+# UNIFIED VALIDATION
+# =============================================================================
+
+# Validate configuration
+validate_configuration() {
+    local errors=0
+    
+    # Check directories
+    local required_dirs=("$ZSH_CONFIG_DIR" "$ZSH_CACHE_DIR" "$ZSH_DATA_DIR")
+    for dir in "${required_dirs[@]}"; do
+        if [[ ! -d "$dir" ]]; then
+            log_event "Missing directory: $dir" "error" "validation"
+            ((errors++))
+        fi
+    done
+    
+    # Check files
+    local required_files=("$ZSH_CONFIG_DIR/zshrc" "$ZSH_CONFIG_DIR/zshenv")
+    for file in "${required_files[@]}"; do
+        if [[ ! -f "$file" ]]; then
+            log_event "Missing file: $file" "error" "validation"
+            ((errors++))
+        fi
+    done
+    
+    if (( errors == 0 )); then
+        log_event "Configuration validation passed" "success" "validation"
+        return 0
+    else
+        log_event "Configuration validation failed ($errors errors)" "error" "validation"
+        return 1
+    fi
 }
 
 # =============================================================================
