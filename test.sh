@@ -3,11 +3,16 @@
 # Simple Plugin Conflict Test
 # =============================================================================
 
-# Simple logging
-log() { echo "ℹ️  $1"; }
-success() { echo "✅ $1"; }
-error() { echo "❌ $1"; }
-warning() { echo "⚠️  $1"; }
+# Load unified logging system
+if [[ -f "$HOME/.config/zsh/modules/logging.zsh" ]]; then
+    source "$HOME/.config/zsh/modules/logging.zsh"
+else
+    # Fallback logging functions
+    log() { echo "ℹ️  $1"; }
+    success() { echo "✅ $1"; }
+    error() { echo "❌ $1"; }
+    warning() { echo "⚠️  $1"; }
+fi
 
 echo "🔍 Testing Plugin Conflicts..."
 echo "============================="

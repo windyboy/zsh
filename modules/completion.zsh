@@ -1,11 +1,15 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Enhanced Completion System Configuration
-# Version: 2.0 - Simplified and Optimized
+# Completion Module - Simplified Completion System
+# Version: 4.0 - Streamlined Completion Management
 # =============================================================================
 
-# Completion cache
-COMPLETION_CACHE_FILE="${ZSH_CACHE_DIR}/zcompdump"
+# =============================================================================
+# COMPLETION CACHE
+# =============================================================================
+
+# Completion cache file
+COMPLETION_CACHE_FILE="$ZSH_CACHE_DIR/zcompdump"
 
 # =============================================================================
 # INITIALIZE COMPLETION SYSTEM
@@ -235,8 +239,9 @@ fi
 # =============================================================================
 
 # Verify completion system
-_verify_completion_system() {
-    echo "🔍 Verifying completion system..."
+completion_status() {
+    echo "🔍 Completion System Status"
+    echo "==========================="
     
     local errors=0
     
@@ -248,93 +253,61 @@ _verify_completion_system() {
         ((errors++))
     fi
     
-    # Check tab binding
-    if bindkey | grep -q '\^I.*complete-word'; then
-        echo "✅ Tab completion bound"
-    else
-        echo "❌ Tab completion not bound"
-        ((errors++))
-    fi
-    
-    # Check menu completion
-    if zstyle -L ':completion:*' | grep -q 'menu select'; then
-        echo "✅ Menu completion enabled"
-    else
-        echo "❌ Menu completion not enabled"
-        ((errors++))
-    fi
-    
     # Check cache file
     if [[ -f "$COMPLETION_CACHE_FILE" ]]; then
-        echo "✅ Cache file exists"
+        echo "✅ Completion cache exists"
     else
-        echo "❌ Cache file missing"
+        echo "❌ Completion cache missing"
         ((errors++))
     fi
     
-    if [[ $errors -eq 0 ]]; then
-        echo "✅ Completion system verification passed"
+    # Check cache compilation
+    if [[ -f "${COMPLETION_CACHE_FILE}.zwc" ]]; then
+        echo "✅ Completion cache compiled"
+    else
+        echo "⚠️  Completion cache not compiled"
+    fi
+    
+    # Check custom completions
+    if [[ -d "$ZSH_CONFIG_DIR/completions" ]]; then
+        local custom_count=$(find "$ZSH_CONFIG_DIR/completions" -name "_*" 2>/dev/null | wc -l)
+        echo "✅ Custom completions: $custom_count"
+    else
+        echo "⚠️  No custom completions directory"
+    fi
+    
+    if (( errors == 0 )); then
+        echo "✅ Completion system is healthy"
         return 0
     else
-        echo "❌ Completion system has $errors error(s)"
+        echo "❌ Completion system has $errors issues"
         return 1
     fi
 }
 
-# Debug completion issues
-_debug_completion() {
-    echo "🔍 Completion Debug Info:"
-    echo "=========================="
+# Rebuild completion cache
+rebuild_completion() {
+    echo "🔄 Rebuilding completion cache..."
     
-    # System status
-    echo "1. Completion system:"
-    echo "   _comps set: $(( ${+_comps} ))"
-    echo "   Functions loaded: ${#_comps}"
+    # Remove old cache
+    [[ -f "$COMPLETION_CACHE_FILE" ]] && rm "$COMPLETION_CACHE_FILE"
+    [[ -f "${COMPLETION_CACHE_FILE}.zwc" ]] && rm "${COMPLETION_CACHE_FILE}.zwc"
     
-    # Tab binding
-    echo "2. Tab binding:"
-    local tab_binding=$(bindkey | grep '\^I')
-    echo "   $tab_binding"
+    # Rebuild cache
+    autoload -Uz compinit
+    compinit -d "$COMPLETION_CACHE_FILE"
     
-    # Styles
-    echo "3. Key styles:"
-    zstyle -L ':completion:*' | grep -E '(menu|list-colors|completer)' | head -5
+    # Compile cache
+    [[ -f "$COMPLETION_CACHE_FILE" ]] && zcompile "$COMPLETION_CACHE_FILE"
     
-    # Cache
-    echo "4. Cache:"
-    if [[ -f "$COMPLETION_CACHE_FILE" ]]; then
-        echo "   Size: $(ls -lh "$COMPLETION_CACHE_FILE" | awk '{print $5}')"
-        echo "   Age: $(find "$COMPLETION_CACHE_FILE" -printf '%AY-%Am-%Ad %AH:%AM\n' 2>/dev/null || echo 'unknown')"
-    else
-        echo "   Missing"
-    fi
-    
-    # Test completions
-    echo "5. Test completions:"
-    echo "   cd: $(( ${+_comps[cd]} ))"
-    echo "   _files: $(( ${+_comps[_files]} ))"
-    echo "   _ls: $(( ${+_comps[_ls]} ))"
+    echo "✅ Completion cache rebuilt"
 }
 
-# Export functions
-export -f _verify_completion_system _debug_completion 2>/dev/null || true
-
 # =============================================================================
-# FINAL ENFORCEMENT
+# INITIALIZATION
 # =============================================================================
 
-# Ensure tab completion works after all modules are loaded
-_enforce_tab_completion() {
-    bindkey '^I' complete-word 2>/dev/null || true
-    zstyle ':completion:*' menu select 2>/dev/null || true
-    
-    if (( ! ${+_comps} )); then
-        autoload -Uz compinit
-        compinit -C 2>/dev/null || true
-    fi
-}
+# Mark completion module as loaded
+export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED completion"
 
-# Run enforcement in interactive shells
-if [[ -o interactive ]]; then
-    (sleep 0.1 && _enforce_tab_completion) &
-fi
+log "Completion module initialized" "success" "completion" 

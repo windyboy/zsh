@@ -3,11 +3,16 @@
 # Simple System Status Checker
 # =============================================================================
 
-# Simple logging
-log() { echo "ℹ️  $1"; }
-success() { echo "✅ $1"; }
-error() { echo "❌ $1"; }
-warning() { echo "⚠️  $1"; }
+# Load unified logging system
+if [[ -f "$HOME/.config/zsh/modules/logging.zsh" ]]; then
+    source "$HOME/.config/zsh/modules/logging.zsh"
+else
+    # Fallback logging functions
+    log() { echo "ℹ️  $1"; }
+    success() { echo "✅ $1"; }
+    error() { echo "❌ $1"; }
+    warning() { echo "⚠️  $1"; }
+fi
 
 # Check core system
 check_core() {
@@ -63,22 +68,25 @@ check_modules() {
 check_performance() {
     log "Checking performance..."
     
-    # Function count
-    local func_count=$(declare -F | wc -l)
-    log "Functions: $func_count"
-    
-    # Alias count
-    local alias_count=$(alias | wc -l)
-    log "Aliases: $alias_count"
-    
-    # PATH entries
-    local path_count=$(echo "$PATH" | tr ':' '\n' | wc -l)
-    log "PATH entries: $path_count"
-    
-    # History size
-    if [[ -f "$HISTFILE" ]]; then
-        local hist_size=$(wc -l < "$HISTFILE")
-        log "History: $hist_size lines"
+    # Load performance module if available
+    if [[ -f "$HOME/.config/zsh/modules/performance.zsh" ]]; then
+        source "$HOME/.config/zsh/modules/performance.zsh"
+        quick_perf_check
+    else
+        # Fallback performance check
+        local func_count=$(declare -F | wc -l)
+        log "Functions: $func_count"
+        
+        local alias_count=$(alias | wc -l)
+        log "Aliases: $alias_count"
+        
+        local path_count=$(echo "$PATH" | tr ':' '\n' | wc -l)
+        log "PATH entries: $path_count"
+        
+        if [[ -f "$HISTFILE" ]]; then
+            local hist_size=$(wc -l < "$HISTFILE")
+            log "History: $hist_size lines"
+        fi
     fi
 }
 

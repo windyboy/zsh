@@ -3,6 +3,8 @@
 # Oh My Posh Theme Configuration
 # =============================================================================
 
+echo "🎨 Loading Oh My Posh theme configuration..."
+
 # Check if Oh My Posh is available
 if command -v oh-my-posh >/dev/null 2>&1; then
     # Initialize Oh My Posh with optimized configuration

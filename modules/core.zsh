@@ -1,182 +1,126 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Core ZSH Settings - Foundation Module
-# Version: 3.0 - Unified Module System Foundation
+# Core ZSH Configuration - Simplified Unified Module
+# Version: 4.0 - Simplified and Optimized
 # =============================================================================
+
+# =============================================================================
+# ENVIRONMENT SETUP
+# =============================================================================
+
+# XDG Base Directory Specification
+export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
+export ZSH_CACHE_DIR="${ZSH_CACHE_DIR:-$HOME/.cache/zsh}"
+export ZSH_DATA_DIR="${ZSH_DATA_DIR:-$HOME/.local/share/zsh}"
+
+# Performance tracking
+export ZSH_PERF_START=$EPOCHREALTIME
+export ZSH_VERBOSE="${ZSH_VERBOSE:-0}"
+export ZSH_QUIET="${ZSH_QUIET:-0}"
+
+# Module tracking
+export ZSH_MODULES_LOADED=""
 
 # =============================================================================
 # UNIFIED LOGGING SYSTEM
 # =============================================================================
 
-# Unified logging function
-log_event() {
-    local message="$1"
-    local level="${2:-info}"
-    local module="${3:-core}"
-    local log_file="${4:-$ZSH_CACHE_DIR/system.log}"
-    
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
-    # Ensure log directory exists
-    [[ ! -d "${log_file:h}" ]] && mkdir -p "${log_file:h}"
-    
-    # Write to log file
-    echo "[$timestamp] [$level] [$module] $message" >> "$log_file"
-    
-    # Console output based on level
-    case "$level" in
-        "error") echo "❌ [$module] $message" >&2 ;;
-        "warning") echo "⚠️  [$module] $message" >&2 ;;
-        "success") echo "✅ [$module] $message" ;;
-        "info") [[ -n "$ZSH_VERBOSE" ]] && echo "ℹ️  [$module] $message" ;;
-    esac
-}
+# Load unified logging system
+if [[ -f "$ZSH_CONFIG_DIR/modules/logging.zsh" ]]; then
+    source "$ZSH_CONFIG_DIR/modules/logging.zsh"
+fi
 
-# Module-specific logging functions
-log_module_event() {
-    log_event "$1" "$2" "module_manager" "$MODULE_MANAGER_LOG"
-}
-
-log_error() {
-    log_event "$1" "error" "$2" "$ERROR_LOG"
-}
-
-log_security_event() {
-    log_event "$1" "$2" "security" "$SECURITY_LOG"
-}
-
-log_performance_event() {
-    log_event "$1" "$2" "performance" "$PERF_LOG"
-}
-
-log_status_event() {
-    log_event "$1" "$2" "status" "$STATUS_LOG"
-}
-
-# =============================================================================
-# UNIFIED DIRECTORY MANAGEMENT
-# =============================================================================
-
-# Ensure directory exists with logging
-ensure_directory() {
-    local dir="$1"
-    local module="${2:-core}"
-    
-    if [[ ! -d "$dir" ]]; then
-        mkdir -p "$dir"
-        log_event "Created directory: $dir" "success" "$module"
-    fi
-}
-
-# Initialize all required directories
+# Initialize directories
 init_directories() {
     local dirs=(
         "$ZSH_CACHE_DIR"
         "$ZSH_DATA_DIR"
-        "$ZSH_CONFIG_DIR/modules"
-        "$ZSH_CONFIG_DIR/themes"
+        "$ZSH_CONFIG_DIR"
+        "$ZSH_CONFIG_DIR/custom"
         "$ZSH_CONFIG_DIR/completions"
     )
     
     for dir in "${dirs[@]}"; do
-        ensure_directory "$dir" "core"
+        [[ ! -d "$dir" ]] && mkdir -p "$dir" && success "Created directory: $dir"
     done
 }
 
 # =============================================================================
-# UNIFIED ENVIRONMENT VARIABLES
+# SAFE OPERATIONS
 # =============================================================================
 
-# Set up environment variables
-setup_environment() {
-    # XDG Base Directory Specification
-    export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
-    export ZSH_CACHE_DIR="${ZSH_CACHE_DIR:-$HOME/.cache/zsh}"
-    export ZSH_DATA_DIR="${ZSH_DATA_DIR:-$HOME/.local/share/zsh}"
+# Safe source function
+safe_source() {
+    local file="$1"
+    local module="${2:-unknown}"
     
-    # Performance settings
-    export ZSH_PERF_START=$EPOCHREALTIME
-    export ZSH_VERBOSE="${ZSH_VERBOSE:-0}"
-    export ZSH_WELCOME="${ZSH_WELCOME:-1}"
-    export ZSH_QUIET="${ZSH_QUIET:-0}"
-    
-    # Module tracking
-    export ZSH_MODULES_LOADED=""
-    export ZSH_MODULE_LOAD_START=$EPOCHREALTIME
-    
-    log_event "Environment variables initialized" "success" "core"
+    if [[ -f "$file" ]] && [[ -r "$file" ]]; then
+        source "$file" 2>/dev/null
+        local result=$?
+        
+        if [[ $result -ne 0 ]]; then
+            error "Failed to source: $file"
+        fi
+        
+        return $result
+    else
+        error "Cannot read file: $file"
+        return 1
+    fi
 }
 
-# =============================================================================
-# UNIFIED MODULE LOADING
-# =============================================================================
-
-# Safe module loading with error handling
-safe_load_module() {
+# Safe module loading
+load_module() {
     local module="$1"
-    local module_file="${ZSH_CONFIG_DIR}/modules/${module}.zsh"
+    local module_file="$ZSH_CONFIG_DIR/${module}.zsh"
     
     if [[ -f "$module_file" ]]; then
         if safe_source "$module_file" "$module"; then
             export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED $module"
-            log_event "Module loaded: $module" "success" "core"
+            success "Module loaded: $module"
             return 0
         else
-            log_event "Failed to load module: $module" "error" "core"
+            error "Failed to load module: $module"
             return 1
         fi
     else
-        log_event "Module not found: $module_file" "error" "core"
-        return 1
-    fi
-}
-
-# Module status checker
-module_loaded() {
-    [[ " $ZSH_MODULES_LOADED " == *" $1 "* ]]
-}
-
-# =============================================================================
-# UNIFIED VALIDATION
-# =============================================================================
-
-# Validate configuration
-validate_configuration() {
-    local errors=0
-    
-    # Check directories
-    local required_dirs=("$ZSH_CONFIG_DIR" "$ZSH_CACHE_DIR" "$ZSH_DATA_DIR")
-    for dir in "${required_dirs[@]}"; do
-        if [[ ! -d "$dir" ]]; then
-            log_event "Missing directory: $dir" "error" "validation"
-            ((errors++))
-        fi
-    done
-    
-    # Check files
-    local required_files=("$ZSH_CONFIG_DIR/zshrc" "$ZSH_CONFIG_DIR/zshenv")
-    for file in "${required_files[@]}"; do
-        if [[ ! -f "$file" ]]; then
-            log_event "Missing file: $file" "error" "validation"
-            ((errors++))
-        fi
-    done
-    
-    if (( errors == 0 )); then
-        log_event "Configuration validation passed" "success" "validation"
-        return 0
-    else
-        log_event "Configuration validation failed ($errors errors)" "error" "validation"
+        error "Module not found: $module_file"
         return 1
     fi
 }
 
 # =============================================================================
-# DIRECTORY SETUP
+# ERROR HANDLING
 # =============================================================================
 
-# Ensure history directory exists
-[[ ! -d "$HISTFILE:h" ]] && mkdir -p "$HISTFILE:h"
+# Load error handling module
+if [[ -f "$ZSH_CONFIG_DIR/modules/errors.zsh" ]]; then
+    source "$ZSH_CONFIG_DIR/modules/errors.zsh"
+fi
+
+# =============================================================================
+# SECURITY SETTINGS
+# =============================================================================
+
+# File system security
+setopt NO_CLOBBER
+setopt RM_STAR_WAIT
+
+# Command execution security
+setopt PIPE_FAIL
+
+# History security
+setopt HIST_IGNORE_SPACE
+setopt HIST_IGNORE_ALL_DUPS
+
+# Secure aliases
+alias rm='rm -i'
+alias rmdir='rmdir -i'
+alias ssh='ssh -o StrictHostKeyChecking=yes'
+alias scp='scp -o StrictHostKeyChecking=yes'
+
+# Secure umask
+umask 022
 
 # =============================================================================
 # HISTORY CONFIGURATION
@@ -185,10 +129,7 @@ validate_configuration() {
 # History options
 setopt APPEND_HISTORY
 setopt SHARE_HISTORY
-setopt HIST_IGNORE_SPACE
-setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_SAVE_NO_DUPS
-setopt HIST_IGNORE_DUPS
 setopt HIST_FIND_NO_DUPS
 setopt INC_APPEND_HISTORY
 setopt EXTENDED_HISTORY
@@ -244,25 +185,10 @@ setopt INTERACTIVE_COMMENTS
 setopt MULTIOS
 setopt NOTIFY
 
-# =============================================================================
-# DISABLED OPTIONS
-# =============================================================================
-
 # Disable annoying options
 unsetopt BEEP
 unsetopt CASE_GLOB
 unsetopt FLOW_CONTROL
-
-# =============================================================================
-# SECURITY AND ERROR HANDLING
-# =============================================================================
-
-# Security options
-setopt NO_CLOBBER
-setopt RM_STAR_WAIT
-
-# Error handling
-setopt PIPE_FAIL
 
 # =============================================================================
 # GLOBAL ALIASES
@@ -284,107 +210,93 @@ alias -g U='| uniq'
 alias -g C='| wc -l'
 
 # =============================================================================
-# CORE UTILITY FUNCTIONS
+# PERFORMANCE MONITORING
 # =============================================================================
 
-# Error recovery
-recover_from_error() {
-    echo "❌ Error in zsh configuration"
-    echo "🔧 Try: source ~/.zshrc"
-    echo "🆘 Or: zsh -f for minimal config"
+# Load performance module
+if [[ -f "$ZSH_CONFIG_DIR/modules/performance.zsh" ]]; then
+    source "$ZSH_CONFIG_DIR/modules/performance.zsh"
+fi
+
+# Performance analysis (legacy function for compatibility)
+perf() {
+    show_performance_dashboard
 }
 
-# Core configuration validation
-validate_core_config() {
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+# Configuration reload
+unalias reload 2>/dev/null
+reload() {
+    echo "🔄 Reloading ZSH configuration..."
+    source ~/.zshrc
+    echo "✅ Configuration reloaded"
+}
+
+# Configuration validation
+validate() {
     local errors=0
     
-    # Check history directory
-    if [[ ! -d "$HISTFILE:h" ]]; then
-        echo "❌ History directory missing: $HISTFILE:h"
-        ((errors++))
-    fi
-    
-    # Check required options
-    local required_options=(
-        "EXTENDED_HISTORY"
-        "SHARE_HISTORY" 
-        "AUTO_CD"
-        "EXTENDED_GLOB"
-    )
-    
-    for opt in "${required_options[@]}"; do
-        if [[ ! -o "$opt" ]]; then
-            echo "❌ Required option not set: $opt"
+    # Check directories
+    local required_dirs=("$ZSH_CONFIG_DIR" "$ZSH_CACHE_DIR" "$ZSH_DATA_DIR")
+    for dir in "${required_dirs[@]}"; do
+        if [[ ! -d "$dir" ]]; then
+            echo "❌ Missing directory: $dir"
             ((errors++))
         fi
     done
     
-    return $errors
-}
-
-# Module system validation
-validate_module_system() {
-    local errors=0
-    
-    # Check if modules are loaded
-    if [[ -z "$ZSH_MODULES_LOADED" ]]; then
-        echo "❌ No modules loaded"
-        ((errors++))
-    fi
-    
-    # Check essential modules
-    local essential_modules=("core" "error_handling" "security")
-    for module in "${essential_modules[@]}"; do
-        if ! module_loaded "$module"; then
-            echo "❌ Essential module not loaded: $module"
+    # Check files
+    local required_files=("$ZSH_CONFIG_DIR/zshrc")
+    for file in "${required_files[@]}"; do
+        if [[ ! -f "$file" ]]; then
+            echo "❌ Missing file: $file"
             ((errors++))
         fi
     done
     
-    return $errors
-}
-
-# =============================================================================
-# MODULE SYSTEM UTILITIES
-# =============================================================================
-
-# List loaded modules
-list_modules() {
-    echo "📦 Loaded modules:"
-    for module in $ZSH_MODULES_LOADED; do
-        echo "  • $module"
-    done
-}
-
-# Check module dependencies
-check_module_dependencies() {
-    echo "🔍 Checking module dependencies..."
-    
-    # Core dependencies
-    if ! module_loaded "core"; then
-        echo "❌ Core module not loaded"
+    if (( errors == 0 )); then
+        echo "✅ Configuration validation passed"
+        return 0
+    else
+        echo "❌ Configuration validation failed ($errors errors)"
         return 1
     fi
-    
-    # Plugin dependencies
-    if module_loaded "plugins" && ! command -v zinit >/dev/null 2>&1; then
-        echo "⚠️  Plugins module loaded but zinit not found"
+}
+
+# Status check
+status() {
+    echo "📊 ZSH Status"
+    echo "============="
+    echo "Config directory: $ZSH_CONFIG_DIR"
+    echo "Cache directory: $ZSH_CACHE_DIR"
+    echo "Data directory: $ZSH_DATA_DIR"
+    echo "Loaded modules: $ZSH_MODULES_LOADED"
+    echo "Verbose mode: $ZSH_VERBOSE"
+}
+
+# Error reporting
+errors() {
+    local error_log="$ZSH_CACHE_DIR/system.log"
+    if [[ -f "$error_log" ]]; then
+        echo "=== Recent Errors ==="
+        grep "\[error\]" "$error_log" | tail -10
+    else
+        echo "No errors found"
     fi
-    
-    # Completion dependencies
-    if module_loaded "completion" && ! autoload -Uz compinit 2>/dev/null; then
-        echo "⚠️  Completion module loaded but compinit not available"
-    fi
-    
-    echo "✅ Module dependencies checked"
 }
 
 # =============================================================================
 # INITIALIZATION
 # =============================================================================
 
+# Initialize core module
+init_directories
+init_error_handling
+
 # Mark core module as loaded
 export ZSH_MODULES_LOADED="core"
 
-# Export functions
-export -f recover_from_error validate_core_config validate_module_system list_modules check_module_dependencies module_loaded 2>/dev/null || true
+success "Core module initialized" 

@@ -1,94 +1,24 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Aliases Module - Unified Module System Integration
-# Version: 3.0 - Comprehensive Alias Management
+# Aliases and Functions Module - Simplified Productivity Tools
+# Version: 4.0 - Streamlined Alias and Function Management
 # =============================================================================
 
 # =============================================================================
-# CONFIGURATION
+# SYSTEM ALIASES
 # =============================================================================
 
-# Alias configuration
-ALIAS_LOG="${ZSH_CACHE_DIR}/aliases.log"
-
-# =============================================================================
-# INITIALIZATION
-# =============================================================================
-
-# Initialize aliases module
-init_aliases() {
-    # Log aliases module initialization (log function will ensure directory)
-    log_alias_event "Aliases module initialized"
-}
-
-# =============================================================================
-# ALIAS LOGGING
-# =============================================================================
-
-# Log alias events
-log_alias_event() {
-    local event="$1"
-    local level="${2:-info}"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    # Always ensure log directory exists before writing
-    [[ ! -d "${ALIAS_LOG:h}" ]] && mkdir -p "${ALIAS_LOG:h}"
-    echo "[$timestamp] [$level] $event" >> "$ALIAS_LOG"
-}
-
-# =============================================================================
-# CONFIGURATION MANAGEMENT ALIASES
-# =============================================================================
-
-# ZSH configuration aliases
-alias zsh-check='validate_configuration'
-alias zsh-reload='zsh_reload'
-alias reload='zsh_reload'
-alias zsh-perf='zsh_perf_analyze'
-alias zsh-perf-dash='zsh_perf_dashboard'
-alias zsh-perf-opt='optimize_zsh_performance'
-alias zsh-prof='ZSH_PROF=1 exec zsh'
-alias zsh-debug='ZSH_DEBUG=1 exec zsh'
-alias zsh-test='run_zsh_tests'
-alias zsh-test-quick='quick_test'
-alias zsh-errors='report_errors'
-alias zsh-errors-clear='clear_error_log'
-alias zsh-recovery='enter_recovery_mode'
-alias zsh-comp-test='_verify_completion_system'
-
-# =============================================================================
-# SECURITY ALIASES
-# =============================================================================
-
-# Security management aliases
-alias security-audit='security_audit'
-alias check-suspicious='check_suspicious_files'
-alias secure-delete='secure_rm'
-alias validate-security='validate_security_config'
-alias security-monitor='monitor_security'
-
-# =============================================================================
-# HISTORY MANAGEMENT ALIASES
-# =============================================================================
-
-# History aliases
-alias h='history'
-alias hg='history | grep'
-alias hist-stats='history_stats'
-alias hist-clean='echo "⚠️  This will clear all history. Type: history -c && > \$HISTFILE"'
-alias hist-search='history | grep'
-alias hist-last='history | tail -10'
-
-# =============================================================================
-# FILE SYSTEM ALIASES
-# =============================================================================
+# Load tools detection module
+if [[ -f "$ZSH_CONFIG_DIR/modules/tools.zsh" ]]; then
+    source "$ZSH_CONFIG_DIR/modules/tools.zsh"
+fi
 
 # Enhanced ls with eza (if available)
-if command -v eza >/dev/null 2>&1; then
+if has_tool eza; then
     alias ls='eza --color=always --group-directories-first'
     alias ll='eza -la --color=always --group-directories-first --icons'
     alias la='eza -a --color=always --group-directories-first --icons'
     alias lt='eza -T --color=always --group-directories-first --icons'
-    alias l.='eza -a | grep -E "^\."'
 else
     # Fallback to standard ls
     alias ls='ls --color=auto'
@@ -167,7 +97,7 @@ alias gsta='git stash save'
 alias gstp='git stash pop'
 
 # Docker aliases
-if command -v docker >/dev/null 2>&1; then
+if has_tool docker; then
     alias d='docker'
     alias dc='docker-compose'
     alias dcu='docker-compose up'
@@ -181,7 +111,7 @@ if command -v docker >/dev/null 2>&1; then
 fi
 
 # Node.js/NPM aliases
-if command -v npm >/dev/null 2>&1; then
+if has_tool npm; then
     alias ni='npm install'
     alias nid='npm install --save-dev'
     alias nig='npm install --global'
@@ -193,7 +123,7 @@ if command -v npm >/dev/null 2>&1; then
 fi
 
 # Yarn aliases
-if command -v yarn >/dev/null 2>&1; then
+if has_tool yarn; then
     alias y='yarn'
     alias ya='yarn add'
     alias yad='yarn add --dev'
@@ -204,7 +134,7 @@ if command -v yarn >/dev/null 2>&1; then
 fi
 
 # Bun aliases
-if command -v bun >/dev/null 2>&1; then
+if has_tool bun; then
     alias b='bun'
     alias bi='bun install'
     alias ba='bun add'
@@ -215,7 +145,7 @@ if command -v bun >/dev/null 2>&1; then
 fi
 
 # Python aliases
-if command -v python3 >/dev/null 2>&1; then
+if has_tool python3; then
     alias py='python3'
     alias pip='pip3'
     alias venv='python3 -m venv'
@@ -248,119 +178,294 @@ alias nowdate='date +"%d-%m-%Y"'
 # =============================================================================
 
 # Extract archives
-alias x='extract'
-
-# Network utilities
-alias myip='curl -s https://ipinfo.io/ip'
-alias localip='ifconfig | grep "inet " | grep -v 127.0.0.1'
-
-# Quick file operations
-alias mkdir='mkdir -p'
-alias cp='cp -i'
-alias mv='mv -i'
-alias rm='rm -i'
+alias extract='tar -xzf'
 
 # =============================================================================
-# ALIAS MANAGEMENT FUNCTIONS
+# DIRECTORY OPERATIONS FUNCTIONS
 # =============================================================================
 
-# List all aliases
-list_aliases() {
-    echo "📋 Available aliases:"
-    alias | sort | sed 's/^/  /'
-}
-
-# Search aliases
-search_aliases() {
-    local query="$1"
-    if [[ -z "$query" ]]; then
-        echo "Usage: search_aliases <query>"
+# Create directory and enter it
+function mkcd() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: mkcd <directory>"
         return 1
     fi
     
-    echo "🔍 Searching aliases for: $query"
-    alias | grep -i "$query" | sed 's/^/  /'
+    mkdir -p "$1" && cd "$1"
 }
 
-# Alias statistics
-alias_stats() {
-    local total_aliases=$(alias | wc -l)
-    local git_aliases=$(alias | grep -c "git" || echo "0")
-    local docker_aliases=$(alias | grep -c "docker" || echo "0")
-    local system_aliases=$(alias | grep -c -E "(ls|cd|cp|mv|rm)" || echo "0")
+# Quick way to go up directories
+function up() {
+    local levels=${1:-1}
+    local path=""
     
-    echo "📊 Alias Statistics:"
-    echo "  • Total aliases: $total_aliases"
-    echo "  • Git aliases: $git_aliases"
-    echo "  • Docker aliases: $docker_aliases"
-    echo "  • System aliases: $system_aliases"
+    for ((i=0; i<levels; i++)); do
+        path="../$path"
+    done
+    
+    cd "$path"
 }
 
-# Validate aliases
-validate_aliases() {
-    local errors=0
-    local warnings=0
+# Show directory size
+function dirsize() {
+    local target="${1:-.}"
+    if [[ -d "$target" ]]; then
+        du -sh "$target"/* 2>/dev/null | sort -hr
+    else
+        echo "Error: '$target' is not a directory"
+        return 1
+    fi
+}
+
+# Find large files
+function findlarge() {
+    local size="${1:-100M}"
+    local path="${2:-.}"
     
-    echo "🔍 Validating aliases..."
-    
-    # Check for conflicting aliases
-    local conflicts=$(alias | awk '{print $1}' | sed 's/=.*//' | sort | uniq -d)
-    if [[ -n "$conflicts" ]]; then
-        echo "❌ Conflicting aliases found:"
-        echo "$conflicts" | sed 's/^/  /'
-        ((errors++))
+    echo "Finding files larger than $size in $path..."
+    find "$path" -type f -size "+$size" -exec ls -lh {} \; 2>/dev/null | \
+    awk '{print $5 "\t" $9}' | sort -hr
+}
+
+# =============================================================================
+# FILE OPERATIONS FUNCTIONS
+# =============================================================================
+
+# Safe delete (move to trash)
+function trash() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: trash <file1> [file2] ..."
+        return 1
     fi
     
-    # Check for missing commands
-    alias | while read line; do
-        local alias_name=$(echo "$line" | awk '{print $1}' | sed 's/=.*//')
-        local command=$(echo "$line" | sed 's/^[^=]*=//' | sed 's/^[[:space:]]*//')
-        
-        # Skip if command is a function or builtin
-        if [[ "$command" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-            if ! command -v "$command" >/dev/null 2>&1 && ! type "$command" >/dev/null 2>&1; then
-                echo "⚠️  Alias '$alias_name' references unknown command: $command"
-                ((warnings++))
-            fi
+    local trash_dir="$HOME/.local/share/Trash/files"
+    mkdir -p "$trash_dir"
+    
+    for file in "$@"; do
+        if [[ -e "$file" ]]; then
+            local basename=$(basename "$file")
+            local timestamp=$(date +%Y%m%d_%H%M%S)
+            mv "$file" "$trash_dir/${basename}_${timestamp}"
+            echo "Moved '$file' to trash"
+        else
+            echo "Warning: '$file' does not exist"
+        fi
+    done
+}
+
+# Create backup file
+function backup() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: backup <file>"
+        return 1
+    fi
+    
+    for file in "$@"; do
+        if [[ -e "$file" ]]; then
+            local backup_name="${file}.backup.$(date +%Y%m%d_%H%M%S)"
+            cp -r "$file" "$backup_name"
+            echo "Created backup: $backup_name"
+        else
+            echo "Warning: '$file' does not exist"
+        fi
+    done
+}
+
+# Extract various compressed files
+function extract() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: extract <file>"
+        return 1
+    fi
+    
+    for file in "$@"; do
+        if [[ -f "$file" ]]; then
+            case "$file" in
+                *.tar.bz2)   tar xjf "$file"     ;;
+                *.tar.gz)    tar xzf "$file"     ;;
+                *.bz2)       bunzip2 "$file"     ;;
+                *.rar)       unrar x "$file"     ;;
+                *.gz)        gunzip "$file"      ;;
+                *.tar)       tar xf "$file"      ;;
+                *.tbz2)      tar xjf "$file"     ;;
+                *.tgz)       tar xzf "$file"     ;;
+                *.zip)       unzip "$file"       ;;
+                *.Z)         uncompress "$file"  ;;
+                *.7z)        7z x "$file"        ;;
+                *)           echo "'$file' cannot be extracted via extract()" ;;
+            esac
+        else
+            echo "'$file' is not a valid file"
+        fi
+    done
+}
+
+# =============================================================================
+# NETWORK OPERATIONS FUNCTIONS
+# =============================================================================
+
+# Start simple HTTP server
+function serve() {
+    local port="${1:-8000}"
+    local directory="${2:-.}"
+    
+    if ! [[ "$port" =~ ^[0-9]+$ ]] || (( port < 1024 || port > 65535 )); then
+        echo "Error: Port must be between 1024 and 65535"
+        return 1
+    fi
+    
+    if [[ ! -d "$directory" ]]; then
+        echo "Error: Directory '$directory' does not exist"
+        return 1
+    fi
+    
+    echo "Starting HTTP server on port $port, serving directory: $directory"
+    echo "Access at: http://localhost:$port"
+    echo "Press Ctrl+C to stop"
+    
+    cd "$directory" || return 1
+    
+    if command -v python3 >/dev/null; then
+        python3 -m http.server "$port"
+    elif command -v python >/dev/null; then
+        python -m SimpleHTTPServer "$port"
+    else
+        echo "Error: Python not found"
+        return 1
+    fi
+}
+
+# Get external IP address
+function myip() {
+    echo "Getting external IP address..."
+    local ip
+    
+    # Try multiple services
+    local services=(
+        "https://ipinfo.io/ip"
+        "https://icanhazip.com"
+        "https://ifconfig.me"
+        "https://ipecho.net/plain"
+    )
+    
+    for service in "${services[@]}"; do
+        ip=$(curl -s --connect-timeout 5 "$service" 2>/dev/null)
+        if [[ -n "$ip" ]] && [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "External IP: $ip"
+            return 0
         fi
     done
     
-    if (( errors == 0 && warnings == 0 )); then
-        echo "✅ All aliases validated"
-        log_alias_event "Alias validation passed"
-        return 0
-    else
-        echo "❌ Alias validation failed ($errors errors, $warnings warnings)"
-        log_alias_event "Alias validation failed: $errors errors, $warnings warnings" "warning"
-        return 1
-    fi
+    echo "Error: Could not determine external IP"
+    return 1
 }
 
 # =============================================================================
-# MODULE-SPECIFIC ALIASES
+# DEVELOPMENT TOOLS FUNCTIONS
 # =============================================================================
 
-# Performance aliases
-alias perf-check='quick_perf_check'
-alias perf-analyze='zsh_perf_analyze'
-alias perf-optimize='optimize_zsh_performance'
+# Create a new project with git
+function newproject() {
+    local project_name="$1"
+    local project_type="${2:-basic}"
+    
+    if [[ -z "$project_name" ]]; then
+        echo "Usage: newproject <name> [type]"
+        echo "Types: basic, node, python, react, vue"
+        return 1
+    fi
+    
+    if [[ -d "$project_name" ]]; then
+        echo "Error: Directory '$project_name' already exists"
+        return 1
+    fi
+    
+    mkdir -p "$project_name"
+    cd "$project_name"
+    
+    case "$project_type" in
+        "node")
+            npm init -y
+            echo "Node.js project created"
+            ;;
+        "python")
+            python3 -m venv venv
+            echo "Python project created with virtual environment"
+            ;;
+        "react")
+            npx create-react-app . --yes
+            echo "React project created"
+            ;;
+        "vue")
+            npm create vue@latest . --yes
+            echo "Vue project created"
+            ;;
+        *)
+            echo "Basic project created"
+            ;;
+    esac
+    
+    git init
+    echo "Git repository initialized"
+}
 
-# Security aliases
-alias sec-audit='security_audit'
-alias sec-check='check_suspicious_files'
-alias sec-monitor='monitor_security'
+# Quick git commit with message
+function gcm() {
+    local message="$1"
+    
+    if [[ -z "$message" ]]; then
+        echo "Usage: gcm <message>"
+        return 1
+    fi
+    
+    git add .
+    git commit -m "$message"
+}
 
-# Module management aliases
-alias modules-list='list_modules'
-alias modules-check='check_module_dependencies'
-alias modules-validate='validate_module_system'
+# =============================================================================
+# SYSTEM UTILITY FUNCTIONS
+# =============================================================================
+
+# Show system information
+function sysinfo() {
+    echo "🖥️  System Information"
+    echo "====================="
+    echo "OS: $(uname -s) $(uname -r)"
+    echo "Architecture: $(uname -m)"
+    echo "Hostname: $(hostname)"
+    echo "User: $(whoami)"
+    echo "Shell: $SHELL"
+    echo "Home: $HOME"
+    
+    if command -v neofetch >/dev/null 2>&1; then
+        echo ""
+        neofetch --stdout
+    fi
+}
+
+# Show disk usage
+function diskusage() {
+    echo "💾 Disk Usage"
+    echo "============="
+    df -h | grep -E '^/dev/'
+}
+
+# Show memory usage
+function memusage() {
+    echo "🧠 Memory Usage"
+    echo "==============="
+    if command -v free >/dev/null 2>&1; then
+        free -h
+    else
+        vm_stat | perl -ne '/page size of (\d+)/ and $size=$1; /Pages free: (\d+)/ and printf("Free: %.1f MB\n", $1 * $size / 1048576); /Pages active: (\d+)/ and printf("Active: %.1f MB\n", $1 * $size / 1048576);'
+    fi
+}
 
 # =============================================================================
 # INITIALIZATION
 # =============================================================================
 
-# Initialize aliases module
-init_aliases
+# Mark aliases module as loaded
+export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED aliases"
 
-# Export functions
-export -f list_aliases search_aliases alias_stats validate_aliases 2>/dev/null || true
+log "Aliases and functions module initialized" "success" "aliases" 

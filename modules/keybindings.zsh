@@ -1,39 +1,8 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Keybindings Module - Unified Module System Integration
-# Version: 3.0 - Comprehensive Keybinding Management
+# Keybindings Module - Simplified Keybinding Management
+# Version: 4.0 - Streamlined Keybinding System
 # =============================================================================
-
-# =============================================================================
-# CONFIGURATION
-# =============================================================================
-
-# Keybinding configuration
-KEYBINDING_LOG="${ZSH_CACHE_DIR}/keybindings.log"
-
-# =============================================================================
-# INITIALIZATION
-# =============================================================================
-
-# Initialize keybindings module
-init_keybindings() {
-    # Log keybindings module initialization (log function will ensure directory)
-    log_keybinding_event "Keybindings module initialized"
-}
-
-# =============================================================================
-# KEYBINDING LOGGING
-# =============================================================================
-
-# Log keybinding events
-log_keybinding_event() {
-    local event="$1"
-    local level="${2:-info}"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    # Always ensure log directory exists before writing
-    [[ ! -d "${KEYBINDING_LOG:h}" ]] && mkdir -p "${KEYBINDING_LOG:h}"
-    echo "[$timestamp] [$level] $event" >> "$KEYBINDING_LOG"
-}
 
 # =============================================================================
 # BASIC NAVIGATION
@@ -84,21 +53,9 @@ bindkey ' ' magic-space                 # Space expands history
 # COMPLETION NAVIGATION
 # =============================================================================
 
-# Tab completion (ensure these are set correctly)
+# Tab completion
 bindkey '^I' complete-word              # Tab
 bindkey '^[[Z' reverse-menu-complete    # Shift+Tab
-
-# Ensure tab completion works (run once at startup, not after every command)
-_ensure_tab_completion() {
-    # Only re-bind if needed (check if already bound correctly)
-    if ! bindkey | grep -q '\^I.*complete-word'; then
-        bindkey '^I' complete-word 2>/dev/null || true
-        bindkey '^[[Z' reverse-menu-complete 2>/dev/null || true
-    fi
-}
-
-# Run tab completion setup once at startup
-_ensure_tab_completion
 
 # =============================================================================
 # CUSTOM WIDGETS AND BINDINGS
@@ -234,7 +191,7 @@ zle -N _lowercase_word
 bindkey '^[l' _lowercase_word            # Alt+L
 
 # =============================================================================
-# MODULE-SPECIFIC WIDGETS
+# UTILITY WIDGETS
 # =============================================================================
 
 # Performance monitoring widget
@@ -242,168 +199,172 @@ _performance_widget() {
     echo
     echo "⚡ Performance Check"
     echo "==================="
-    quick_perf_check
+    perf
     echo
     zle reset-prompt
 }
 zle -N _performance_widget
 bindkey '^[p' _performance_widget        # Alt+P
 
-# Security monitoring widget
-_security_widget() {
+# Status check widget
+_status_widget() {
     echo
-    echo "🔒 Security Check"
-    echo "================"
-    security_audit
-    echo
-    zle reset-prompt
-}
-zle -N _security_widget
-bindkey '^[s' _security_widget           # Alt+S
-
-# Module status widget
-_module_status_widget() {
-    echo
-    echo "📦 Module Status"
+    echo "📊 Status Check"
     echo "==============="
-    list_modules
+    status
     echo
     zle reset-prompt
 }
-zle -N _module_status_widget
-bindkey '^[m' _module_status_widget      # Alt+M
+zle -N _status_widget
+bindkey '^[s' _status_widget             # Alt+S
 
-# =============================================================================
-# KEYBINDING MANAGEMENT
-# =============================================================================
-
-# List all keybindings
-list_keybindings() {
-    echo "⌨️  Available keybindings:"
-    bindkey | sort | sed 's/^/  /'
+# Error report widget
+_errors_widget() {
+    echo
+    echo "❌ Error Report"
+    echo "==============="
+    errors
+    echo
+    zle reset-prompt
 }
+zle -N _errors_widget
+bindkey '^[e' _errors_widget             # Alt+E
 
-# Search keybindings
-search_keybindings() {
-    local query="$1"
-    if [[ -z "$query" ]]; then
-        echo "Usage: search_keybindings <query>"
-        return 1
+# =============================================================================
+# DEVELOPMENT WIDGETS
+# =============================================================================
+
+# Quick git commit
+_git_commit_widget() {
+    local message
+    vared -p "Commit message: " message
+    if [[ -n "$message" ]]; then
+        gcm "$message"
     fi
-    
-    echo "🔍 Searching keybindings for: $query"
-    bindkey | grep -i "$query" | sed 's/^/  /'
+    zle reset-prompt
+}
+zle -N _git_commit_widget
+bindkey '^[c' _git_commit_widget         # Alt+C
+
+# Quick directory creation
+_mkcd_widget() {
+    local dir
+    vared -p "Directory name: " dir
+    if [[ -n "$dir" ]]; then
+        mkcd "$dir"
+    fi
+    zle reset-prompt
+}
+zle -N _mkcd_widget
+bindkey '^[m' _mkcd_widget               # Alt+M
+
+# =============================================================================
+# SYSTEM WIDGETS
+# =============================================================================
+
+# System information widget
+_sysinfo_widget() {
+    echo
+    echo "🖥️  System Info"
+    echo "=============="
+    sysinfo
+    echo
+    zle reset-prompt
+}
+zle -N _sysinfo_widget
+bindkey '^[i' _sysinfo_widget            # Alt+I
+
+# Disk usage widget
+_diskusage_widget() {
+    echo
+    echo "💾 Disk Usage"
+    echo "============="
+    diskusage
+    echo
+    zle reset-prompt
+}
+zle -N _diskusage_widget
+bindkey '^[d' _diskusage_widget          # Alt+D
+
+# Memory usage widget
+_memusage_widget() {
+    echo
+    echo "🧠 Memory Usage"
+    echo "==============="
+    memusage
+    echo
+    zle reset-prompt
+}
+zle -N _memusage_widget
+bindkey '^[m' _memusage_widget           # Alt+M
+
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+# Show key bindings
+keybindings() {
+    echo "⌨️  Key Bindings"
+    echo "==============="
+    echo "Navigation:"
+    echo "  Ctrl+A - Beginning of line"
+    echo "  Ctrl+E - End of line"
+    echo "  Ctrl+B/F - Backward/Forward char"
+    echo "  Alt+B/F - Backward/Forward word"
+    echo ""
+    echo "History:"
+    echo "  Ctrl+R - History search"
+    echo "  Ctrl+P/N - Up/Down history"
+    echo "  Up/Down arrows - History navigation"
+    echo ""
+    echo "Editing:"
+    echo "  Ctrl+K - Kill to end of line"
+    echo "  Ctrl+U - Kill whole line"
+    echo "  Ctrl+W - Kill word backward"
+    echo "  Ctrl+Y - Yank (paste)"
+    echo ""
+    echo "Completion:"
+    echo "  Tab - Complete word"
+    echo "  Shift+Tab - Reverse menu complete"
+    echo ""
+    echo "Custom:"
+    echo "  Alt+G - Git status"
+    echo "  Alt+S - Insert sudo"
+    echo "  Alt+P - Jump to projects"
+    echo "  Alt+H - Jump to home"
+    echo "  Alt+R - Jump to root"
+    echo "  Alt+Q - Quote word"
+    echo "  Alt+U/L - Uppercase/Lowercase word"
+    echo ""
+    echo "FZF (if available):"
+    echo "  Ctrl+T - File finder"
+    echo "  Ctrl+G - Directory finder"
+    echo "  Ctrl+H - History search"
 }
 
-# Keybinding statistics
-keybinding_stats() {
-    local total_bindings=$(bindkey | wc -l)
-    local navigation_bindings=$(bindkey | grep -c -E "(beginning|end|forward|backward)" || echo "0")
-    local history_bindings=$(bindkey | grep -c -E "(history|up|down)" || echo "0")
-    local completion_bindings=$(bindkey | grep -c -E "(complete|menu)" || echo "0")
+# Check for key binding conflicts
+check_keybindings() {
+    echo "🔍 Checking for key binding conflicts..."
     
-    echo "📊 Keybinding Statistics:"
-    echo "  • Total bindings: $total_bindings"
-    echo "  • Navigation bindings: $navigation_bindings"
-    echo "  • History bindings: $history_bindings"
-    echo "  • Completion bindings: $completion_bindings"
-}
-
-# Validate keybindings
-validate_keybindings() {
-    local errors=0
-    local warnings=0
-    
-    echo "🔍 Validating keybindings..."
-    
-    # Check for essential bindings
-    local essential_bindings=(
-        "beginning-of-line"
-        "end-of-line"
-        "backward-char"
-        "forward-char"
-        "up-line-or-history"
-        "down-line-or-history"
-        "complete-word"
-    )
-    
-    for binding in "${essential_bindings[@]}"; do
-        if ! bindkey | grep -q "$binding"; then
-            echo "❌ Essential binding missing: $binding"
-            ((errors++))
-        fi
-    done
-    
-    # Check for conflicting bindings
+    local conflicts=0
     local bindings=$(bindkey | awk '{print $2}' | sort | uniq -d)
+    
     if [[ -n "$bindings" ]]; then
-        echo "⚠️  Conflicting bindings found:"
-        echo "$bindings" | sed 's/^/  /'
-        ((warnings++))
-    fi
-    
-    if (( errors == 0 && warnings == 0 )); then
-        echo "✅ All keybindings validated"
-        log_keybinding_event "Keybinding validation passed"
-        return 0
+        echo "⚠️  Duplicate key bindings found:"
+        echo "$bindings"
+        ((conflicts++))
     else
-        echo "❌ Keybinding validation failed ($errors errors, $warnings warnings)"
-        log_keybinding_event "Keybinding validation failed: $errors errors, $warnings warnings" "warning"
-        return 1
+        echo "✅ No key binding conflicts detected"
     fi
-}
-
-# =============================================================================
-# MODULE-SPECIFIC KEYBINDINGS
-# =============================================================================
-
-# Performance monitoring keybindings
-monitor_keybinding_performance() {
-    local keybinding="$1"
-    local start_time=$EPOCHREALTIME
     
-    # Simulate keybinding execution time measurement
-    sleep 0.001  # Simulate work
-    
-    local end_time=$EPOCHREALTIME
-    local duration=$((end_time - start_time))
-    local duration_formatted=$(printf "%.3f" $duration)
-    
-    log_keybinding_event "Keybinding $keybinding executed in ${duration_formatted}s"
-    
-    if (( duration > 100 )); then
-        log_keybinding_event "Keybinding $keybinding is slow: ${duration_formatted}s" "warning"
-    fi
-}
-
-# Security validation keybindings
-validate_keybinding_security() {
-    local keybinding="$1"
-    
-    # Check for potentially dangerous keybindings
-    local dangerous_patterns=(
-        "rm -rf"
-        "sudo"
-        "chmod 777"
-        "chown root"
-    )
-    
-    for pattern in "${dangerous_patterns[@]}"; do
-        if [[ "$keybinding" == *"$pattern"* ]]; then
-            log_keybinding_event "Keybinding contains potentially dangerous pattern: $pattern" "warning"
-            return 1
-        fi
-    done
-    
-    return 0
+    return $conflicts
 }
 
 # =============================================================================
 # INITIALIZATION
 # =============================================================================
 
-# Initialize keybindings module
-init_keybindings
+# Mark keybindings module as loaded
+export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED keybindings"
 
-# Export functions
-export -f list_keybindings search_keybindings keybinding_stats validate_keybindings monitor_keybinding_performance validate_keybinding_security 2>/dev/null || true
+log "Keybindings module initialized" "success" "keybindings" 
