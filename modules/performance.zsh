@@ -9,35 +9,42 @@ if [[ -f "$ZSH_CONFIG_DIR/modules/logging.zsh" ]]; then
 fi
 
 # Performance metrics cache
-typeset -A _PERF_CACHE=()
+typeset -gA _PERF_CACHE=()
 
 # Calculate and cache performance metrics
 calculate_performance_metrics() {
     # Ensure cache is initialized
     if [[ -z "$_PERF_CACHE" ]]; then
-        typeset -A _PERF_CACHE=()
+        typeset -gA _PERF_CACHE=()
     fi
     
     # Function count
     local func_count=$(declare -F 2>/dev/null | wc -l 2>/dev/null)
     _PERF_CACHE[func_count]="${func_count:-0}"
+    debug_log "func_count: ${_PERF_CACHE[func_count]}"
     
     # Alias count
     local alias_count=$(alias 2>/dev/null | wc -l 2>/dev/null)
     _PERF_CACHE[alias_count]="${alias_count:-0}"
+    debug_log "alias_count: ${_PERF_CACHE[alias_count]}"
     
-    # PATH entries
-    local path_count=$(echo "$PATH" | tr ':' '\n' | wc -l 2>/dev/null)
+    # PATH entries (fix locale issue)
+    local path_count=$(echo "$PATH" | awk -F: '{print NF}')
     _PERF_CACHE[path_count]="${path_count:-0}"
+    debug_log "path_count: ${_PERF_CACHE[path_count]}"
     
-    # Memory usage
-    local memory_kb=$(ps -o rss= -p $$ 2>/dev/null | tr -d ' ')
+    # Memory usage (macOS compatible, robust)
+    local memory_kb=$(ps -p $$ -o rss | awk 'NR==2 {gsub(/ /, "", $1); print $1}')
+    if [[ -z "$memory_kb" ]]; then
+        memory_kb=0
+    fi
     if [[ -n "$memory_kb" && "$memory_kb" =~ ^[0-9]+$ ]]; then
         local memory_mb=$(echo "scale=1; $memory_kb / 1024" | bc 2>/dev/null)
         _PERF_CACHE[memory_mb]="${memory_mb:-0}"
     else
         _PERF_CACHE[memory_mb]="0"
     fi
+    debug_log "memory_kb: $memory_kb, memory_mb: ${_PERF_CACHE[memory_mb]}"
     
     # History size
     if [[ -f "$HISTFILE" ]]; then
@@ -46,11 +53,13 @@ calculate_performance_metrics() {
     else
         _PERF_CACHE[hist_size]="0"
     fi
+    debug_log "hist_size: ${_PERF_CACHE[hist_size]}"
     
     # Startup time (if available)
     if [[ -n "$ZSH_STARTUP_TIME" ]]; then
         _PERF_CACHE[startup_time]="$ZSH_STARTUP_TIME"
     fi
+    debug_log "startup_time: ${_PERF_CACHE[startup_time]}"
 }
 
 # Get cached metric or calculate if not cached

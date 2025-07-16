@@ -156,7 +156,7 @@ optimize() {
     typeset -U path
     
     local new_path=""
-    for dir in $(echo "$PATH" | tr ':' ' '); do
+    for dir in $(echo "$PATH" | sed 's/:/ /g'); do
         if [[ -d "$dir" ]]; then
             new_path="${new_path:+$new_path:}$dir"
         fi
