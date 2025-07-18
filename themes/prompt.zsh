@@ -10,11 +10,20 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     # Initialize Oh My Posh with optimized configuration
     # You can change the theme by modifying this line
     # Using a simpler theme for better performance
-    eval "$(oh-my-posh init zsh --config ~/.poshthemes/powerlevel10k_rainbow.omp.json --print)"
+    local theme_file="$HOME/.poshthemes/powerlevel10k_rainbow.omp.json"
     
-    # Optimize Oh My Posh performance
-    export OMP_DEBUG=0  # Disable debug mode
-    export OMP_TRANSIENT=1  # Enable transient prompt for better performance
+    if [[ -f "$theme_file" ]]; then
+        eval "$(oh-my-posh init zsh --config "$theme_file" --print)"
+        
+        # Optimize Oh My Posh performance
+        export OMP_DEBUG=0  # Disable debug mode
+        export OMP_TRANSIENT=1  # Enable transient prompt for better performance
+    else
+        echo "⚠️  Oh My Posh theme not found: $theme_file"
+        echo "💡 Install themes with: ./install-themes.sh --all"
+        # Fallback to default theme
+        eval "$(oh-my-posh init zsh --print)"
+    fi
     
     # Popular official themes you can use:
     # eval "$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)"      # Classic powerline

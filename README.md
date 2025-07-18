@@ -38,7 +38,10 @@ cd ~/.config/zsh
 # 2. 安装依赖工具
 ./install-deps.sh
 
-# 3. 安装ZSH配置
+# 3. 安装Oh My Posh主题 (可选)
+./install-themes.sh --all
+
+# 4. 安装ZSH配置
 ./install.sh
 
 # 4. 重启终端或执行
@@ -213,6 +216,66 @@ cp ~/.config/zsh/env/local.zsh.example ~/.config/zsh/env/local.zsh
 ${EDITOR:-code} ~/.config/zsh/env/local.zsh
 ```
 
+## 🎨 Oh My Posh 主题管理
+
+### 主题安装
+```bash
+# 方法1: 自动安装所有主题 (推荐)
+./install-themes.sh --all
+
+# 方法2: 安装指定主题
+./install-themes.sh agnoster powerlevel10k_modern paradox
+
+# 方法3: 查看所有可用主题
+./install-themes.sh --list
+
+# 方法4: 通过依赖安装脚本 (安装少量常用主题)
+./install-deps.sh
+```
+
+### 主题使用
+```bash
+# 使用特定主题
+oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json
+
+# 在.zshrc中设置默认主题
+echo 'eval "$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)"' >> ~/.zshrc
+
+# 预览主题
+oh-my-posh print primary --config ~/.poshthemes/agnoster.omp.json
+```
+
+### 常用主题
+- `agnoster` - 经典Powerline风格
+- `powerlevel10k` - 功能丰富的现代主题
+- `paradox` - 简洁优雅的主题
+- `atomic` - 现代原子风格
+- `agnosterplus` - 增强版agnoster主题
+
+### 浏览所有主题
+```bash
+# 查看所有可用主题
+./install-themes.sh --list
+
+# 安装所有主题
+./install-themes.sh --all
+
+# 安装特定主题
+./install-themes.sh <theme_name1> <theme_name2>
+```
+
+### 自定义主题
+```bash
+# 创建自定义主题
+cp ~/.poshthemes/agnoster.omp.json ~/.poshthemes/my-theme.omp.json
+
+# 编辑自定义主题
+${EDITOR:-code} ~/.poshthemes/my-theme.omp.json
+
+# 使用自定义主题
+oh-my-posh init zsh --config ~/.poshthemes/my-theme.omp.json
+```
+
 ## 🐛 故障排除
 
 ### 依赖安装问题
@@ -258,6 +321,9 @@ sudo chmod +x /usr/local/bin/oh-my-posh
 
 # 方法3: 使用官方安装脚本
 curl -sS https://ohmyposh.dev/install.sh | bash
+
+# 安装主题 (安装oh-my-posh后执行)
+./install-themes.sh --all
 ```
 
 **zoxide安装失败？**

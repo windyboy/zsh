@@ -116,6 +116,83 @@ config() {
     fi
 }
 
+# -------------------- FZF Widget 管理 --------------------
+fzf_widgets() {
+    [[ "$1" == "-h" || "$1" == "--help" ]] && {
+        echo "用法: fzf_widgets [enable|disable|status|fix]"
+        echo "管理FZF widget绑定以避免zsh-syntax-highlighting警告"
+        echo ""
+        echo "命令:"
+        echo "  enable   - 启用FZF widget绑定"
+        echo "  disable  - 禁用FZF widget绑定"
+        echo "  status   - 查看当前状态"
+        echo "  fix      - 修复zsh-syntax-highlighting警告"
+        return 1
+    }
+    
+    local action="${1:-status}"
+    
+    case "$action" in
+        enable)
+            if command -v fzf >/dev/null 2>&1; then
+                autoload -Uz fzf-file-widget fzf-history-widget fzf-cd-widget 2>/dev/null || true
+                bindkey '^[f' fzf-file-widget 2>/dev/null || true
+                bindkey '^[r' fzf-history-widget 2>/dev/null || true
+                bindkey '^[d' fzf-cd-widget 2>/dev/null || true
+                color_green "✅ FZF widgets已启用"
+                echo "快捷键: Alt+F (文件), Alt+R (历史), Alt+D (目录)"
+            else
+                color_red "❌ FZF未安装"
+            fi
+            ;;
+        disable)
+            bindkey -r '^[f' 2>/dev/null || true
+            bindkey -r '^[r' 2>/dev/null || true
+            bindkey -r '^[d' 2>/dev/null || true
+            color_green "✅ FZF widgets已禁用"
+            ;;
+        fix)
+            # 修复zsh-syntax-highlighting警告
+            if command -v fzf >/dev/null 2>&1; then
+                # 确保FZF widget被正确加载
+                autoload -Uz fzf-file-widget fzf-history-widget fzf-cd-widget 2>/dev/null || true
+                
+                # 重新绑定，确保在正确的时机
+                bindkey -r '^[f' 2>/dev/null || true
+                bindkey -r '^[r' 2>/dev/null || true
+                bindkey -r '^[d' 2>/dev/null || true
+                
+                # 延迟绑定
+                zle -N fzf-file-widget 2>/dev/null || true
+                zle -N fzf-history-widget 2>/dev/null || true
+                zle -N fzf-cd-widget 2>/dev/null || true
+                
+                color_green "✅ FZF widgets已修复"
+                echo "请重新加载配置: source ~/.zshrc"
+            else
+                color_red "❌ FZF未安装"
+            fi
+            ;;
+        status)
+            echo "🔍 FZF Widget状态:"
+            if command -v fzf >/dev/null 2>&1; then
+                color_green "✅ FZF已安装"
+                echo "绑定状态:"
+                bindkey | grep -E "(fzf-file-widget|fzf-history-widget|fzf-cd-widget)" || echo "  未绑定"
+                echo ""
+                echo "Widget状态:"
+                zle -l | grep -E "(fzf-file-widget|fzf-history-widget|fzf-cd-widget)" || echo "  未注册"
+            else
+                color_red "❌ FZF未安装"
+            fi
+            ;;
+        *)
+            color_red "未知操作: $action"
+            return 1
+            ;;
+    esac
+}
+
 # -------------------- 预留自定义区 --------------------
 # 可在 custom/ 目录下添加自定义函数
 

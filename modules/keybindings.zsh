@@ -53,7 +53,15 @@ bindkey -s '^[e' '_quick_edit\n'
 bindkey -s '^[d' '_smart_cd\n'
 
 # -------------------- 插件相关绑定 --------------------
+# FZF widgets - 使用安全的方式绑定以避免zsh-syntax-highlighting警告
 if command -v fzf >/dev/null 2>&1; then
+    # 确保FZF widget被正确注册，避免zsh-syntax-highlighting警告
+    autoload -Uz fzf-file-widget fzf-history-widget fzf-cd-widget 2>/dev/null || true
+    zle -N fzf-file-widget 2>/dev/null || true
+    zle -N fzf-history-widget 2>/dev/null || true
+    zle -N fzf-cd-widget 2>/dev/null || true
+    
+    # 绑定FZF widget
     bindkey '^[f' fzf-file-widget 2>/dev/null || true
     bindkey '^[r' fzf-history-widget 2>/dev/null || true
     bindkey '^[d' fzf-cd-widget 2>/dev/null || true

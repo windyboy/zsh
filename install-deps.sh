@@ -122,6 +122,78 @@ install_eza() {
     rm -rf "$temp_dir"
 }
 
+# Install oh-my-posh and themes
+install_oh_my_posh() {
+    log "安装oh-my-posh..."
+    local arch="amd64"
+    [[ "$(uname -m)" == "aarch64" ]] && arch="arm64"
+    
+    if sudo wget "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-${arch}" -O /usr/local/bin/oh-my-posh && sudo chmod +x /usr/local/bin/oh-my-posh; then
+        success "oh-my-posh安装成功"
+        
+        # Install all themes from GitHub
+        log "从GitHub下载所有Oh My Posh主题..."
+        local themes_dir="$HOME/.poshthemes"
+        mkdir -p "$themes_dir"
+        
+        # Create temporary directory for cloning
+        local temp_dir=$(mktemp -d)
+        cd "$temp_dir"
+        
+        # Clone the oh-my-posh repository to get all themes
+        if git clone --depth 1 https://github.com/JanDeDobbeleer/oh-my-posh.git; then
+            log "GitHub仓库克隆成功"
+            
+            # Copy all theme files
+            if [[ -d "oh-my-posh/themes" ]]; then
+                local theme_count=0
+                for theme_file in oh-my-posh/themes/*.omp.json; do
+                    if [[ -f "$theme_file" ]]; then
+                        local theme_name=$(basename "$theme_file")
+                        cp "$theme_file" "$themes_dir/"
+                        ((theme_count++))
+                        log "主题 ${theme_name} 复制成功"
+                    fi
+                done
+                
+                # Also copy YAML themes if they exist
+                for theme_file in oh-my-posh/themes/*.omp.yaml; do
+                    if [[ -f "$theme_file" ]]; then
+                        local theme_name=$(basename "$theme_file")
+                        cp "$theme_file" "$themes_dir/"
+                        ((theme_count++))
+                        log "主题 ${theme_name} 复制成功"
+                    fi
+                done
+                
+                success "主题安装完成，共安装 ${theme_count} 个主题"
+                echo "💡 主题位置: $themes_dir"
+                echo "💡 使用主题: oh-my-posh init zsh --config $themes_dir/agnoster.omp.json"
+                echo "💡 预览主题: oh-my-posh print primary --config $themes_dir/agnoster.omp.json"
+            else
+                warning "主题目录未找到"
+            fi
+        else
+            warning "GitHub仓库克隆失败，尝试下载常用主题..."
+            # Fallback to downloading popular themes
+            local themes=("agnoster" "powerlevel10k_modern" "paradox" "atomic" "agnosterplus" "jandedobbeleer")
+            for theme in "${themes[@]}"; do
+                if wget -q "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -O "$themes_dir/${theme}.omp.json"; then
+                    log "主题 ${theme} 下载成功"
+                else
+                    warning "主题 ${theme} 下载失败"
+                fi
+            done
+        fi
+        
+        # Clean up
+        cd - > /dev/null
+        rm -rf "$temp_dir"
+    else
+        warning "oh-my-posh安装失败"
+    fi
+}
+
 # Install on macOS
 install_macos() {
     log "检测到macOS系统，使用Homebrew安装..."
@@ -138,7 +210,74 @@ install_macos() {
     
     # 推荐工具
     log "安装推荐工具..."
-    brew install fzf zoxide eza oh-my-posh curl
+    brew install fzf zoxide eza curl
+    
+    # 安装oh-my-posh
+    log "安装oh-my-posh..."
+    if brew install oh-my-posh; then
+        success "oh-my-posh安装成功"
+        
+        # Install all themes from GitHub
+        log "从GitHub下载所有Oh My Posh主题..."
+        local themes_dir="$HOME/.poshthemes"
+        mkdir -p "$themes_dir"
+        
+        # Create temporary directory for cloning
+        local temp_dir=$(mktemp -d)
+        cd "$temp_dir"
+        
+        # Clone the oh-my-posh repository to get all themes
+        if git clone --depth 1 https://github.com/JanDeDobbeleer/oh-my-posh.git; then
+            log "GitHub仓库克隆成功"
+            
+            # Copy all theme files
+            if [[ -d "oh-my-posh/themes" ]]; then
+                local theme_count=0
+                for theme_file in oh-my-posh/themes/*.omp.json; do
+                    if [[ -f "$theme_file" ]]; then
+                        local theme_name=$(basename "$theme_file")
+                        cp "$theme_file" "$themes_dir/"
+                        ((theme_count++))
+                        log "主题 ${theme_name} 复制成功"
+                    fi
+                done
+                
+                # Also copy YAML themes if they exist
+                for theme_file in oh-my-posh/themes/*.omp.yaml; do
+                    if [[ -f "$theme_file" ]]; then
+                        local theme_name=$(basename "$theme_file")
+                        cp "$theme_file" "$themes_dir/"
+                        ((theme_count++))
+                        log "主题 ${theme_name} 复制成功"
+                    fi
+                done
+                
+                success "主题安装完成，共安装 ${theme_count} 个主题"
+                echo "💡 主题位置: $themes_dir"
+                echo "💡 使用主题: oh-my-posh init zsh --config $themes_dir/agnoster.omp.json"
+                echo "💡 预览主题: oh-my-posh print primary --config $themes_dir/agnoster.omp.json"
+            else
+                warning "主题目录未找到"
+            fi
+        else
+            warning "GitHub仓库克隆失败，尝试下载常用主题..."
+            # Fallback to downloading popular themes
+            local themes=("agnoster" "powerlevel10k_modern" "paradox" "atomic" "agnosterplus" "jandedobbeleer")
+            for theme in "${themes[@]}"; do
+                if curl -s "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -o "$themes_dir/${theme}.omp.json"; then
+                    log "主题 ${theme} 下载成功"
+                else
+                    warning "主题 ${theme} 下载失败"
+                fi
+            done
+        fi
+        
+        # Clean up
+        cd - > /dev/null
+        rm -rf "$temp_dir"
+    else
+        warning "oh-my-posh安装失败"
+    fi
     
     success "macOS依赖安装完成"
 }
@@ -173,16 +312,8 @@ install_ubuntu() {
     # 安装eza
     install_eza
     
-    # 安装oh-my-posh
-    log "安装oh-my-posh..."
-    local arch="amd64"
-    [[ "$(uname -m)" == "aarch64" ]] && arch="arm64"
-    
-    if sudo wget "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-${arch}" -O /usr/local/bin/oh-my-posh && sudo chmod +x /usr/local/bin/oh-my-posh; then
-        success "oh-my-posh安装成功"
-    else
-        warning "oh-my-posh安装失败"
-    fi
+    # 安装oh-my-posh和主题
+    install_oh_my_posh
     
     success "Ubuntu/Debian依赖安装完成"
 }
@@ -213,16 +344,8 @@ install_centos() {
     # 安装eza
     install_eza
     
-    # 安装oh-my-posh
-    log "安装oh-my-posh..."
-    local arch="amd64"
-    [[ "$(uname -m)" == "aarch64" ]] && arch="arm64"
-    
-    if sudo wget "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-${arch}" -O /usr/local/bin/oh-my-posh && sudo chmod +x /usr/local/bin/oh-my-posh; then
-        success "oh-my-posh安装成功"
-    else
-        warning "oh-my-posh安装失败"
-    fi
+    # 安装oh-my-posh和主题
+    install_oh_my_posh
     
     success "CentOS/RHEL/Fedora依赖安装完成"
 }
