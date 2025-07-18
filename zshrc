@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 # =============================================================================
 # Main ZSH Configuration - Simplified Modular Loader
+# Version: 4.1 - Streamlined for Personal Use
 # =============================================================================
 
 # 设置ZSH配置根目录（兼容直接调用）
@@ -8,19 +9,11 @@ export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 
 # 加载核心模块（顺序不可变）
 for mod in core plugins completion aliases keybindings utils; do
-    modfile="$ZSH_CONFIG_DIR/modules/${mod}.zsh"
+    local modfile="$ZSH_CONFIG_DIR/modules/${mod}.zsh"
     if [[ -f "$modfile" ]]; then
         source "$modfile"
     else
         echo "[zshrc] Warning: module not found: $modfile" >&2
-    fi
-done
-
-# 加载辅助模块（可选）
-for mod in logging performance tools config errors help; do
-    modfile="$ZSH_CONFIG_DIR/modules/${mod}.zsh"
-    if [[ -f "$modfile" ]]; then
-        source "$modfile"
     fi
 done
 
@@ -42,4 +35,4 @@ if [[ -f "$ZSH_CONFIG_DIR/local.zsh" ]]; then
 fi
 
 # 结束提示
-log "zshrc loaded all modules and custom configs" "success" "zshrc"
+echo "INFO: zshrc loaded all modules and custom configs"
