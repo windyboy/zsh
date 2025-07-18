@@ -143,7 +143,40 @@ setup_config() {
     ln -sf "$HOME/.config/zsh/zshrc" "$HOME/.zshrc"
     ln -sf "$HOME/.config/zsh/zshenv" "$HOME/.zshenv"
     
+    # Set ZDOTDIR in shell profile if not already set
+    setup_zdotdir
+    
     success "Configuration ready"
+}
+
+# Setup ZDOTDIR
+setup_zdotdir() {
+    local profile_file=""
+    local zdotdir_line="export ZDOTDIR=\"\$HOME/.config/zsh\""
+    
+    # Determine which profile file to use
+    if [[ -f "$HOME/.bash_profile" ]]; then
+        profile_file="$HOME/.bash_profile"
+    elif [[ -f "$HOME/.bashrc" ]]; then
+        profile_file="$HOME/.bashrc"
+    elif [[ -f "$HOME/.profile" ]]; then
+        profile_file="$HOME/.profile"
+    else
+        # Create .profile if none exists
+        profile_file="$HOME/.profile"
+        touch "$profile_file"
+    fi
+    
+    # Check if ZDOTDIR is already set
+    if ! grep -q "ZDOTDIR" "$profile_file" 2>/dev/null; then
+        log "Setting ZDOTDIR in $profile_file..."
+        echo "" >> "$profile_file"
+        echo "# ZSH Configuration Directory" >> "$profile_file"
+        echo "$zdotdir_line" >> "$profile_file"
+        success "ZDOTDIR configured in $profile_file"
+    else
+        log "ZDOTDIR already configured in $profile_file"
+    fi
 }
 
 # Set default shell

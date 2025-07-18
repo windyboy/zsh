@@ -44,8 +44,11 @@ cd ~/.config/zsh
 # 4. 安装ZSH配置
 ./install.sh
 
-# 4. 重启终端或执行
+# 5. 重启终端或执行
 exec zsh
+```
+
+**注意**: 安装脚本会自动设置`ZDOTDIR="$HOME/.config/zsh"`，确保ZSH从正确的目录加载配置文件。
 ```
 
 ### 方法二：手动安装
@@ -127,6 +130,10 @@ sudo chmod +x /usr/local/bin/oh-my-posh
 git clone https://github.com/yourusername/zsh-config.git ~/.config/zsh
 ln -sf ~/.config/zsh/zshrc ~/.zshrc
 ln -sf ~/.config/zsh/zshenv ~/.zshenv
+
+# 设置ZDOTDIR (可选，但推荐)
+echo 'export ZDOTDIR="$HOME/.config/zsh"' >> ~/.profile
+
 exec zsh
 ```
 
