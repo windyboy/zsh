@@ -184,12 +184,33 @@ export ZSH_CACHE_DIR="$HOME/.cache/zsh"
 export ZSH_DATA_DIR="$HOME/.local/share/zsh"
 ```
 
+### 环境配置结构
+```
+~/.config/zsh/
+├── zshenv                    # 核心环境配置
+├── env/
+│   ├── development.zsh       # 开发工具配置（可选）
+│   ├── local.zsh.example     # 本地配置模板
+│   └── local.zsh            # 本地自定义配置（可选）
+└── modules/                  # 功能模块
+```
+
 ### 自定义配置
 ```bash
 config zshrc    # 编辑主配置
 config core     # 编辑核心模块
 config plugins  # 编辑插件模块
 config aliases  # 编辑别名模块
+config env      # 编辑环境配置
+```
+
+### 本地配置
+```bash
+# 创建本地配置文件
+cp ~/.config/zsh/env/local.zsh.example ~/.config/zsh/env/local.zsh
+
+# 编辑本地配置
+${EDITOR:-code} ~/.config/zsh/env/local.zsh
 ```
 
 ## 🐛 故障排除

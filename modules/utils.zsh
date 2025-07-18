@@ -77,6 +77,44 @@ timestamp() { date +"%Y-%m-%d %H:%M:%S"; }
 countdown() { [[ $# -eq 0 ]] && echo "用法: countdown <秒数>" && return 1; local s=$1; while ((s>0)); do printf "\r倒计时: %02d:%02d" $((s/60)) $((s%60)); sleep 1; ((s--)); done; echo -e "\n时间到!"; }
 archive() { [[ $# -lt 2 ]] && echo "用法: archive <名称> <文件...>" && return 1; local name="$1"; shift; tar -czf "${name}.tar.gz" "$@" && color_green "已归档: ${name}.tar.gz"; }
 
+# -------------------- 配置管理 --------------------
+config() {
+    [[ "$1" == "-h" || "$1" == "--help" || $# -eq 0 ]] && {
+        echo "用法: config <文件>"
+        echo "可编辑的文件:"
+        echo "  zshrc      - 主配置文件"
+        echo "  core       - 核心模块"
+        echo "  plugins    - 插件模块"
+        echo "  aliases    - 别名模块"
+        echo "  completion - 补全模块"
+        echo "  keybindings - 按键绑定模块"
+        echo "  utils      - 工具模块"
+        echo "  env        - 环境配置"
+        return 1
+    }
+    
+    local file="$1"
+    local target_file=""
+    
+    case "$file" in
+        zshrc) target_file="$ZSH_CONFIG_DIR/zshrc" ;;
+        core) target_file="$ZSH_CONFIG_DIR/modules/core.zsh" ;;
+        plugins) target_file="$ZSH_CONFIG_DIR/modules/plugins.zsh" ;;
+        aliases) target_file="$ZSH_CONFIG_DIR/modules/aliases.zsh" ;;
+        completion) target_file="$ZSH_CONFIG_DIR/modules/completion.zsh" ;;
+        keybindings) target_file="$ZSH_CONFIG_DIR/modules/keybindings.zsh" ;;
+        utils) target_file="$ZSH_CONFIG_DIR/modules/utils.zsh" ;;
+        env) target_file="$ZSH_CONFIG_DIR/env/development.zsh" ;;
+        *) color_red "未知文件: $file" && return 1 ;;
+    esac
+    
+    if [[ -f "$target_file" ]]; then
+        ${EDITOR:-code} "$target_file"
+    else
+        color_red "文件不存在: $target_file"
+        return 1
+    fi
+}
 
 # -------------------- 预留自定义区 --------------------
 # 可在 custom/ 目录下添加自定义函数
