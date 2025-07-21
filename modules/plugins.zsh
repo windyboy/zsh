@@ -66,7 +66,6 @@ fi
 # -------------------- Common Functions --------------------
 plugins() {
     [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: plugins" && return 0
-    echo "🔌 Plugin Status:"
     
     # Check zinit plugins
     local zinit_plugins=(
