@@ -75,7 +75,7 @@ if command -v docker >/dev/null 2>&1; then
 fi
 
 # -------------------- Tab Enhancement --------------------
-bindkey '^I' complete-word 2>/dev/null || true
+bindkey '^I' expand-or-complete 2>/dev/null || true
 bindkey '^[[Z' reverse-menu-complete 2>/dev/null || true
 zstyle ':completion:*' menu select
 zstyle ':completion:*' auto-description 'specify: %d'
@@ -117,4 +117,4 @@ rebuild_completion() {
 
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED completion"
-echo "INFO: Completion module initialized"
+echo "INFO: Completion module initialized" 
