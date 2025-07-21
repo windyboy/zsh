@@ -83,9 +83,10 @@ perf() {
 }
 # Version information
 version() {
-    echo "📦 ZSH Configuration Version 4.2.0 (Personal Minimal)"
+    echo "📦 ZSH Configuration Version 4.3.0 (Personal Minimal)"
     echo "Key Features: Minimal architecture, core functionality, performance optimization, personal experience"
     echo "Modules: core/aliases/plugins/completion/keybindings/utils"
+    echo "Interface: Complete English localization with beautiful status monitoring"
 }
 
 # -------------------- Reserved Custom Area --------------------

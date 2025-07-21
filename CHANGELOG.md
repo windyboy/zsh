@@ -1,8 +1,41 @@
-# 更新日志
+# Changelog
+
+## [4.3.0] - 2025-07-21
+
+### 🎨 Complete English Localization & Beautiful Status Interface
+
+#### ✨ New Features
+- **Complete English Interface** - All Chinese text converted to English throughout the system
+- **Beautiful Status Script** - Enhanced status.sh with professional formatting and visual elements
+- **Intelligent Scoring System** - Overall configuration health scoring (0-100)
+- **Progress Indicators** - Visual progress bars for module loading
+- **Categorized Plugin Status** - Organized plugin display with health monitoring
+- **Real-time Metrics** - Live performance and system statistics
+
+#### 🔧 Enhanced
+- **Status Monitoring** - Comprehensive status checking with detailed breakdown
+- **Visual Design** - Color-coded output with professional typography
+- **Performance Metrics** - Detailed function, alias, memory, and history tracking
+- **Plugin Management** - Categorized display (Zinit, Tool, Builtin plugins)
+- **Error Handling** - Improved error messages and status indicators
+
+#### 🎯 User Experience
+- **Professional Output** - Beautiful, presentation-ready status reports
+- **Easy Monitoring** - Simple commands for comprehensive system health checks
+- **Clear Information** - Well-organized data with visual hierarchy
+- **International Access** - Full English interface for global users
+
+#### 📊 Technical Improvements
+- **Modular Status Script** - Self-contained status checking with no external dependencies
+- **Performance Scoring** - Intelligent algorithm based on modules, plugins, and performance
+- **Visual Progress** - Real-time progress indicators with percentage completion
+- **Comprehensive Metrics** - Detailed system information and health indicators
+
+---
 
 ## [4.2.0] - 2024-12-19
 
-### 🎯 Phase 2优化完成 - 一致性与用户体验提升
+### 🎯 Phase 2 Optimization Complete - Consistency and User Experience Enhancement
 
 #### ✨ 新增
 - **统一命令接口** - 所有命令采用一致的命名规范

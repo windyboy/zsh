@@ -1,61 +1,63 @@
-# ZSH Configuration v4.2
+# ZSH Configuration v4.3
 
-高性能、模块化的ZSH配置系统，专为个人工作环境优化。经过两阶段优化，代码精简73%，启动性能显著提升。
+High-performance, modular ZSH configuration system optimized for personal work environments. Features beautiful English interface, comprehensive status monitoring, and intelligent scoring system.
 
-## ✨ 特性
+## ✨ Features
 
-- **极速启动** - 优化的启动时间，减少模块依赖
-- **简洁架构** - 代码精简73%，从2204行优化到604行
-- **核心功能** - 聚焦最常用功能，删除边缘化特性
-- **智能模块** - 模块化设计，按需加载
-- **一致体验** - 统一的命令命名和输出格式
-- **开箱即用** - 预配置常用插件和工具
+- **🚀 Lightning Fast** - Optimized startup time with minimal module dependencies
+- **🎨 Beautiful Interface** - Complete English localization with color-coded output
+- **📊 Smart Monitoring** - Comprehensive status checking with intelligent scoring
+- **🔧 Modular Design** - Clean, maintainable module architecture
+- **⚡ Performance Optimized** - Streamlined codebase with 73% reduction
+- **🎯 Personal Experience** - Focused on essential functionality
+- **📈 Progress Tracking** - Visual progress indicators and detailed metrics
+- **🔌 Plugin Management** - Categorized plugin status with health monitoring
 
-## 📋 系统要求
+## 📋 System Requirements
 
-### 必需依赖
-- **ZSH**: 5.8或更高版本
-- **Git**: 用于插件管理
+### Required Dependencies
+- **ZSH**: Version 5.8 or higher
+- **Git**: For plugin management
 
-### 可选依赖（推荐安装）
-- **fzf**: 模糊文件查找
-- **zoxide**: 智能目录导航
-- **eza**: 增强版ls命令
-- **oh-my-posh**: 主题系统
-- **curl/wget**: 网络工具
+### Optional Dependencies (Recommended)
+- **fzf**: Fuzzy file finder
+- **zoxide**: Smart directory navigation
+- **eza**: Enhanced ls command
+- **oh-my-posh**: Theme system
+- **curl/wget**: Network tools
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 方法一：自动安装（推荐）
+### Method 1: Automatic Installation (Recommended)
 
-使用我们提供的自动安装脚本：
+Use our provided automatic installation script:
 
 ```bash
-# 1. 克隆仓库
+# 1. Clone repository
 git clone https://github.com/yourusername/zsh-config.git ~/.config/zsh
 cd ~/.config/zsh
 
-# 2. 安装依赖工具
+# 2. Install dependency tools
 ./install-deps.sh
 
-# 3. 安装Oh My Posh主题 (可选)
+# 3. Install Oh My Posh themes (optional)
 ./install-themes.sh --all
 
-# 4. 安装ZSH配置
+# 4. Install ZSH configuration
 ./install.sh
 
-# 5. 重启终端或执行
+# 5. Restart terminal or execute
 exec zsh
 ```
 
-**注意**: 安装脚本会自动设置`ZDOTDIR="$HOME/.config/zsh"`，确保ZSH从正确的目录加载配置文件。
+**Note**: The installation script automatically sets `ZDOTDIR="$HOME/.config/zsh"` to ensure ZSH loads configuration from the correct directory.
 ```
 
-### 方法二：手动安装
+### Method 2: Manual Installation
 
-#### 1. 安装依赖工具
+#### 1. Install Dependency Tools
 
-#### macOS (使用Homebrew)
+#### macOS (using Homebrew)
 ```bash
 # 安装必需工具
 brew install zsh git
@@ -146,13 +148,26 @@ plugins   # 检查插件状态
 
 ## 🛠️ 常用命令
 
-### 系统管理
+### System Management
 ```bash
-status          # 系统状态
-reload          # 重新加载配置
-validate        # 验证配置
-version         # 查看版本
+status          # System status
+reload          # Reload configuration
+validate        # Validate configuration
+version         # View version
 ```
+
+### Status Monitoring
+```bash
+./status.sh     # Comprehensive status check with beautiful output
+test.sh         # Plugin conflict detection and testing
+```
+
+The status script provides:
+- **📊 Real-time metrics** - Functions, aliases, memory usage, history
+- **🎯 Performance scoring** - Intelligent rating system (0-100)
+- **🔌 Plugin health** - Categorized plugin status with detailed breakdown
+- **📈 Progress tracking** - Visual progress indicators for module loading
+- **🎨 Beautiful interface** - Color-coded output with professional formatting
 
 ### 开发工具
 ```bash
