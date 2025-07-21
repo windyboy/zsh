@@ -87,7 +87,10 @@ fi
 bindkey '^I' complete-word
 bindkey '^[[Z' reverse-menu-complete
 zstyle ':completion:*' accept-exact '*(N)'
-zstyle ':completion:*' insert-tab pending
+# Show completions immediately instead of inserting a literal tab on the first
+# press. This avoids confusion where pressing Tab appears to do nothing when
+# completions are available.
+zstyle ':completion:*' insert-tab false
 if (( ${+_comps[fzf-tab]} )); then
     zstyle ':fzf-tab:*' switch-group ',' '.'
     zstyle ':fzf-tab:*' show-group full
