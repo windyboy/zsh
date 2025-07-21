@@ -117,4 +117,4 @@ rebuild_completion() {
 
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED completion"
-echo "INFO: Completion module initialized" 
+echo "INFO: Completion module initialized"

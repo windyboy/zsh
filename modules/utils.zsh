@@ -97,10 +97,10 @@ config() {
         echo "  env        - Environment configuration"
         return 1
     }
-    
+
     local file="$1"
     local target_file=""
-    
+
     case "$file" in
         zshrc) target_file="$ZSH_CONFIG_DIR/zshrc" ;;
         core) target_file="$ZSH_CONFIG_DIR/modules/core.zsh" ;;
@@ -112,7 +112,7 @@ config() {
         env) target_file="$ZSH_CONFIG_DIR/env/development.zsh" ;;
         *) color_red "Unknown file: $file" && return 1 ;;
     esac
-    
+
     if [[ -f "$target_file" ]]; then
         ${EDITOR:-code} "$target_file"
     else
@@ -134,9 +134,9 @@ fzf_widgets() {
         echo "  fix      - Fix zsh-syntax-highlighting warnings"
         return 1
     }
-    
+
     local action="${1:-status}"
-    
+
     case "$action" in
         enable)
             if command -v fzf >/dev/null 2>&1; then
@@ -161,17 +161,17 @@ fzf_widgets() {
             if command -v fzf >/dev/null 2>&1; then
                 # Ensure FZF widgets are properly loaded
                 autoload -Uz fzf-file-widget fzf-history-widget fzf-cd-widget 2>/dev/null || true
-                
+
                 # Rebind to ensure correct timing
                 bindkey -r '^[f' 2>/dev/null || true
                 bindkey -r '^[r' 2>/dev/null || true
                 bindkey -r '^[d' 2>/dev/null || true
-                
+
                 # Delayed binding
                 zle -N fzf-file-widget 2>/dev/null || true
                 zle -N fzf-history-widget 2>/dev/null || true
                 zle -N fzf-cd-widget 2>/dev/null || true
-                
+
                 color_green "✅ FZF widgets fixed"
                 echo "Please reload configuration: source ~/.zshrc"
             else
@@ -203,4 +203,4 @@ fzf_widgets() {
 
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED utils"
-echo "INFO: Utils module initialized" 
+echo "INFO: Utils module initialized"

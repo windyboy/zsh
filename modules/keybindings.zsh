@@ -60,7 +60,7 @@ if command -v fzf >/dev/null 2>&1; then
     zle -N fzf-file-widget 2>/dev/null || true
     zle -N fzf-history-widget 2>/dev/null || true
     zle -N fzf-cd-widget 2>/dev/null || true
-    
+
     # Bind FZF widgets
     bindkey '^[f' fzf-file-widget 2>/dev/null || true
     bindkey '^[r' fzf-history-widget 2>/dev/null || true
@@ -122,4 +122,4 @@ test_bindings() {
 
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED keybindings"
-echo "INFO: Keybindings module initialized" 
+echo "INFO: Keybindings module initialized"

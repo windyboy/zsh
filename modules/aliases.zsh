@@ -93,4 +93,4 @@ function gcm() {
 
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED aliases"
-echo "INFO: Aliases module initialized" 
+echo "INFO: Aliases module initialized"
