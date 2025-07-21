@@ -1,14 +1,14 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Completion Module - 补全系统配置
-# 说明：只保留高频、刚需、极简的补全配置，注释清晰，命名统一。
+# Completion Module - Completion System Configuration
+# Description: Only high-frequency, essential, minimal completion configuration with clear comments and unified naming.
 # =============================================================================
 
-# 彩色输出工具
+# Color output tools
 comp_color_red()   { echo -e "\033[31m$1\033[0m"; }
 comp_color_green() { echo -e "\033[32m$1\033[0m"; }
 
-# -------------------- 补全缓存 --------------------
+# -------------------- Completion Cache --------------------
 COMPLETION_CACHE_FILE="$ZSH_CACHE_DIR/zcompdump"
 autoload -Uz compinit
 if [[ ! -f "$COMPLETION_CACHE_FILE" ]] || [[ $(find "$COMPLETION_CACHE_FILE" -mtime +1 2>/dev/null) ]]; then
@@ -19,7 +19,7 @@ else
 fi
 autoload -Uz _files _cd _ls _cp _mv _rm
 
-# -------------------- 基础补全样式 --------------------
+# -------------------- Basic Completion Styles --------------------
 zstyle ':completion:*' completer _complete _match _approximate
 zstyle ':completion:*' menu select
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
@@ -32,7 +32,7 @@ zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
 zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
 
-# -------------------- 文件/目录补全 --------------------
+# -------------------- File/Directory Completion --------------------
 zstyle ':completion:*' file-patterns '%p(D-/):directories %p(-/):directories %p(^-/):files %p(-/):directories'
 zstyle ':completion:*' squeeze-slashes true
 zstyle ':completion:*' list-dirs-first true
@@ -43,7 +43,7 @@ zstyle ':completion:*:cp:*' file-patterns '%p(D-/):directories %p(-/):directorie
 zstyle ':completion:*:mv:*' file-patterns '%p(D-/):directories %p(-/):directories %p(^-/):files %p(-/):directories'
 zstyle ':completion:*:rm:*' file-patterns '%p(D-/):directories %p(-/):directories %p(^-/):files %p(-/):directories'
 
-# -------------------- 进程/SSH补全 --------------------
+# -------------------- Process/SSH Completion --------------------
 zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
 zstyle ':completion:*:*:kill:*' menu yes select
@@ -51,11 +51,11 @@ zstyle ':completion:*:*:killall:*' menu yes select
 zstyle ':completion:*:(ssh|scp|rsync):*' tag-order 'hosts:-host:host hosts:-domain:domain hosts:-ipaddr:ip\ address *'
 zstyle ':completion:*:(ssh|scp|rsync):*:hosts-host' ignored-patterns '*(.|:)*' loopback ip6-loopback localhost ip6-localhost broadcasthost
 
-# -------------------- man 补全 --------------------
+# -------------------- man Completion --------------------
 zstyle ':completion:*:manuals' separate-sections true
 zstyle ':completion:*:manuals.*' insert-tab true
 
-# -------------------- 自定义/工具补全 --------------------
+# -------------------- Custom/Tool Completion --------------------
 if [[ -d "$ZSH_CONFIG_DIR/completions" ]]; then
     for completion in "$ZSH_CONFIG_DIR/completions"/_*(N); do
         [[ -f "$completion" ]] && source "$completion"
@@ -74,7 +74,7 @@ if command -v docker >/dev/null 2>&1; then
     [[ -f "$ZSH_CACHE_DIR/_docker" ]] && source "$ZSH_CACHE_DIR/_docker"
 fi
 
-# -------------------- Tab增强 --------------------
+# -------------------- Tab Enhancement --------------------
 bindkey '^I' complete-word 2>/dev/null || true
 bindkey '^[[Z' reverse-menu-complete 2>/dev/null || true
 zstyle ':completion:*' menu select
@@ -89,32 +89,32 @@ if (( ${+_comps[fzf-tab]} )); then
     zstyle ':fzf-tab:*' accept-line 'ctrl-space'
 fi
 
-# -------------------- 常用函数 --------------------
+# -------------------- Common Functions --------------------
 completion_status() {
-    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "用法: completion_status" && return 0
+    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: completion_status" && return 0
     local errors=0
-    (( ${+_comps} )) && comp_color_green "✅ 补全系统已初始化" || { comp_color_red "❌ 补全系统未初始化"; ((errors++)); }
-    [[ -f "$COMPLETION_CACHE_FILE" ]] && comp_color_green "✅ 补全缓存存在" || { comp_color_red "❌ 补全缓存缺失"; ((errors++)); }
+    (( ${+_comps} )) && comp_color_green "✅ Completion system initialized" || { comp_color_red "❌ Completion system not initialized"; ((errors++)); }
+    [[ -f "$COMPLETION_CACHE_FILE" ]] && comp_color_green "✅ Completion cache exists" || { comp_color_red "❌ Completion cache missing"; ((errors++)); }
     local completion_functions=("_files" "_cd" "_ls" "_cp" "_mv" "_rm")
     for func in "${completion_functions[@]}"; do
-        (( ${+_comps[$func]} )) && comp_color_green "✅ $func 补全可用" || { comp_color_red "❌ $func 补全缺失"; ((errors++)); }
+        (( ${+_comps[$func]} )) && comp_color_green "✅ $func completion available" || { comp_color_red "❌ $func completion missing"; ((errors++)); }
     done
-    (( errors == 0 )) && comp_color_green "补全系统正常" || comp_color_red "补全系统有 $errors 处问题"
+    (( errors == 0 )) && comp_color_green "Completion system normal" || comp_color_red "Completion system has $errors issues"
     return $errors
 }
 rebuild_completion() {
-    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "用法: rebuild_completion" && return 0
+    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: rebuild_completion" && return 0
     [[ -f "$COMPLETION_CACHE_FILE" ]] && rm "$COMPLETION_CACHE_FILE"
     [[ -f "${COMPLETION_CACHE_FILE}.zwc" ]] && rm "${COMPLETION_CACHE_FILE}.zwc"
     autoload -Uz compinit
     compinit -d "$COMPLETION_CACHE_FILE"
     [[ -f "$COMPLETION_CACHE_FILE" ]] && zcompile "$COMPLETION_CACHE_FILE"
-    comp_color_green "✅ 补全缓存已重建"
+    comp_color_green "✅ Completion cache rebuilt"
 }
 
-# -------------------- 预留自定义区 --------------------
-# 可在 custom/ 目录下添加自定义补全
+# -------------------- Reserved Custom Area --------------------
+# Custom completions can be added in the custom/ directory
 
-# 标记模块已加载
+# Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED completion"
 echo "INFO: Completion module initialized" 

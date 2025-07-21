@@ -1,20 +1,20 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Aliases and Functions Module - 常用别名与高频函数
-# 说明：仅保留高频、刚需、易记的命令，所有命名统一小写，注释清晰。
+# Aliases and Functions Module - Common Aliases and High-Frequency Functions
+# Description: Only high-frequency, essential, memorable commands with unified lowercase naming and clear comments.
 # =============================================================================
 
-# -------------------- 文件/目录操作 --------------------
-# 目录跳转
+# -------------------- File/Directory Operations --------------------
+# Directory navigation
 alias ..='cd ..' ...='cd ../..' ....='cd ../../..' ~='cd ~' -- -='cd -'
 
-# 文件操作（安全模式）
+# File operations (safe mode)
 alias cp='cp -i' mv='mv -i' rm='rm -i'
 
-# 清屏、磁盘、内存
+# Clear screen, disk, memory
 alias c='clear' df='df -h' du='du -h' top='htop'
 
-# -------------------- ls/eza 统一风格 --------------------
+# -------------------- ls/eza Unified Style --------------------
 if command -v eza >/dev/null 2>&1; then
     alias ls='eza --color=always --group-directories-first'
     alias ll='eza -la --color=always --group-directories-first --icons'
@@ -23,10 +23,10 @@ else
     alias ls='ls --color=auto' ll='ls -la --color=auto' la='ls -A --color=auto'
 fi
 
-# -------------------- Git 快捷 --------------------
+# -------------------- Git Shortcuts --------------------
 alias g='git' ga='git add' gc='git commit -v' gd='git diff' gl='git pull' gp='git push' gst='git status' glog='git log --oneline --decorate --graph'
 
-# -------------------- Node/Python 快捷 --------------------
+# -------------------- Node/Python Shortcuts --------------------
 if command -v npm >/dev/null 2>&1; then
     alias ni='npm install' nr='npm run' ns='npm start' nt='npm test'
 fi
@@ -34,31 +34,31 @@ if command -v python3 >/dev/null 2>&1; then
     alias py='python3' pip='pip3'
 fi
 
-# -------------------- 快速编辑/导航 --------------------
-# 快速编辑配置
+# -------------------- Quick Edit/Navigation --------------------
+# Quick edit configuration
 alias zshrc='${EDITOR:-code} ~/.config/zsh/zshrc'
 alias zshenv='${EDITOR:-code} ~/.config/zsh/zshenv'
-# 快速跳转
+# Quick navigation
 alias projects='cd ~/Projects' downloads='cd ~/Downloads' documents='cd ~/Documents'
 
-# -------------------- 时间 --------------------
+# -------------------- Time --------------------
 alias now='date +"%T"' nowdate='date +"%d-%m-%Y"'
 
-# -------------------- 高频函数 --------------------
-# 新建目录并进入
+# -------------------- High-Frequency Functions --------------------
+# Create directory and enter
 mkcd() {
-    [[ $# -eq 0 ]] && echo "用法: mkcd <目录名>" && return 1
+    [[ $# -eq 0 ]] && echo "Usage: mkcd <directory_name>" && return 1
     mkdir -p "$1" && cd "$1"
 }
-# 快速向上跳目录
+# Quick directory navigation up
 up() {
     local levels=${1:-1} path=""
     for ((i=0; i<levels; i++)); do path="../$path"; done
     cd "$path"
 }
-# 安全删除（移入回收站）
+# Safe delete (move to trash)
 trash() {
-    [[ $# -eq 0 ]] && echo "用法: trash <文件1> [文件2] ..." && return 1
+    [[ $# -eq 0 ]] && echo "Usage: trash <file1> [file2] ..." && return 1
     local trash_dir="$HOME/.local/share/Trash/files"
     mkdir -p "$trash_dir"
     for file in "$@"; do
@@ -66,31 +66,31 @@ trash() {
             local basename=$(basename "$file")
             local timestamp=$(date +%Y%m%d_%H%M%S)
             mv "$file" "$trash_dir/${basename}_${timestamp}"
-            echo "已移入回收站: $file"
+            echo "Moved to trash: $file"
         else
-            echo "未找到: $file"
+            echo "Not found: $file"
         fi
     done
 }
 
-# 启动本地HTTP服务（合并 serve，优先 function）
+# Start local HTTP server (merge serve, prioritize function)
 unalias serve 2>/dev/null
 serve() {
     local port="${1:-8000}" dir="${2:-.}"
-    echo "启动HTTP服务: 端口 $port, 目录 $dir"
+    echo "Starting HTTP server: port $port, directory $dir"
     python3 -m http.server "$port" --directory "$dir"
 }
-# 获取外网IP
+# Get external IP
 myip() { curl -s ifconfig.me; }
-# 快捷 git commit
+# Quick git commit
 function gcm() {
-    [[ $# -eq 0 ]] && echo "用法: gcm <信息>" && return 1
+    [[ $# -eq 0 ]] && echo "Usage: gcm <message>" && return 1
     git commit -m "$*"
 }
 
-# -------------------- 预留自定义区 --------------------
-# 可在 custom/ 目录下添加自定义 alias/function
+# -------------------- Reserved Custom Area --------------------
+# Custom aliases/functions can be added in the custom/ directory
 
-# 标记模块已加载
+# Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED aliases"
 echo "INFO: Aliases module initialized" 

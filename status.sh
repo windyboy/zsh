@@ -1,52 +1,52 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# ZSH配置状态检查脚本
-# 版本: 4.2
+# ZSH Configuration Status Check Script
+# Version: 4.2
 # =============================================================================
 
-# 加载配置
+# Load configuration
 source "$HOME/.config/zsh/zshrc" 2>/dev/null || {
-    echo "❌ 无法加载ZSH配置"
+    echo "❌ Unable to load ZSH configuration"
     exit 1
 }
 
-echo "🔍 ZSH配置状态检查"
-echo "=================="
+echo "🔍 ZSH Configuration Status Check"
+echo "================================="
 
-# 基本信息
-echo "📦 版本信息:"
+# Basic information
+echo "📦 Version Information:"
 version
 echo
 
-# 模块状态
-echo "📁 模块状态:"
+# Module status
+echo "📁 Module Status:"
 local total_lines=0
 for module in core aliases plugins completion keybindings utils; do
     local file="$ZSH_CONFIG_DIR/modules/${module}.zsh"
     if [[ -f "$file" ]]; then
         local lines=$(wc -l < "$file" 2>/dev/null)
         total_lines=$((total_lines + lines))
-        echo "  ✅ $module.zsh ($lines 行)"
+        echo "  ✅ $module.zsh ($lines lines)"
     else
-        echo "  ❌ $module.zsh (缺失)"
+        echo "  ❌ $module.zsh (missing)"
     fi
 done
-echo "  总计: $total_lines 行"
+echo "  Total: $total_lines lines"
 echo
 
-# 性能状态
-echo "⚡ 性能状态:"
+# Performance status
+echo "⚡ Performance Status:"
 perf
 echo
 
-# 配置验证
-echo "🔧 配置验证:"
+# Configuration validation
+echo "🔧 Configuration Validation:"
 validate
 echo
 
-# 插件状态
-echo "🔌 插件状态:"
+# Plugin status
+echo "🔌 Plugin Status:"
 plugins
 echo
 
-echo "✅ 状态检查完成" 
+echo "✅ Status check completed" 

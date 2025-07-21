@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # =============================================================================
 # Development Environment Configuration
-# 说明：包含各种开发工具的配置，按需启用
+# Description: Contains configurations for various development tools, enable as needed
 # =============================================================================
 
 # Application paths

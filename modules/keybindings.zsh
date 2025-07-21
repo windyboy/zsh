@@ -1,14 +1,14 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Keybindings Module - 快捷键绑定
-# 说明：只保留高频、刚需、极简的按键绑定，注释清晰，命名统一。
+# Keybindings Module - Key Binding Configuration
+# Description: Only high-frequency, essential, minimal key bindings with clear comments and unified naming.
 # =============================================================================
 
-# 彩色输出工具
+# Color output tools
 kb_color_red()   { echo -e "\033[31m$1\033[0m"; }
 kb_color_green() { echo -e "\033[32m$1\033[0m"; }
 
-# -------------------- 基础编辑/导航 --------------------
+# -------------------- Basic Editing/Navigation --------------------
 bindkey -e
 bindkey '^A' beginning-of-line
 bindkey '^E' end-of-line
@@ -34,34 +34,34 @@ bindkey '^T' transpose-chars
 bindkey '^Z' undo
 bindkey '^[z' redo
 
-# -------------------- 自定义函数绑定 --------------------
-# 智能cd
+# -------------------- Custom Function Bindings --------------------
+# Smart cd
 _smart_cd() {
     if [[ $# -eq 0 ]]; then cd ~
     elif [[ -d "$1" ]]; then cd "$1"
     else local dir=$(find . -type d -name "*$1*" 2>/dev/null | head -1)
-        [[ -n "$dir" ]] && cd "$dir" || kb_color_red "未找到: $1"
+        [[ -n "$dir" ]] && cd "$dir" || kb_color_red "Not found: $1"
     fi
 }
-# 快速编辑
+# Quick edit
 _quick_edit() {
     local file="$1"
-    [[ -z "$file" ]] && kb_color_red "用法: _quick_edit <文件>" && return 1
-    [[ -f "$file" ]] && ${EDITOR:-code} "$file" || kb_color_red "未找到: $file"
+    [[ -z "$file" ]] && kb_color_red "Usage: _quick_edit <file>" && return 1
+    [[ -f "$file" ]] && ${EDITOR:-code} "$file" || kb_color_red "Not found: $file"
 }
 bindkey -s '^[e' '_quick_edit\n'
 bindkey -s '^[d' '_smart_cd\n'
 
-# -------------------- 插件相关绑定 --------------------
-# FZF widgets - 使用安全的方式绑定以避免zsh-syntax-highlighting警告
+# -------------------- Plugin-Related Bindings --------------------
+# FZF widgets - Use safe binding to avoid zsh-syntax-highlighting warnings
 if command -v fzf >/dev/null 2>&1; then
-    # 确保FZF widget被正确注册，避免zsh-syntax-highlighting警告
+    # Ensure FZF widgets are properly registered to avoid zsh-syntax-highlighting warnings
     autoload -Uz fzf-file-widget fzf-history-widget fzf-cd-widget 2>/dev/null || true
     zle -N fzf-file-widget 2>/dev/null || true
     zle -N fzf-history-widget 2>/dev/null || true
     zle -N fzf-cd-widget 2>/dev/null || true
     
-    # 绑定FZF widget
+    # Bind FZF widgets
     bindkey '^[f' fzf-file-widget 2>/dev/null || true
     bindkey '^[r' fzf-history-widget 2>/dev/null || true
     bindkey '^[d' fzf-cd-widget 2>/dev/null || true
@@ -78,7 +78,7 @@ if (( ${+_comps[zsh-history-substring-search]} )); then
     bindkey '^N' history-substring-search-down 2>/dev/null || true
 fi
 
-# -------------------- 系统平台适配 --------------------
+# -------------------- System Platform Adaptation --------------------
 if [[ "$OSTYPE" == "darwin"* ]]; then
     bindkey '^[^[[D' backward-word 2>/dev/null || true
     bindkey '^[^[[C' forward-word 2>/dev/null || true
@@ -90,17 +90,17 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     bindkey '^[[3~' delete-char 2>/dev/null || true
 fi
 
-# -------------------- 常用函数 --------------------
+# -------------------- Common Functions --------------------
 list_bindings() {
-    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "用法: list_bindings" && return 0
-    echo "⌨️  常用快捷键："
-    echo "Ctrl+A/E: 行首/行尾  Ctrl+B/F: 左/右移  Ctrl+D/H: 删除/后退删"
-    echo "Ctrl+K/U: 删除到行尾/行首  Ctrl+W: 删除词  Ctrl+Y: 粘贴"
-    echo "Alt+B/F/D: 词左/右/删  Ctrl+R/S: 历史搜索  Ctrl+P/N: 上/下历史"
-    echo "Tab/Shift+Tab: 补全/反向补全  Ctrl+T: 交换字符  Ctrl+Z: 撤销"
+    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: list_bindings" && return 0
+    echo "⌨️  Common Shortcuts:"
+    echo "Ctrl+A/E: Line start/end  Ctrl+B/F: Left/right move  Ctrl+D/H: Delete/backspace"
+    echo "Ctrl+K/U: Delete to line end/start  Ctrl+W: Delete word  Ctrl+Y: Paste"
+    echo "Alt+B/F/D: Word left/right/delete  Ctrl+R/S: History search  Ctrl+P/N: Up/down history"
+    echo "Tab/Shift+Tab: Complete/reverse complete  Ctrl+T: Swap chars  Ctrl+Z: Undo"
 }
 test_bindings() {
-    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "用法: test_bindings" && return 0
+    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: test_bindings" && return 0
     local errors=0
     local test_bindings=("beginning-of-line:^A" "end-of-line:^E" "backward-char:^B" "forward-char:^F")
     for binding in "${test_bindings[@]}"; do
@@ -113,13 +113,13 @@ test_bindings() {
             ((errors++))
         fi
     done
-    (( errors == 0 )) && kb_color_green "全部绑定正常" || kb_color_red "$errors 项绑定异常"
+    (( errors == 0 )) && kb_color_green "All bindings normal" || kb_color_red "$errors binding issues"
     return $errors
 }
 
-# -------------------- 预留自定义区 --------------------
-# 可在 custom/ 目录下添加自定义按键绑定
+# -------------------- Reserved Custom Area --------------------
+# Custom key bindings can be added in the custom/ directory
 
-# 标记模块已加载
+# Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED keybindings"
 echo "INFO: Keybindings module initialized" 
