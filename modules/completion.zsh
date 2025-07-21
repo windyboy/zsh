@@ -19,9 +19,13 @@ else
 fi
 autoload -Uz _files _cd _ls _cp _mv _rm
 
+# Ensure completion system is properly initialized
+autoload -Uz compinit
+compinit -d "$COMPLETION_CACHE_FILE"
+
 # -------------------- Basic Completion Styles --------------------
 zstyle ':completion:*' completer _complete _match _approximate
-zstyle ':completion:*' menu select
+zstyle ':completion:*' menu yes select=2
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' verbose yes
@@ -31,6 +35,10 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:
 zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
 zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
+
+# Force menu to show
+zstyle ':completion:*' force-list always
+zstyle ':completion:*' auto-description 'specify: %d'
 
 # -------------------- File/Directory Completion --------------------
 zstyle ':completion:*' file-patterns '%p(D-/):directories %p(-/):directories %p(^-/):files %p(-/):directories'
@@ -75,12 +83,10 @@ if command -v docker >/dev/null 2>&1; then
 fi
 
 # -------------------- Tab Enhancement --------------------
-bindkey '^I' complete-word 2>/dev/null || true
-bindkey '^[[Z' reverse-menu-complete 2>/dev/null || true
-zstyle ':completion:*' menu select
-zstyle ':completion:*' auto-description 'specify: %d'
+# Ensure tab completion works properly
+bindkey '^I' complete-word
+bindkey '^[[Z' reverse-menu-complete
 zstyle ':completion:*' accept-exact '*(N)'
-zstyle ':completion:*' force-list always
 zstyle ':completion:*' insert-tab pending
 if (( ${+_comps[fzf-tab]} )); then
     zstyle ':fzf-tab:*' switch-group ',' '.'

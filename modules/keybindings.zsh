@@ -28,6 +28,7 @@ bindkey '^R' history-incremental-search-backward
 bindkey '^S' history-incremental-search-forward
 bindkey '^P' up-line-or-history
 bindkey '^N' down-line-or-history
+# Tab completion - ensure this is properly bound
 bindkey '^I' complete-word
 bindkey '^[[Z' reverse-menu-complete
 bindkey '^T' transpose-chars
