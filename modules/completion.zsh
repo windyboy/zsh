@@ -79,6 +79,10 @@ if command -v docker >/dev/null 2>&1; then
     [[ ! -f "$ZSH_CACHE_DIR/_docker" ]] && docker completion zsh > "$ZSH_CACHE_DIR/_docker" 2>/dev/null
     [[ -f "$ZSH_CACHE_DIR/_docker" ]] && source "$ZSH_CACHE_DIR/_docker"
 fi
+if command -v eza >/dev/null 2>&1; then
+    # Use ls completion for eza to support aliases like 'ls=eza'
+    compdef _ls eza
+fi
 
 # -------------------- Tab Enhancement --------------------
 # Ensure tab completion works properly
