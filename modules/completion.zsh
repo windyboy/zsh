@@ -13,6 +13,13 @@ COMPLETION_CACHE_FILE="$ZSH_CACHE_DIR/zcompdump"
 autoload -Uz compinit
 autoload -Uz _files _cd _ls _cp _mv _rm
 
+# Fallback completions for minimal systems lacking standard functions
+for _func in _files _ls _cp _mv _rm _cd; do
+    if ! whence -w "$_func" >/dev/null; then
+        eval "$_func() { compadd -- * }"
+    fi
+done
+
 # Initialize completion system
 if [[ ! -f "$COMPLETION_CACHE_FILE" ]] || [[ $(find "$COMPLETION_CACHE_FILE" -mtime +1 2>/dev/null) ]]; then
     compinit -d "$COMPLETION_CACHE_FILE" 2>/dev/null || compinit -C -d "$COMPLETION_CACHE_FILE"
