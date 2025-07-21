@@ -93,4 +93,4 @@ version() {
 # Custom functions/variables can be added in the custom/ directory
 
 # Mark module as loaded
-export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED core" 
+export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED core"

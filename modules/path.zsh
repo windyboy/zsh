@@ -38,4 +38,4 @@ export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:$PATH"
 typeset -U path
 
 # Mark module as loaded
-export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED path" 
+export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED path"
