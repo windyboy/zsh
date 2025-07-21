@@ -8,7 +8,7 @@
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 
 # Load core modules (order cannot be changed)
-for mod in core plugins completion aliases keybindings utils; do
+for mod in core path plugins completion aliases keybindings utils; do
     local modfile="$ZSH_CONFIG_DIR/modules/${mod}.zsh"
     if [[ -f "$modfile" ]]; then
         source "$modfile"

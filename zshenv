@@ -27,15 +27,8 @@ export EDITOR="${EDITOR:-code}"
 export VISUAL="${VISUAL:-$EDITOR}"
 export PAGER="${PAGER:-less}"
 
-# Core PATH configuration
-typeset -U path
-path=(
-    /usr/local/bin
-    /usr/local/sbin
-    $path
-)
-
-# Load optional configurations
+# PATH configuration is now handled by the dedicated path module
+# Load optional configurations (for environment variables only)
 if [[ -f "$ZSH_CONFIG_DIR/env/development.zsh" ]]; then
     source "$ZSH_CONFIG_DIR/env/development.zsh"
 fi

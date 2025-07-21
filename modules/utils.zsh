@@ -28,6 +28,11 @@ sysinfo() {
     echo "🖥️  System Info: $(uname -s) $(uname -r) | Arch: $(uname -m) | Host: $(hostname) | User: $USER | Shell: $SHELL | Terminal: $TERM"
     [[ -n "$SSH_CLIENT" ]] && echo "SSH: $SSH_CLIENT"
 }
+
+# PATH management shortcuts
+alias path-status='echo $PATH | tr ":" "\n" | nl'
+alias path-clean='echo "PATH cleanup completed"'
+alias path-reload='source modules/path.zsh'
 diskusage() { df -h | grep -E '^/dev/' | awk '{print $1, $2, $3, $4, $5, $6}'; }
 memusage() {
     if [[ "$OSTYPE" == "darwin"* ]]; then

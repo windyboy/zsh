@@ -19,6 +19,18 @@ trash <文件>    # 安全删除文件
 extract <文件>  # 解压文件
 ```
 
+### PATH管理
+```bash
+show_path       # 显示当前PATH状态
+cleanup_path    # 清理无效和重复路径
+reload_path     # 重新加载PATH配置
+add_path <路径> # 添加路径到PATH
+remove_path <路径> # 从PATH移除路径
+path-status     # PATH状态别名
+path-clean      # PATH清理别名
+path-reload     # PATH重载别名
+```
+
 ### 网络工具
 ```bash
 serve [端口] [目录] # 启动HTTP服务器
@@ -60,6 +72,13 @@ config <文件>   # 编辑配置文件
 export ZSH_CONFIG_DIR="$HOME/.config/zsh"
 export ZSH_CACHE_DIR="$HOME/.cache/zsh"
 export ZSH_DATA_DIR="$HOME/.local/share/zsh"
+```
+
+### PATH管理变量
+```bash
+export PATH_MANAGEMENT_ENABLED=1    # 启用PATH管理
+export PATH_DEBUG=0                 # PATH调试模式
+export PATH_AUTO_CLEANUP=1          # 自动清理无效路径
 ```
 
 ### 调试变量

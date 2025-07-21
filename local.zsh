@@ -120,7 +120,7 @@ export PAGER='less'
 export LESS='-R --use-color -Dd+r$Du+b'
 
 # Machine-specific configurations
-case "$(uname)" in
+case "$(/usr/bin/uname)" in
     Darwin)
         # macOS specific settings
         export BROWSER="open"

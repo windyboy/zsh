@@ -37,7 +37,7 @@ if command -v fzf >/dev/null 2>&1; then
     zinit ice wait"0" lucid
     zinit light Aloxaf/fzf-tab 2>/dev/null || true
 fi
-if ! bindkey | grep -q '\^\[\[A.*history-substring-search-up'; then
+if ! bindkey | /usr/bin/grep -q '\^\[\[A.*history-substring-search-up'; then
     zinit ice wait"0" lucid
     zinit light zsh-users/zsh-history-substring-search 2>/dev/null || true
 fi

@@ -36,16 +36,5 @@ export SDKMAN_DIR="$HOME/.sdkman"
 # Homebrew
 export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.ustc.edu.cn/brew.git"
 
-# Development PATH configuration
-path=(
-    /run/current-system/sw/bin
-    $HOME/.bun/bin
-    $HOME/.deno/bin
-    $GOROOT/bin
-    $GOPATH/bin
-    $HOME/.cargo/bin
-    $HOME/Dev/lang/flutter/bin
-    $ANDROID_HOME/tools
-    $ANDROID_HOME/platform-tools
-    $path
-) 
+# Development PATH configuration is now handled by the path module
+# This file now only contains environment variable exports
