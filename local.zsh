@@ -11,16 +11,16 @@
 reload_source() {
     echo "🔄 Sourcing ZSH configuration..."
     local start_time=$EPOCHREALTIME
-    
+
     # Source zshenv first (if it exists)
     if [[ -f ~/.zshenv ]]; then
         echo "📁 Sourcing ~/.zshenv..."
         source ~/.zshenv
     fi
-    
+
     # Then source the main zshrc
     source ~/.config/zsh/zshrc
-    
+
     local end_time=$EPOCHREALTIME
     local duration=$(printf "%.3f" $((end_time - start_time)))
     echo "✅ Configuration reloaded in ${duration}s"
@@ -132,3 +132,4 @@ case "$(/usr/bin/uname)" in
 esac
 
 # Add any other local configurations here
+
