@@ -31,6 +31,16 @@ bindkey '^N' down-line-or-history
 # Tab completion - ensure this is properly bound
 bindkey '^I' complete-word
 bindkey '^[[Z' reverse-menu-complete
+
+# VS Code Terminal Fix - Add alternative completion triggers
+if [[ "$TERM_PROGRAM" == "vscode" ]]; then
+    # Alternative completion triggers for VS Code terminal
+    bindkey '^ ' autosuggest-accept 2>/dev/null || true
+    bindkey '^@' complete-word 2>/dev/null || true
+    # Force menu completion for VS Code
+    zstyle ':completion:*' menu yes select=1
+    zstyle ':completion:*' force-list always
+fi
 bindkey '^T' transpose-chars
 bindkey '^Z' undo
 bindkey '^[z' redo
