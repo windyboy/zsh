@@ -103,6 +103,8 @@ _setup_menu_select() {
 }
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _setup_menu_select
+# Call once on load so menu selection works before the first command
+_setup_menu_select
 
 # -------------------- System Platform Adaptation --------------------
 if [[ "$OSTYPE" == "darwin"* ]]; then
