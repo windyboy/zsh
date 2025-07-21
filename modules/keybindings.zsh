@@ -89,6 +89,21 @@ if (( ${+_comps[zsh-history-substring-search]} )); then
     bindkey '^N' history-substring-search-down 2>/dev/null || true
 fi
 
+# -------------------- Completion Menu Navigation --------------------
+_setup_menu_select() {
+    if zmodload -e zsh/complist 2>/dev/null || zmodload zsh/complist 2>/dev/null; then
+        bindkey -M menuselect 'h' vi-backward-char
+        bindkey -M menuselect 'k' vi-up-line-or-history
+        bindkey -M menuselect 'l' vi-forward-char
+        bindkey -M menuselect 'j' vi-down-line-or-history
+        bindkey -M menuselect '^[[Z' reverse-menu-complete
+        bindkey -M menuselect '^M' accept-line
+        bindkey -M menuselect '^[' send-break
+    fi
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _setup_menu_select
+
 # -------------------- System Platform Adaptation --------------------
 if [[ "$OSTYPE" == "darwin"* ]]; then
     bindkey '^[^[[D' backward-word 2>/dev/null || true
