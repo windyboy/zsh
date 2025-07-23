@@ -57,7 +57,7 @@ export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 export ZSH_AUTOSUGGEST_HISTORY_IGNORE="cd *"
 # Configure fzf-tab if available
 if command -v fzf >/dev/null 2>&1; then
-    zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --timeout=3
+    zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap
     zstyle ':fzf-tab:*' switch-group ',' '.'
     zstyle ':fzf-tab:*' show-group full
     zstyle ':fzf-tab:*' continuous-trigger 'space'

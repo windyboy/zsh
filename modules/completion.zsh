@@ -11,14 +11,6 @@ comp_color_green() { echo -e "\033[32m$1\033[0m"; }
 # -------------------- Completion Cache --------------------
 COMPLETION_CACHE_FILE="$ZSH_CACHE_DIR/zcompdump"
 autoload -Uz compinit
-autoload -Uz _files _cd _ls _cp _mv _rm
-
-# Fallback completions for minimal systems lacking standard functions
-for _func in _files _ls _cp _mv _rm _cd; do
-    if ! whence -w "$_func" >/dev/null; then
-        eval "$_func() { compadd -- * }"
-    fi
-done
 
 # Initialize completion system
 if [[ ! -f "$COMPLETION_CACHE_FILE" ]] || [[ $(find "$COMPLETION_CACHE_FILE" -mtime +1 2>/dev/null) ]]; then
@@ -27,6 +19,9 @@ if [[ ! -f "$COMPLETION_CACHE_FILE" ]] || [[ $(find "$COMPLETION_CACHE_FILE" -mt
 else
     compinit -C -d "$COMPLETION_CACHE_FILE"
 fi
+
+# Ensure basic completion functions are available
+autoload -Uz _files _directories _cd _ls _cp _mv _rm
 
 # -------------------- Basic Completion Styles --------------------
 zstyle ':completion:*' completer _complete _match _approximate
@@ -66,7 +61,7 @@ zstyle ':completion:*:(ssh|scp|rsync):*:hosts-host' ignored-patterns '*(.|:)*' l
 
 # -------------------- man Completion --------------------
 zstyle ':completion:*:manuals' separate-sections true
-zstyle ':completion:*:manuals.*' insert-tab true
+# Remove conflicting insert-tab setting for manuals
 
 # -------------------- Custom/Tool Completion --------------------
 if [[ -d "$ZSH_CONFIG_DIR/completions" ]]; then
@@ -112,12 +107,7 @@ if [[ "$TERM_PROGRAM" == "vscode" ]]; then
     # Alternative completion trigger for VS Code
     bindkey '^ ' complete-word 2>/dev/null || true
 fi
-if (( ${+_comps[fzf-tab]} )); then
-    zstyle ':fzf-tab:*' switch-group ',' '.'
-    zstyle ':fzf-tab:*' show-group full
-    zstyle ':fzf-tab:*' continuous-trigger 'space'
-    zstyle ':fzf-tab:*' accept-line 'ctrl-space'
-fi
+# fzf-tab configuration is handled in plugins.zsh to avoid conflicts
 
 # -------------------- Common Functions --------------------
 completion_status() {
