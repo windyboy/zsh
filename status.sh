@@ -118,7 +118,44 @@ echo
 # Configuration validation with beautiful formatting
 status_color_cyan "🔧 Configuration Validation"
 status_color_yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-validate
+# Validate configuration
+local validation_errors=0
+
+# Check if essential variables are set
+if [[ -z "$ZSH_CONFIG_DIR" ]]; then
+    printf "    %s %s\n" "❌" "$(status_color_red "ZSH_CONFIG_DIR not set")"
+    ((validation_errors++))
+else
+    printf "    %s %s\n" "✅" "$(status_color_green "ZSH_CONFIG_DIR: $ZSH_CONFIG_DIR")"
+fi
+
+# Check if modules are loaded
+if [[ -z "$ZSH_MODULES_LOADED" ]]; then
+    printf "    %s %s\n" "❌" "$(status_color_red "No modules loaded")"
+    ((validation_errors++))
+else
+    printf "    %s %s\n" "✅" "$(status_color_green "Modules loaded: $ZSH_MODULES_LOADED")"
+fi
+
+# Check if zinit is available
+if [[ -z "$ZINIT_HOME" ]]; then
+    printf "    %s %s\n" "⚠️" "$(status_color_yellow "ZINIT_HOME not set (plugins may not work)")"
+else
+    printf "    %s %s\n" "✅" "$(status_color_green "ZINIT_HOME: $ZINIT_HOME")"
+fi
+
+# Check if history file exists
+if [[ ! -f "$HISTFILE" ]]; then
+    printf "    %s %s\n" "⚠️" "$(status_color_yellow "History file not found: $HISTFILE")"
+else
+    printf "    %s %s\n" "✅" "$(status_color_green "History file: $HISTFILE")"
+fi
+
+if [[ $validation_errors -eq 0 ]]; then
+    printf "    %s %s\n" "✅" "$(status_color_green "Configuration validation passed")"
+else
+    printf "    %s %s\n" "❌" "$(status_color_red "Configuration validation failed ($validation_errors errors)")"
+fi
 echo
 
 # Plugin status with beautiful formatting
