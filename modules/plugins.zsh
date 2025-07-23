@@ -49,6 +49,7 @@ if command -v eza >/dev/null 2>&1; then
 fi
 
 # -------------------- Plugin Configuration --------------------
+# ZSH Autosuggestions Configuration
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
 export ZSH_AUTOSUGGEST_STRATEGY=(history)
 export ZSH_AUTOSUGGEST_USE_ASYNC=1

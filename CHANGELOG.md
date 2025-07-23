@@ -1,5 +1,39 @@
 # Changelog
 
+## [4.4.0] - 2025-07-23
+
+### 🔧 Environment Variables Refactoring - Simplified and Professional Configuration Management
+
+#### ✨ New Features
+- **Simplified Environment Configuration** - Refactored environment variables into a more reasonable and professional structure
+- **Layered Configuration Management** - Core variables in scripts, user variables in templates
+- **Backward Compatibility** - Maintains compatibility with old configuration files
+- **Migration Tools** - Automated migration from old to new configuration system
+
+#### 🔧 Enhanced
+- **Core Environment Variables** - Moved to `zshenv` for direct management (XDG paths, ZSH paths, history, terminal settings)
+- **Plugin Environment Variables** - Managed in `modules/plugins.zsh` (ZSH autosuggestions, etc.)
+- **Theme Environment Variables** - Managed in `themes/prompt.zsh` (Oh My Posh configuration)
+- **User Environment Variables** - Template-based management (development tool paths, package manager mirrors)
+
+#### 🗑️ Removed
+- **Over-engineered Templates** - Removed unnecessary templating for core and plugin variables
+- **Complex Template Structure** - Simplified from 5 template files to 1 user environment template
+- **Redundant Configuration Files** - Cleaned up old template files and simplified structure
+
+#### 📊 Technical Improvements
+- **File Structure** - Simplified from 5 template files to 1 user environment template
+- **Loading Logic** - Streamlined configuration loading with clear separation of concerns
+- **Error Handling** - Improved error messages and validation
+- **Documentation** - Updated README and configuration guides
+
+#### 🎯 User Experience
+- **Easier Maintenance** - Clear separation between core and user configurations
+- **Professional Structure** - More reasonable and maintainable configuration architecture
+- **Migration Support** - Smooth transition from old to new configuration system
+
+---
+
 ## [4.3.0] - 2025-07-21
 
 ### 🎨 Complete English Localization & Beautiful Status Interface

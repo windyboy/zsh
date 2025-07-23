@@ -212,12 +212,17 @@ export ZSH_DATA_DIR="$HOME/.local/share/zsh"
 ### 环境配置结构
 ```
 ~/.config/zsh/
-├── zshenv                    # 核心环境配置
+├── zshenv                    # 核心环境配置加载器
 ├── env/
-│   ├── development.zsh       # 开发工具配置（可选）
-│   ├── local.zsh.example     # 本地配置模板
-│   └── local.zsh            # 本地自定义配置（可选）
-└── modules/                  # 功能模块
+│   ├── templates/
+│   │   └── environment.env.template # 用户环境配置模板
+│   ├── local/
+│   │   └── environment.env          # 用户实际环境配置
+│   ├── init-env.sh                  # 环境变量初始化脚本
+│   ├── migrate-env.sh               # 环境变量迁移脚本
+│   ├── README.md                    # 环境变量配置说明
+│   └── .gitignore                   # Git忽略文件
+└── modules/                          # 功能模块
 ```
 
 ### 自定义配置
@@ -229,14 +234,42 @@ config aliases  # 编辑别名模块
 config env      # 编辑环境配置
 ```
 
-### 本地配置
-```bash
-# 创建本地配置文件
-cp ~/.config/zsh/env/local.zsh.example ~/.config/zsh/env/local.zsh
+### 环境变量配置
 
-# 编辑本地配置
-${EDITOR:-code} ~/.config/zsh/env/local.zsh
+本项目采用简化的环境变量配置方式：
+- **核心环境变量**：在 `zshenv` 中直接设置（XDG路径、ZSH路径、历史记录等）
+- **插件环境变量**：在 `modules/plugins.zsh` 中管理（ZSH自动建议配置等）
+- **主题环境变量**：在 `themes/prompt.zsh` 中管理（Oh My Posh配置等）
+- **用户环境变量**：使用模板化管理（开发工具路径、包管理器镜像等）
+
+#### 初始化配置（首次使用）
+```bash
+# 进入环境配置目录
+cd ~/.config/zsh/env
+
+# 运行初始化脚本
+./init-env.sh
 ```
+
+#### 迁移旧配置（如果已有配置）
+```bash
+# 进入环境配置目录
+cd ~/.config/zsh/env
+
+# 运行迁移脚本
+./migrate-env.sh
+```
+
+#### 编辑配置
+```bash
+# 编辑用户环境配置
+${EDITOR:-code} ~/.config/zsh/env/local/environment.env
+```
+
+#### 配置说明
+- **模板文件**：`env/templates/environment.env.template` - 不要直接修改
+- **本地配置**：`env/local/environment.env` - 可以自由修改
+- **自动加载**：配置文件会自动加载，无需额外操作
 
 ## 🎨 Oh My Posh 主题管理
 

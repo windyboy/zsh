@@ -8,10 +8,7 @@
 core_color_red()   { echo -e "\033[31m$1\033[0m"; }
 core_color_green() { echo -e "\033[32m$1\033[0m"; }
 
-# -------------------- Directories/Environment Variables --------------------
-export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
-export ZSH_CACHE_DIR="${ZSH_CACHE_DIR:-$HOME/.cache/zsh}"
-export ZSH_DATA_DIR="${ZSH_DATA_DIR:-$HOME/.local/share/zsh}"
+# -------------------- Module Loading Status --------------------
 export ZSH_MODULES_LOADED=""
 
 # -------------------- Directory Initialization --------------------
@@ -30,7 +27,7 @@ alias rm='rm -i' cp='cp -i' mv='mv -i'
 umask 022
 setopt APPEND_HISTORY SHARE_HISTORY HIST_SAVE_NO_DUPS HIST_FIND_NO_DUPS
 setopt INC_APPEND_HISTORY EXTENDED_HISTORY HIST_EXPIRE_DUPS_FIRST HIST_VERIFY
-export HISTSIZE=50000 SAVEHIST=50000
+# History configuration is now handled by environment variables
 setopt AUTO_CD AUTO_PUSHD PUSHD_IGNORE_DUPS PUSHD_SILENT CDABLE_VARS
 setopt EXTENDED_GLOB NO_CASE_GLOB NUMERIC_GLOB_SORT
 setopt CORRECT CORRECT_ALL

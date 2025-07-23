@@ -12,12 +12,12 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     # Using a simpler theme for better performance
     local theme_file="$HOME/.poshthemes/powerlevel10k_rainbow.omp.json"
     
+    # Oh My Posh Configuration
+    export OMP_DEBUG=0
+    export OMP_TRANSIENT=1
+    
     if [[ -f "$theme_file" ]]; then
         eval "$(oh-my-posh init zsh --config "$theme_file" --print)"
-        
-        # Optimize Oh My Posh performance
-        export OMP_DEBUG=0  # Disable debug mode
-        export OMP_TRANSIENT=1  # Enable transient prompt for better performance
     else
         echo "⚠️  Oh My Posh theme not found: $theme_file"
         echo "💡 Install themes with: ./install-themes.sh --all"
