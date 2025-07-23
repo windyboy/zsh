@@ -68,8 +68,10 @@ ${EDITOR:-code} local/environment.env
 配置文件会自动加载，无需额外操作。系统会按以下顺序加载：
 
 1. `zshenv` - 核心环境变量
-2. `env/local/environment.env` - 用户环境配置（可选）
+2. `env/local/environment.env` - 用户环境配置（如果存在）
 3. `modules/` - 功能模块（包含插件和主题配置）
+
+**重要提示：** 如果存在旧的 `env/development.zsh` 文件，系统会优先加载它而不是 `environment.env`。建议使用迁移脚本处理旧配置。
 
 ## 配置说明
 
@@ -87,16 +89,37 @@ ${EDITOR:-code} local/environment.env
 2. **本地文件可以修改** - `local/` 目录下的文件可以自由修改
 3. **备份重要配置** - 建议定期备份 `local/` 目录
 4. **注释说明** - 每个环境变量都有详细注释，请仔细阅读
+5. **旧配置文件** - 如果存在 `env/development.zsh` 或 `env/local.zsh`，建议迁移到新系统
 
 ## 故障排除
 
 ### 配置不生效
+
+**问题现象：** 编辑 `environment.env` 后重新加载配置，但更改没有生效。
+
+**可能原因：**
+1. 存在旧的 `env/development.zsh` 文件，系统优先加载它
+2. 配置文件语法错误
+3. 文件权限问题
+
+**解决方案：**
 ```bash
-# 重新加载配置
+# 1. 检查是否存在旧配置文件
+ls -la ~/.config/zsh/env/development.zsh
+
+# 2. 如果存在，使用迁移脚本处理
+cd ~/.config/zsh/env
+./migrate-env.sh
+
+# 3. 或者手动删除旧文件（已备份）
+rm ~/.config/zsh/env/development.zsh
+
+# 4. 重新加载配置
 source ~/.config/zsh/zshrc
 
-# 检查文件权限
-ls -la ~/.config/zsh/env/local/
+# 5. 验证环境变量
+echo "GOPATH: $GOPATH"
+echo "ANDROID_HOME: $ANDROID_HOME"
 ```
 
 ### 环境变量冲突
@@ -106,6 +129,37 @@ env | grep -E "(GOPATH|ANDROID_HOME|BUN_INSTALL)"
 
 # 检查配置文件语法
 zsh -n ~/.config/zsh/env/local/environment.env
+```
+
+### 语法错误
+```bash
+# 检查zshenv语法
+zsh -n ~/.config/zsh/zshenv
+
+# 检查模块文件语法
+zsh -n ~/.config/zsh/modules/plugins.zsh
+zsh -n ~/.config/zsh/themes/prompt.zsh
+```
+
+## 迁移指南
+
+### 从旧配置迁移
+
+如果你之前使用 `env/development.zsh` 或 `env/local.zsh`：
+
+```bash
+# 1. 运行迁移脚本
+cd ~/.config/zsh/env
+./migrate-env.sh
+
+# 2. 检查迁移结果
+cat local/environment.env
+
+# 3. 根据需要调整配置
+${EDITOR:-code} local/environment.env
+
+# 4. 测试配置
+source ~/.config/zsh/zshenv
 ```
 
 ## 更新模板

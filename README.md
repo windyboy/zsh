@@ -271,6 +271,27 @@ ${EDITOR:-code} ~/.config/zsh/env/local/environment.env
 - **本地配置**：`env/local/environment.env` - 可以自由修改
 - **自动加载**：配置文件会自动加载，无需额外操作
 
+#### 故障排除
+如果配置更改后没有生效，可能的原因和解决方案：
+
+```bash
+# 1. 检查是否存在旧配置文件
+ls -la ~/.config/zsh/env/development.zsh
+
+# 2. 如果存在，使用迁移脚本处理
+cd ~/.config/zsh/env
+./migrate-env.sh
+
+# 3. 重新加载配置
+source ~/.config/zsh/zshrc
+
+# 4. 验证环境变量
+echo "GOPATH: $GOPATH"
+echo "ANDROID_HOME: $ANDROID_HOME"
+```
+
+详细说明请参考：[环境变量配置指南](env/README.md)
+
 ## 🎨 Oh My Posh 主题管理
 
 ### 主题安装

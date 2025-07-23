@@ -9,28 +9,33 @@
 - **Layered Configuration Management** - Core variables in scripts, user variables in templates
 - **Backward Compatibility** - Maintains compatibility with old configuration files
 - **Migration Tools** - Automated migration from old to new configuration system
+- **Troubleshooting Guide** - Comprehensive problem-solving documentation
 
 #### 🔧 Enhanced
 - **Core Environment Variables** - Moved to `zshenv` for direct management (XDG paths, ZSH paths, history, terminal settings)
 - **Plugin Environment Variables** - Managed in `modules/plugins.zsh` (ZSH autosuggestions, etc.)
 - **Theme Environment Variables** - Managed in `themes/prompt.zsh` (Oh My Posh configuration)
 - **User Environment Variables** - Template-based management (development tool paths, package manager mirrors)
+- **Loading Logic** - Fixed configuration loading priority and conflict resolution
 
 #### 🗑️ Removed
 - **Over-engineered Templates** - Removed unnecessary templating for core and plugin variables
 - **Complex Template Structure** - Simplified from 5 template files to 1 user environment template
 - **Redundant Configuration Files** - Cleaned up old template files and simplified structure
+- **Legacy Configuration Conflicts** - Resolved loading conflicts between old and new configuration files
 
 #### 📊 Technical Improvements
 - **File Structure** - Simplified from 5 template files to 1 user environment template
 - **Loading Logic** - Streamlined configuration loading with clear separation of concerns
 - **Error Handling** - Improved error messages and validation
-- **Documentation** - Updated README and configuration guides
+- **Documentation** - Updated README and configuration guides with troubleshooting sections
+- **Configuration Priority** - Fixed loading order to prevent conflicts between old and new files
 
 #### 🎯 User Experience
 - **Easier Maintenance** - Clear separation between core and user configurations
 - **Professional Structure** - More reasonable and maintainable configuration architecture
 - **Migration Support** - Smooth transition from old to new configuration system
+- **Problem Resolution** - Clear guidance for common configuration issues
 
 ---
 
