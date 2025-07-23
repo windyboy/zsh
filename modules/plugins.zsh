@@ -79,9 +79,11 @@ fi
 # ZSH Autosuggestions Configuration
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
 export ZSH_AUTOSUGGEST_STRATEGY=(history)
-export ZSH_AUTOSUGGEST_USE_ASYNC=1
+export ZSH_AUTOSUGGEST_USE_ASYNC=0
 export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 export ZSH_AUTOSUGGEST_HISTORY_IGNORE="cd *"
+# Increase function nesting limit to prevent FUNCNEST errors
+export FUNCNEST=50
 # Configure fzf-tab if available
 if command -v fzf >/dev/null 2>&1; then
     # Set FZF default options for consistent behavior
@@ -115,16 +117,24 @@ if command -v fzf >/dev/null 2>&1; then
     # Continuous trigger for multi-selection
     zstyle ':fzf-tab:*' continuous-trigger 'space'
 
-    # Accept line with ctrl-space
-    zstyle ':fzf-tab:*' accept-line 'ctrl-space'
+    # Accept line with ctrl-space (disabled to avoid conflicts with autosuggest)
+    # zstyle ':fzf-tab:*' accept-line 'ctrl-space'
 
-    # Preview directory content with eza when completing cd (if eza is available)
-    if command -v eza >/dev/null 2>&1; then
-        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
-    fi
-
-    # Preview file content for other completions
-    zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --style=numbers --color=always --line-range :500 $realpath 2>/dev/null || cat $realpath 2>/dev/null || echo $realpath'
+    # Preview configurations (smart content detection)
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath"'
+    zstyle ':fzf-tab:complete:*:*' fzf-preview '
+        if [[ -d "$realpath" ]]; then
+            ls -la "$realpath"
+        elif [[ -f "$realpath" ]]; then
+            if command -v bat >/dev/null 2>&1; then
+                bat --style=numbers --color=always --line-range :50 "$realpath" 2>/dev/null
+            else
+                head -50 "$realpath" 2>/dev/null
+            fi
+        else
+            echo "$realpath"
+        fi
+    '
 fi
 
 # -------------------- Common Functions --------------------
