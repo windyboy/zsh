@@ -5,8 +5,14 @@
 # =============================================================================
 
 # Color output tools
-plugins_color_red()   { echo -e "\033[31m$1\033[0m"; }
-plugins_color_green() { echo -e "\033[32m$1\033[0m"; }
+# Load centralized color functions if available
+if [[ -f "$HOME/.config/zsh/modules/colors.zsh" ]]; then
+    source "$HOME/.config/zsh/modules/colors.zsh"
+else
+    # Fallback color functions
+    color_red()   { echo -e "\033[31m$1\033[0m"; }
+    color_green() { echo -e "\033[32m$1\033[0m"; }
+fi
 
 # -------------------- zinit Installation and Loading --------------------
 if [[ -z "$ZINIT" ]]; then
@@ -57,10 +63,6 @@ zinit light le0me55i/zsh-extract 2>/dev/null || true
 zinit ice wait"0" lucid
 zinit light rupa/z 2>/dev/null || true
 
-# Load file extraction tool (le0me55i/zsh-extract) - Smart file extraction
-zinit ice wait"0" lucid
-zinit light le0me55i/zsh-extract 2>/dev/null || true
-
 # Load performance benchmark tool (romkatv/zsh-bench) - Optional for development
 # Uncomment the following lines if you need performance testing
 # zinit ice wait"0" lucid
@@ -84,43 +86,43 @@ export ZSH_AUTOSUGGEST_HISTORY_IGNORE="cd *"
 if command -v fzf >/dev/null 2>&1; then
     # Set FZF default options for consistent behavior
     export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --margin=1,4"
-    
+
     # Essential fzf-tab configurations (based on official recommendations)
     # Disable sort when completing git checkout to preserve order
     zstyle ':completion:*:git-checkout:*' sort false
-    
+
     # Set descriptions format to enable group support
     # Note: Don't use escape sequences here, fzf-tab will ignore them
     zstyle ':completion:*:descriptions' format '[%d]'
-    
+
     # Set list-colors to enable filename colorizing
     zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-    
+
     # Force zsh not to show completion menu, which allows fzf-tab to capture the unambiguous prefix
     # This overrides the menu yes setting from completion.zsh
     zstyle ':completion:*' menu no
-    
+
     # Custom fzf flags for fzf-tab
     # Note: fzf-tab does not follow FZF_DEFAULT_OPTS by default
     zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
-    
+
     # Switch group using ',' and '.'
     zstyle ':fzf-tab:*' switch-group ',' '.'
-    
+
     # Show group headers
     zstyle ':fzf-tab:*' show-group full
-    
+
     # Continuous trigger for multi-selection
     zstyle ':fzf-tab:*' continuous-trigger 'space'
-    
+
     # Accept line with ctrl-space
     zstyle ':fzf-tab:*' accept-line 'ctrl-space'
-    
+
     # Preview directory content with eza when completing cd (if eza is available)
     if command -v eza >/dev/null 2>&1; then
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
     fi
-    
+
     # Preview file content for other completions
     zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --style=numbers --color=always --line-range :500 $realpath 2>/dev/null || cat $realpath 2>/dev/null || echo $realpath'
 fi
@@ -128,7 +130,7 @@ fi
 # -------------------- Common Functions --------------------
 plugins() {
     [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: plugins" && return 0
-    
+
     # Check zinit plugins
     local zinit_plugins=(
         "fast-syntax-highlighting:Syntax Highlighting"
@@ -138,20 +140,20 @@ plugins() {
         "z:Directory Jump"
         "zsh-extract:Enhanced File Extraction"
     )
-    
+
     # Check tool plugins
     local tool_plugins=(
         "fzf:Fuzzy Finder"
         "zoxide:Smart Navigation"
         "eza:Enhanced ls"
     )
-    
+
     # Check builtin plugins
     local builtin_plugins=(
         "git:Git Integration"
         "history:History Management"
     )
-    
+
     # Check zinit plugins
     for plugin in "${zinit_plugins[@]}"; do
         local name="${plugin%%:*}"
@@ -162,7 +164,7 @@ plugins() {
             plugins_color_red "❌ $name - $desc"
         fi
     done
-    
+
     # Check tool plugins
     for plugin in "${tool_plugins[@]}"; do
         local name="${plugin%%:*}"
@@ -173,7 +175,7 @@ plugins() {
             plugins_color_red "❌ $name - $desc"
         fi
     done
-    
+
     # Check builtin plugins
     for plugin in "${builtin_plugins[@]}"; do
         local name="${plugin%%:*}"
@@ -185,11 +187,11 @@ plugins() {
 # -------------------- Plugin Conflict Detection Functions --------------------
 check_plugin_conflicts() {
     echo "🔍 Checking plugin conflicts..."
-    
+
     # Check for key binding conflicts (same key bound to different functions)
     local conflicts_found=false
     local key_bindings=()
-    
+
     # Collect all key bindings
     while IFS= read -r line; do
         if [[ $line =~ ^[[:space:]]*([^[:space:]]+)[[:space:]]+(.+)$ ]]; then
@@ -198,18 +200,18 @@ check_plugin_conflicts() {
             key_bindings+=("$key:$function")
         fi
     done < <(bindkey)
-    
+
     # Detect conflicts
     local seen_keys=()
     for binding in "${key_bindings[@]}"; do
         local key="${binding%%:*}"
         local function="${binding##*:}"
-        
+
         # Check if we've seen this key before
         for seen in "${seen_keys[@]}"; do
             local seen_key="${seen%%:*}"
             local seen_function="${seen##*:}"
-            
+
             if [[ "$key" == "$seen_key" && "$function" != "$seen_function" ]]; then
                 if [[ "$conflicts_found" == false ]]; then
                     echo "❌ Key binding conflicts found:"
@@ -218,14 +220,14 @@ check_plugin_conflicts() {
                 echo "   • $key: $seen_function vs $function"
             fi
         done
-        
+
         seen_keys+=("$key:$function")
     done
-    
+
     if [[ "$conflicts_found" == false ]]; then
         plugins_color_green "✅ No key binding conflicts found"
     fi
-    
+
     # Check for alias conflicts
     local alias_conflicts=$(alias | awk '{print $1}' | sort | uniq -d)
     if [[ -n "$alias_conflicts" ]]; then
@@ -234,7 +236,7 @@ check_plugin_conflicts() {
     else
         plugins_color_green "✅ No alias conflicts found"
     fi
-    
+
     # Check for zstyle configuration conflicts
     local zstyle_conflicts=$(zstyle -L | grep -E '^[[:space:]]*:' | awk '{print $1}' | sort | uniq -d)
     if [[ -n "$zstyle_conflicts" ]]; then
@@ -247,7 +249,7 @@ check_plugin_conflicts() {
 
 resolve_plugin_conflicts() {
     echo "🔧 Plugin conflict resolution suggestions..."
-    
+
     # Check for key binding conflicts and provide resolution suggestions
     local key_bindings=()
     while IFS= read -r line; do
@@ -257,26 +259,26 @@ resolve_plugin_conflicts() {
             key_bindings+=("$key:$function")
         fi
     done < <(bindkey)
-    
+
     local seen_keys=()
     local conflicts=()
-    
+
     for binding in "${key_bindings[@]}"; do
         local key="${binding%%:*}"
         local function="${binding##*:}"
-        
+
         for seen in "${seen_keys[@]}"; do
             local seen_key="${seen%%:*}"
             local seen_function="${seen##*:}"
-            
+
             if [[ "$key" == "$seen_key" && "$function" != "$seen_function" ]]; then
                 conflicts+=("$key:$seen_function:$function")
             fi
         done
-        
+
         seen_keys+=("$key:$function")
     done
-    
+
     if [[ ${#conflicts[@]} -gt 0 ]]; then
         echo "💡 Key binding conflict resolution suggestions:"
         for conflict in "${conflicts[@]}"; do
@@ -284,14 +286,14 @@ resolve_plugin_conflicts() {
             local func1="${conflict#*:}"
             local func2="${func1#*:}"
             func1="${func1%%:*}"
-            
+
             echo "   • Key $key conflict:"
             echo "     - $func1"
             echo "     - $func2"
             echo "     💡 Suggestion: Choose one function, use 'bindkey -r $key' to unbind then rebind"
         done
     fi
-    
+
     # Check for alias conflicts
     local duplicate_aliases=$(alias | awk '{print $1}' | sort | uniq -d)
     if [[ -n "$duplicate_aliases" ]]; then
@@ -301,7 +303,7 @@ resolve_plugin_conflicts() {
             echo "     💡 Suggestion: Check plugin loading order, remove duplicate definitions"
         done
     fi
-    
+
     # Check for zstyle configuration conflicts
     local duplicate_zstyles=$(zstyle -L | grep -E '^[[:space:]]*:' | awk '{print $1}' | sort | uniq -d)
     if [[ -n "$duplicate_zstyles" ]]; then
@@ -311,7 +313,7 @@ resolve_plugin_conflicts() {
             echo "     💡 Suggestion: Use 'zstyle -d $zstyle_name' to remove duplicate configurations"
         done
     fi
-    
+
     if [[ ${#conflicts[@]} -eq 0 && -z "$duplicate_aliases" && -z "$duplicate_zstyles" ]]; then
         plugins_color_green "✅ No conflicts requiring resolution found"
     fi
@@ -319,14 +321,14 @@ resolve_plugin_conflicts() {
 
 check_plugins() {
     echo "🔍 Plugin health check..."
-    
+
     # Check if zinit is working properly
     if [[ -n "$ZINIT" ]]; then
         plugins_color_green "✅ zinit loaded"
     else
         plugins_color_red "❌ zinit not loaded"
     fi
-    
+
     # Check critical plugin files
     local critical_plugins=(
         "fast-syntax-highlighting"
@@ -335,7 +337,7 @@ check_plugins() {
         "z"
         "zsh-extract"
     )
-    
+
     for plugin in "${critical_plugins[@]}"; do
         if [[ -d "$ZINIT_HOME/plugins/$plugin" ]]; then
             plugins_color_green "✅ $plugin installed"
@@ -343,14 +345,14 @@ check_plugins() {
             plugins_color_red "❌ $plugin not installed"
         fi
     done
-    
+
     # Check tool dependencies
     local tool_dependencies=(
         "fzf"
         "zoxide"
         "eza"
     )
-    
+
     for tool in "${tool_dependencies[@]}"; do
         if command -v "$tool" >/dev/null 2>&1; then
             plugins_color_green "✅ $tool available"
@@ -358,13 +360,13 @@ check_plugins() {
             plugins_color_red "❌ $tool not available"
         fi
     done
-    
+
     # Check environment variables
     local required_vars=(
         "ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE"
         "ZSH_AUTOSUGGEST_STRATEGY"
     )
-    
+
     for var in "${required_vars[@]}"; do
         if [[ -n "${(P)var}" ]]; then
             plugins_color_green "✅ $var set"
@@ -372,11 +374,11 @@ check_plugins() {
             plugins_color_red "❌ $var not set"
         fi
     done
-    
+
     # Run conflict detection
     echo ""
     check_plugin_conflicts
-    
+
     # Check zsh-extract specific items
     echo ""
     echo "📦 zsh-extract specific checks:"
@@ -392,7 +394,7 @@ check_plugins() {
 # -------------------- zsh-extract Configuration --------------------
 # le0me55i/zsh-extract - Enhanced file extraction tool
 # Usage: extract <file> - Extract various archive formats
-# 
+#
 # Supported formats:
 # - Compressed archives: tar.gz, tar.bz2, tar.xz, tar.lzma, tar.lzop
 # - Archive formats: tar, zip, rar, 7z, cab, ar
@@ -426,14 +428,14 @@ check_plugins() {
 # Check extraction tool dependencies
 check_extract_deps() {
     local missing_deps=()
-    
+
     # Essential tools
     [[ ! -f /usr/bin/tar ]] && missing_deps+=("tar")
     [[ ! -f /usr/bin/gunzip ]] && missing_deps+=("gunzip")
     [[ ! -f /usr/bin/bunzip2 ]] && missing_deps+=("bunzip2")
     [[ ! -f /usr/bin/unxz ]] && missing_deps+=("unxz")
     [[ ! -f /usr/bin/unzip ]] && missing_deps+=("unzip")
-    
+
     # Optional tools
     [[ ! -f /usr/bin/unar ]] && missing_deps+=("unar")
     [[ ! -f /usr/bin/7z ]] && missing_deps+=("7z")
@@ -441,7 +443,7 @@ check_extract_deps() {
     [[ ! -f /usr/bin/ar ]] && missing_deps+=("ar")
     [[ ! -f /usr/bin/dpkg ]] && missing_deps+=("dpkg")
     [[ ! -f /usr/bin/rpm2cpio ]] && missing_deps+=("rpm2cpio")
-    
+
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
         echo "⚠️  Missing extraction dependencies: ${missing_deps[*]}"
         echo "💡 Install with: sudo apt install ${missing_deps[*]}  # Ubuntu/Debian"
@@ -463,4 +465,4 @@ check_extract_conflicts() {
 
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED plugins"
-echo "INFO: Plugins module initialized" 
+echo "INFO: Plugins module initialized"

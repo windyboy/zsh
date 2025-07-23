@@ -8,8 +8,8 @@
 # Directory navigation
 alias ..='cd ..' ...='cd ../..' ....='cd ../../..' ~='cd ~' -- -='cd -'
 
-# File operations (safe mode)
-alias cp='cp -i' mv='mv -i' rm='rm -i'
+# File operations (safe mode - defined in core.zsh)
+# alias cp='cp -i' mv='mv -i' rm='rm -i'
 
 # Clear screen, disk, memory
 alias c='clear' df='df -h' du='du -h' top='htop'

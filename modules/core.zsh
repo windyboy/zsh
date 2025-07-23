@@ -5,8 +5,14 @@
 # =============================================================================
 
 # Color output tools
-core_color_red()   { echo -e "\033[31m$1\033[0m"; }
-core_color_green() { echo -e "\033[32m$1\033[0m"; }
+# Load centralized color functions if available
+if [[ -f "$HOME/.config/zsh/modules/colors.zsh" ]]; then
+    source "$HOME/.config/zsh/modules/colors.zsh"
+else
+    # Fallback color functions
+    color_red()   { echo -e "\033[31m$1\033[0m"; }
+    color_green() { echo -e "\033[32m$1\033[0m"; }
+fi
 
 # -------------------- Module Loading Status --------------------
 export ZSH_MODULES_LOADED=""

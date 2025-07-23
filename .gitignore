@@ -17,6 +17,7 @@ cache/
 
 # Backup directories
 backup/
+backup/*/
 
 # Data directories
 data/
@@ -68,7 +69,6 @@ modules/*.swo
 modules/*~
 
 # Scripts that might be generated
-install.sh
 deploy.sh
 maintenance.sh
 
@@ -88,12 +88,6 @@ cache/maintenance_report_*.txt
 
 # Backup files
 data/backups/ 
-
-# Zsh completion cache
-.zcompdump
-
-# Zsh completion cache
-.zcompdump
 
 # Zsh completion cache
 .zcompdump

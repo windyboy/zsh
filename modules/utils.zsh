@@ -31,8 +31,8 @@ sysinfo() {
 
 # PATH management shortcuts
 alias path-status='echo $PATH | tr ":" "\n" | nl'
-alias path-clean='echo "PATH cleanup completed"'
-alias path-reload='source modules/path.zsh'
+alias path-clean='export PATH=$(echo $PATH | tr ":" "\n" | awk "!seen[\$0]++" | tr "\n" ":" | sed "s/:$//") && echo "PATH cleanup completed"'
+alias path-reload='source ~/.config/zsh/modules/path.zsh'
 diskusage() { df -h | grep -E '^/dev/' | awk '{print $1, $2, $3, $4, $5, $6}'; }
 memusage() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -71,7 +71,7 @@ tolower() { [[ $# -eq 0 ]] && echo "Usage: tolower <file>" && return 1; tr '[:up
 
 # -------------------- Process/Network --------------------
 psfind() { [[ $# -eq 0 ]] && echo "Usage: psfind <process_name>" && return 1; ps aux | grep -i "$1" | grep -v grep; }
-pkill() { [[ $# -eq 0 ]] && echo "Usage: pkill <process_name>" && return 1; ps aux | grep -i "$1" | grep -v grep | awk '{print $2}' | xargs kill -9; }
+kill_by_name() { [[ $# -eq 0 ]] && echo "Usage: kill_by_name <process_name>" && return 1; ps aux | grep -i "$1" | grep -v grep | awk '{print $2}' | xargs kill -9; }
 monitor() { top -l 1 -s 0 | grep "CPU usage" 2>/dev/null || top -b -n1 | head -20; }
 myip() { curl -s ifconfig.me 2>/dev/null || color_red "Unable to get external IP"; }
 portcheck() { [[ $# -eq 0 ]] && echo "Usage: portcheck <port>" && return 1; nc -z localhost "$1" && color_green "Port $1: Open" || color_red "Port $1: Closed"; }

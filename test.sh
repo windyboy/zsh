@@ -45,7 +45,7 @@ fi
 # Test 2: Check for duplicate aliases
 echo ""
 echo "2️⃣  Checking aliases..."
-local duplicate_aliases=$(alias | awk '{print $1}' | sort | uniq -d)
+duplicate_aliases=$(alias | awk '{print $1}' | sort | uniq -d)
 if [[ -n "$duplicate_aliases" ]]; then
     error "Duplicate aliases found:"
     echo "$duplicate_aliases" | sed 's/^/  • /'
@@ -56,7 +56,7 @@ fi
 # Test 3: Check for duplicate zstyle configurations
 echo ""
 echo "3️⃣  Checking zstyle configurations..."
-local duplicate_zstyles=$(zstyle -L | grep -E '^[[:space:]]*:' | awk '{print $1}' | sort | uniq -d)
+duplicate_zstyles=$(zstyle -L | grep -E '^[[:space:]]*:' | awk '{print $1}' | sort | uniq -d)
 if [[ -n "$duplicate_zstyles" ]]; then
     error "Duplicate zstyle configurations found:"
     echo "$duplicate_zstyles" | sed 's/^/  • /'
@@ -77,7 +77,7 @@ else
 fi
 
 # Check if Ctrl+T is bound multiple times
-local ctrl_t_bindings=$(bindkey | grep '^\^T' | wc -l)
+ctrl_t_bindings=$(bindkey | grep '^\^T' | wc -l)
 if [[ $ctrl_t_bindings -gt 1 ]]; then
     error "Ctrl+T bound multiple times:"
     bindkey | grep '^\^T' | sed 's/^/  • /'
@@ -86,7 +86,7 @@ else
 fi
 
 # Check if Ctrl+R is bound multiple times
-local ctrl_r_bindings=$(bindkey | grep '^\^R' | wc -l)
+ctrl_r_bindings=$(bindkey | grep '^\^R' | wc -l)
 if [[ $ctrl_r_bindings -gt 1 ]]; then
     error "Ctrl+R bound multiple times:"
     bindkey | grep '^\^R' | sed 's/^/  • /'
