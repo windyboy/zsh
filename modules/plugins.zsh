@@ -57,11 +57,47 @@ export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 export ZSH_AUTOSUGGEST_HISTORY_IGNORE="cd *"
 # Configure fzf-tab if available
 if command -v fzf >/dev/null 2>&1; then
-    zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap
+    # Set FZF default options for consistent behavior
+    export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --margin=1,4"
+    
+    # Essential fzf-tab configurations (based on official recommendations)
+    # Disable sort when completing git checkout to preserve order
+    zstyle ':completion:*:git-checkout:*' sort false
+    
+    # Set descriptions format to enable group support
+    # Note: Don't use escape sequences here, fzf-tab will ignore them
+    zstyle ':completion:*:descriptions' format '[%d]'
+    
+    # Set list-colors to enable filename colorizing
+    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+    
+    # Force zsh not to show completion menu, which allows fzf-tab to capture the unambiguous prefix
+    # This overrides the menu yes setting from completion.zsh
+    zstyle ':completion:*' menu no
+    
+    # Custom fzf flags for fzf-tab
+    # Note: fzf-tab does not follow FZF_DEFAULT_OPTS by default
+    zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+    
+    # Switch group using ',' and '.'
     zstyle ':fzf-tab:*' switch-group ',' '.'
+    
+    # Show group headers
     zstyle ':fzf-tab:*' show-group full
+    
+    # Continuous trigger for multi-selection
     zstyle ':fzf-tab:*' continuous-trigger 'space'
+    
+    # Accept line with ctrl-space
     zstyle ':fzf-tab:*' accept-line 'ctrl-space'
+    
+    # Preview directory content with eza when completing cd (if eza is available)
+    if command -v eza >/dev/null 2>&1; then
+        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+    fi
+    
+    # Preview file content for other completions
+    zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --style=numbers --color=always --line-range :500 $realpath 2>/dev/null || cat $realpath 2>/dev/null || echo $realpath'
 fi
 
 # -------------------- Common Functions --------------------

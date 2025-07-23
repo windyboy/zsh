@@ -25,6 +25,7 @@ autoload -Uz _files _directories _cd _ls _cp _mv _rm
 
 # -------------------- Basic Completion Styles --------------------
 zstyle ':completion:*' completer _complete _match _approximate
+# Menu setting will be overridden by fzf-tab if available
 zstyle ':completion:*' menu yes select=2
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' group-name ''

@@ -141,9 +141,9 @@ fzf_widgets() {
         enable)
             if command -v fzf >/dev/null 2>&1; then
                 autoload -Uz fzf-file-widget fzf-history-widget fzf-cd-widget 2>/dev/null || true
-                bindkey '^[f' fzf-file-widget 2>/dev/null || true
-                bindkey '^[r' fzf-history-widget 2>/dev/null || true
-                bindkey '^[d' fzf-cd-widget 2>/dev/null || true
+                        bindkey '^[f' fzf-file-widget 2>/dev/null || true
+        bindkey '^[r' fzf-history-widget 2>/dev/null || true
+        bindkey '^[c' fzf-cd-widget 2>/dev/null || true
                 color_green "✅ FZF widgets enabled"
                 echo "Shortcuts: Alt+F (files), Alt+R (history), Alt+D (directories)"
             else
@@ -153,7 +153,7 @@ fzf_widgets() {
         disable)
             bindkey -r '^[f' 2>/dev/null || true
             bindkey -r '^[r' 2>/dev/null || true
-            bindkey -r '^[d' 2>/dev/null || true
+            bindkey -r '^[c' 2>/dev/null || true
             color_green "✅ FZF widgets disabled"
             ;;
         fix)
@@ -165,7 +165,7 @@ fzf_widgets() {
                 # Rebind to ensure correct timing
                 bindkey -r '^[f' 2>/dev/null || true
                 bindkey -r '^[r' 2>/dev/null || true
-                bindkey -r '^[d' 2>/dev/null || true
+                bindkey -r '^[c' 2>/dev/null || true
 
                 # Delayed binding
                 zle -N fzf-file-widget 2>/dev/null || true

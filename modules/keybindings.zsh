@@ -72,10 +72,11 @@ if command -v fzf >/dev/null 2>&1; then
     zle -N fzf-history-widget 2>/dev/null || true
     zle -N fzf-cd-widget 2>/dev/null || true
 
-    # Bind FZF widgets
+    # Bind FZF widgets (avoiding conflicts with existing bindings)
     bindkey '^[f' fzf-file-widget 2>/dev/null || true
     bindkey '^[r' fzf-history-widget 2>/dev/null || true
-    bindkey '^[d' fzf-cd-widget 2>/dev/null || true
+    # Note: ^[d is already bound to _smart_cd, so we'll use a different key for fzf-cd-widget
+    bindkey '^[c' fzf-cd-widget 2>/dev/null || true
 fi
 if (( ${+_comps[zsh-autosuggestions]} )); then
     bindkey '^[;' autosuggest-accept 2>/dev/null || true
