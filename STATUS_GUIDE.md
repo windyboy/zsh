@@ -84,6 +84,8 @@ Tests for plugin conflicts and validates system functionality.
     ✅ zsh-autosuggestions       Auto Suggestions
     ✅ zsh-completions           Enhanced Completions
     ✅ fzf-tab                   FZF Tab Completion
+    ✅ z                        Directory Jump
+    ✅ zsh-extract              Enhanced File Extraction
   🛠️ Tool Plugins:
     ✅ fzf                       Fuzzy Finder
     ✅ zoxide                    Smart Navigation
@@ -92,7 +94,7 @@ Tests for plugin conflicts and validates system functionality.
     ✅ git                       Git Integration
     ✅ history                   History Management
 
-  📊 Plugin Summary: 9/9 active (100%)
+  📊 Plugin Summary: 11/11 active (100%)
 ```
 
 ### 6. Overall Summary

@@ -1,4 +1,4 @@
-# ZSH Configuration v4.3
+# ZSH Configuration v4.2.1
 
 High-performance, modular ZSH configuration system optimized for personal work environments. Features beautiful English interface, comprehensive status monitoring, and intelligent scoring system.
 
@@ -177,12 +177,18 @@ py              # python3
 serve           # 启动HTTP服务器
 ```
 
+### 文件解压
+```bash
+extract <文件>  # 智能解压，支持多种格式
+# 支持格式: tar.gz, tar.bz2, tar.xz, zip, rar, 7z, cab, iso 等
+```
+
 ### 文件操作
 ```bash
 mkcd <目录>     # 创建目录并进入
 up [层数]       # 向上跳转目录
 trash <文件>    # 安全删除文件
-extract <文件>  # 解压文件
+extract <文件>  # 智能解压文件 (支持多种格式)
 ```
 
 ## 📦 包含功能
@@ -192,6 +198,7 @@ extract <文件>  # 解压文件
 - **历史搜索** - 强大的历史搜索
 - **Git集成** - Git状态显示
 - **FZF集成** - 模糊文件查找
+- **智能解压** - 支持多种压缩格式的智能解压工具
 
 ## ⚡ 性能表现
 
@@ -480,6 +487,6 @@ exec zsh
 
 ---
 
-**版本**: 4.2.0  
+**版本**: 4.2.1  
 **最后更新**: 2024-12-19  
 **许可证**: MIT 

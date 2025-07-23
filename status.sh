@@ -56,7 +56,7 @@ echo
 # Version information with beautiful formatting
 status_color_cyan "📦 Version Information"
 status_color_yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-printf "  %s %s %s\n" "🏷️" "Version:" "$(status_color_bold "4.2.0 (Personal Minimal)")"
+printf "  %s %s %s\n" "🏷️" "Version:" "$(status_color_bold "4.2.1 (Personal Minimal)")"
 printf "  %s %s %s\n" "🎯" "Architecture:" "$(status_color_cyan "Modular & Minimal")"
 printf "  %s %s %s\n" "⚡" "Performance:" "$(status_color_green "Optimized")"
 printf "  %s %s %s\n" "🎨" "Experience:" "$(status_color_purple "Personalized")"
@@ -134,6 +134,8 @@ local zinit_plugins=(
     "zsh-autosuggestions:Auto Suggestions"
     "zsh-completions:Enhanced Completions"
     "fzf-tab:FZF Tab Completion"
+    "z:Directory Jump"
+    "zsh-extract:Enhanced File Extraction"
 )
 
 # Check tool plugins

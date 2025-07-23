@@ -72,6 +72,30 @@
 
 ---
 
+## [4.2.1] - 2024-12-19
+
+### 🔌 Plugin Enhancement - zsh-extract Integration
+
+#### ✨ 新增
+- **zsh-extract 插件** - 智能文件解压工具
+  - 支持多种压缩格式: tar.gz, tar.bz2, tar.xz, zip, rar, 7z, cab, iso 等
+  - 自动格式检测和智能解压
+  - 完善的错误处理和依赖检查
+  - 与现有配置完全集成
+
+#### 🔧 增强
+- **解压工具支持** - 集成 unar, 7z, cabextract 等工具
+- **插件状态监控** - 在 status.sh 中显示插件状态
+- **依赖检查功能** - 自动检查解压工具可用性
+- **配置文档更新** - 更新 README 和 REFERENCE 文档
+
+#### 📊 优化效果
+- **解压格式支持**: 从基础格式扩展到 10+ 种格式
+- **用户体验**: 统一的 extract 命令，智能格式识别
+- **错误处理**: 完善的依赖检查和错误提示
+
+---
+
 ## [4.2.0] - 2024-12-19
 
 ### 🎯 Phase 2 Optimization Complete - Consistency and User Experience Enhancement

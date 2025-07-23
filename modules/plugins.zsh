@@ -37,6 +37,7 @@ if command -v fzf >/dev/null 2>&1; then
     zinit ice wait"0" lucid
     zinit light Aloxaf/fzf-tab 2>/dev/null || true
 fi
+
 # Load history substring search plugin
 zinit ice wait"0" lucid
 zinit light zsh-users/zsh-history-substring-search 2>/dev/null || true
@@ -46,6 +47,25 @@ export HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1
 if ! (( ${+functions[history-substring-search-up]} )); then
     source "$ZINIT_HOME/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.zsh" 2>/dev/null || true
 fi
+
+# Load file extraction tool (le0me55i/zsh-extract) - Smart file extraction
+# Supports: tar, gz, bz2, xz, zip, rar, 7z, lzma, lzop, cab, ar, deb, rpm, iso
+zinit ice wait"0" lucid
+zinit light le0me55i/zsh-extract 2>/dev/null || true
+
+# Load directory jump tool (rupa/z) - Smart directory navigation
+zinit ice wait"0" lucid
+zinit light rupa/z 2>/dev/null || true
+
+# Load file extraction tool (le0me55i/zsh-extract) - Smart file extraction
+zinit ice wait"0" lucid
+zinit light le0me55i/zsh-extract 2>/dev/null || true
+
+# Load performance benchmark tool (romkatv/zsh-bench) - Optional for development
+# Uncomment the following lines if you need performance testing
+# zinit ice wait"0" lucid
+# zinit light romkatv/zsh-bench 2>/dev/null || true
+
 if command -v zoxide >/dev/null 2>&1; then
     eval "$(zoxide init zsh)"
 fi
@@ -115,6 +135,8 @@ plugins() {
         "zsh-autosuggestions:Auto Suggestions"
         "zsh-completions:Enhanced Completions"
         "fzf-tab:FZF Tab Completion"
+        "z:Directory Jump"
+        "zsh-extract:Enhanced File Extraction"
     )
     
     # Check tool plugins
@@ -310,6 +332,8 @@ check_plugins() {
         "fast-syntax-highlighting"
         "zsh-autosuggestions"
         "zsh-completions"
+        "z"
+        "zsh-extract"
     )
     
     for plugin in "${critical_plugins[@]}"; do
@@ -352,10 +376,90 @@ check_plugins() {
     # Run conflict detection
     echo ""
     check_plugin_conflicts
+    
+    # Check zsh-extract specific items
+    echo ""
+    echo "📦 zsh-extract specific checks:"
+    check_extract_deps
+    check_extract_conflicts
 }
+
+# -------------------- New Plugin Configurations --------------------
+# rupa/z - Directory jump tool configuration
+# Usage: z <directory_name> - Jump to frequently used directories
+# The tool automatically learns your directory usage patterns
+
+# -------------------- zsh-extract Configuration --------------------
+# le0me55i/zsh-extract - Enhanced file extraction tool
+# Usage: extract <file> - Extract various archive formats
+# 
+# Supported formats:
+# - Compressed archives: tar.gz, tar.bz2, tar.xz, tar.lzma, tar.lzop
+# - Archive formats: tar, zip, rar, 7z, cab, ar
+# - Package formats: deb, rpm
+# - Disk images: iso
+# - Single file compression: gz, bz2, xz, lzma, lzop
+# - Note: Uses unar for RAR extraction (universal archive extractor)
+#
+# Features:
+# - Automatic format detection
+# - Error handling and fallback
+# - Dependency checking
+# - Progress indication for large files
+#
+# Usage examples:
+#   extract archive.tar.gz
+#   extract archive.zip
+#   extract archive.rar
+#   extract archive.7z
+#   extract archive.tar.gz -C /target/directory  # Extract to specific directory
+
+# romkatv/zsh-bench - Performance benchmark tool (optional)
+# Usage: zsh-bench - Run performance benchmarks
+# Uncomment the plugin loading lines above to enable this tool
+# Useful for development and debugging performance issues
 
 # -------------------- Reserved Custom Area --------------------
 # Custom plugin configurations can be added in the custom/ directory
+
+# -------------------- Dependency Check Functions --------------------
+# Check extraction tool dependencies
+check_extract_deps() {
+    local missing_deps=()
+    
+    # Essential tools
+    [[ ! -f /usr/bin/tar ]] && missing_deps+=("tar")
+    [[ ! -f /usr/bin/gunzip ]] && missing_deps+=("gunzip")
+    [[ ! -f /usr/bin/bunzip2 ]] && missing_deps+=("bunzip2")
+    [[ ! -f /usr/bin/unxz ]] && missing_deps+=("unxz")
+    [[ ! -f /usr/bin/unzip ]] && missing_deps+=("unzip")
+    
+    # Optional tools
+    [[ ! -f /usr/bin/unar ]] && missing_deps+=("unar")
+    [[ ! -f /usr/bin/7z ]] && missing_deps+=("7z")
+    [[ ! -f /usr/bin/cabextract ]] && missing_deps+=("cabextract")
+    [[ ! -f /usr/bin/ar ]] && missing_deps+=("ar")
+    [[ ! -f /usr/bin/dpkg ]] && missing_deps+=("dpkg")
+    [[ ! -f /usr/bin/rpm2cpio ]] && missing_deps+=("rpm2cpio")
+    
+    if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        echo "⚠️  Missing extraction dependencies: ${missing_deps[*]}"
+        echo "💡 Install with: sudo apt install ${missing_deps[*]}  # Ubuntu/Debian"
+        echo "💡 Install with: brew install ${missing_deps[*]}      # macOS"
+        echo "💡 Note: unar is used for RAR extraction (universal archive extractor)"
+    else
+        echo "✅ All extraction dependencies available"
+    fi
+}
+
+# Check for extract function conflicts
+check_extract_conflicts() {
+    if (( ${+functions[extract]} )) && [[ "$(type extract)" != *"zsh-extract"* ]]; then
+        echo "⚠️  Warning: extract function already exists, zsh-extract will override it"
+    else
+        echo "✅ No extract function conflicts detected"
+    fi
+}
 
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED plugins"

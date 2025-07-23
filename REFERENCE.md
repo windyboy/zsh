@@ -16,7 +16,7 @@ version         # 查看版本
 mkcd <目录>     # 创建目录并进入
 up [层数]       # 向上跳转目录
 trash <文件>    # 安全删除文件
-extract <文件>  # 解压文件
+extract <文件>  # 智能解压文件 (支持多种格式)
 ```
 
 ### PATH管理
@@ -42,6 +42,12 @@ myip            # 查看外网IP
 g               # Git快捷操作
 ni              # npm install
 py              # python3
+```
+
+### 文件解压
+```bash
+extract <文件>  # 智能解压，支持多种格式
+# 支持格式: tar.gz, tar.bz2, tar.xz, zip, rar, 7z, cab, iso 等
 ```
 
 ## 🔌 插件管理
@@ -195,7 +201,7 @@ new_module_function() {
 ### 模块统计
 - **总行数**: 604行
 - **模块数量**: 6个核心模块
-- **版本**: 4.2.0
+- **版本**: 4.2.1
 
 ### 核心模块
 - `core.zsh` (94行) - 核心环境设置
