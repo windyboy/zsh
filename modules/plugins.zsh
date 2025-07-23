@@ -159,9 +159,9 @@ plugins() {
         local name="${plugin%%:*}"
         local desc="${plugin##*:}"
         if [[ -n "$ZINIT" ]] && [[ -d "$ZINIT_HOME/plugins" ]]; then
-            plugins_color_green "✅ $name - $desc"
+            color_green "✅ $name - $desc"
         else
-            plugins_color_red "❌ $name - $desc"
+            color_red "❌ $name - $desc"
         fi
     done
 
@@ -170,9 +170,9 @@ plugins() {
         local name="${plugin%%:*}"
         local desc="${plugin##*:}"
         if command -v "$name" >/dev/null 2>&1; then
-            plugins_color_green "✅ $name - $desc"
+            color_green "✅ $name - $desc"
         else
-            plugins_color_red "❌ $name - $desc"
+            color_red "❌ $name - $desc"
         fi
     done
 
@@ -180,7 +180,7 @@ plugins() {
     for plugin in "${builtin_plugins[@]}"; do
         local name="${plugin%%:*}"
         local desc="${plugin##*:}"
-        plugins_color_green "✅ $name - $desc"
+        color_green "✅ $name - $desc"
     done
 }
 
@@ -225,7 +225,7 @@ check_plugin_conflicts() {
     done
 
     if [[ "$conflicts_found" == false ]]; then
-        plugins_color_green "✅ No key binding conflicts found"
+        color_green "✅ No key binding conflicts found"
     fi
 
     # Check for alias conflicts
@@ -234,7 +234,7 @@ check_plugin_conflicts() {
         echo "❌ Duplicate aliases found:"
         echo "$alias_conflicts" | sed 's/^/   • /'
     else
-        plugins_color_green "✅ No alias conflicts found"
+        color_green "✅ No alias conflicts found"
     fi
 
     # Check for zstyle configuration conflicts
@@ -243,7 +243,7 @@ check_plugin_conflicts() {
         echo "❌ Duplicate zstyle configurations found:"
         echo "$zstyle_conflicts" | sed 's/^/   • /'
     else
-        plugins_color_green "✅ No zstyle configuration conflicts found"
+        color_green "✅ No zstyle configuration conflicts found"
     fi
 }
 
@@ -315,7 +315,7 @@ resolve_plugin_conflicts() {
     fi
 
     if [[ ${#conflicts[@]} -eq 0 && -z "$duplicate_aliases" && -z "$duplicate_zstyles" ]]; then
-        plugins_color_green "✅ No conflicts requiring resolution found"
+        color_green "✅ No conflicts requiring resolution found"
     fi
 }
 
@@ -324,9 +324,9 @@ check_plugins() {
 
     # Check if zinit is working properly
     if [[ -n "$ZINIT" ]]; then
-        plugins_color_green "✅ zinit loaded"
+        color_green "✅ zinit loaded"
     else
-        plugins_color_red "❌ zinit not loaded"
+        color_red "❌ zinit not loaded"
     fi
 
     # Check critical plugin files
@@ -340,9 +340,9 @@ check_plugins() {
 
     for plugin in "${critical_plugins[@]}"; do
         if [[ -d "$ZINIT_HOME/plugins/$plugin" ]]; then
-            plugins_color_green "✅ $plugin installed"
+            color_green "✅ $plugin installed"
         else
-            plugins_color_red "❌ $plugin not installed"
+            color_red "❌ $plugin not installed"
         fi
     done
 
@@ -355,9 +355,9 @@ check_plugins() {
 
     for tool in "${tool_dependencies[@]}"; do
         if command -v "$tool" >/dev/null 2>&1; then
-            plugins_color_green "✅ $tool available"
+            color_green "✅ $tool available"
         else
-            plugins_color_red "❌ $tool not available"
+            color_red "❌ $tool not available"
         fi
     done
 
@@ -369,9 +369,9 @@ check_plugins() {
 
     for var in "${required_vars[@]}"; do
         if [[ -n "${(P)var}" ]]; then
-            plugins_color_green "✅ $var set"
+            color_green "✅ $var set"
         else
-            plugins_color_red "❌ $var not set"
+            color_red "❌ $var not set"
         fi
     done
 
