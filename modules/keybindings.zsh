@@ -83,7 +83,8 @@ if (( ${+_comps[zsh-autosuggestions]} )); then
     bindkey '^[,' autosuggest-execute 2>/dev/null || true
     bindkey '^[/' autosuggest-toggle 2>/dev/null || true
 fi
-if (( ${+_comps[zsh-history-substring-search]} )); then
+# History substring search keybindings (check if functions exist)
+if (( ${+functions[history-substring-search-up]} )); then
     bindkey '^[[A' history-substring-search-up 2>/dev/null || true
     bindkey '^[[B' history-substring-search-down 2>/dev/null || true
     bindkey '^P' history-substring-search-up 2>/dev/null || true

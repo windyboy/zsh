@@ -37,9 +37,14 @@ if command -v fzf >/dev/null 2>&1; then
     zinit ice wait"0" lucid
     zinit light Aloxaf/fzf-tab 2>/dev/null || true
 fi
-if ! bindkey | /usr/bin/grep -q '\^\[\[A.*history-substring-search-up'; then
-    zinit ice wait"0" lucid
-    zinit light zsh-users/zsh-history-substring-search 2>/dev/null || true
+# Load history substring search plugin
+zinit ice wait"0" lucid
+zinit light zsh-users/zsh-history-substring-search 2>/dev/null || true
+# Configure history substring search (official recommendation)
+export HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1
+# Ensure the plugin is loaded by sourcing it directly if zinit fails
+if ! (( ${+functions[history-substring-search-up]} )); then
+    source "$ZINIT_HOME/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.zsh" 2>/dev/null || true
 fi
 if command -v zoxide >/dev/null 2>&1; then
     eval "$(zoxide init zsh)"
