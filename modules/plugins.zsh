@@ -239,7 +239,7 @@ check_plugin_conflicts() {
     fi
 
     # Check for alias conflicts
-    local alias_conflicts=$(alias | awk '{print $1}' | sort | uniq -d)
+    local alias_conflicts=$(alias | cut -d= -f1 | sed 's/^alias //g' | sort | uniq -d)
     if [[ -n "$alias_conflicts" ]]; then
         echo "❌ Duplicate aliases found:"
         echo "$alias_conflicts" | sed 's/^/   • /'
@@ -305,7 +305,7 @@ resolve_plugin_conflicts() {
     fi
 
     # Check for alias conflicts
-    local duplicate_aliases=$(alias | awk '{print $1}' | sort | uniq -d)
+    local duplicate_aliases=$(alias | cut -d= -f1 | sed 's/^alias //g' | sort | uniq -d)
     if [[ -n "$duplicate_aliases" ]]; then
         echo "💡 Alias conflict resolution suggestions:"
         echo "$duplicate_aliases" | while read -r alias_name; do
