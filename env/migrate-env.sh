@@ -44,14 +44,14 @@ if [[ ${#old_files[@]} -eq 0 ]]; then
     exit 0
 fi
 
-echo "$(color_yellow "发现以下旧配置文件:"))"
+echo "$(color_yellow "发现以下旧配置文件:")"
 for file in "${old_files[@]}"; do
     echo "  • $file"
 done
 echo
 
 # 确认迁移
-echo "$(color_blue "迁移说明:"))"
+echo "$(color_blue "迁移说明:")"
 echo "• 旧配置文件将被备份到 backup/ 目录"
 echo "• 新的环境配置文件将被创建"
 echo "• 你可以手动将旧配置中的自定义设置复制到新配置中"
@@ -60,12 +60,12 @@ echo
 read -k 1 "REPLY?是否继续迁移? (y/N): "
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "$(color_yellow "迁移已取消"))"
+    echo "$(color_yellow "迁移已取消")"
     exit 0
 fi
 
 echo
-echo "$(color_yellow "开始迁移..."))"
+echo "$(color_yellow "开始迁移...")"
 echo
 
 # 创建备份目录
@@ -76,7 +76,7 @@ color_green "创建备份目录: $backup_dir"
 # 迁移 development.zsh
 if [[ -f "$ZSH_CONFIG_DIR/env/development.zsh" ]]; then
     echo
-    echo "$(color_blue "迁移 development.zsh..."))"
+    echo "$(color_blue "迁移 development.zsh...")"
     
     # 备份旧文件
     cp "$ZSH_CONFIG_DIR/env/development.zsh" "$backup_dir/"
@@ -89,7 +89,7 @@ if [[ -f "$ZSH_CONFIG_DIR/env/development.zsh" ]]; then
         
         # 提取环境变量并添加到新配置
         echo
-        echo "$(color_yellow "  提取环境变量..."))"
+        echo "$(color_yellow "  提取环境变量...")"
         
         # 读取旧文件中的export语句
         while IFS= read -r line; do
@@ -136,7 +136,7 @@ fi
 # 迁移 local.zsh
 if [[ -f "$ZSH_CONFIG_DIR/env/local.zsh" ]]; then
     echo
-    echo "$(color_blue "迁移 local.zsh..."))"
+    echo "$(color_blue "迁移 local.zsh...")"
     
     # 备份旧文件
     cp "$ZSH_CONFIG_DIR/env/local.zsh" "$backup_dir/"
@@ -144,7 +144,7 @@ if [[ -f "$ZSH_CONFIG_DIR/env/local.zsh" ]]; then
     
     # 创建自定义配置区域
     echo
-    echo "$(color_yellow "  创建自定义配置区域..."))"
+    echo "$(color_yellow "  创建自定义配置区域...")"
     
     # 在environment.env中添加自定义配置
     if [[ -f "$SCRIPT_DIR/local/environment.env" ]]; then
@@ -181,7 +181,7 @@ echo "  备份文件: $backup_dir/"
 echo "  迁移文件: ${#old_files[@]} 个"
 echo
 
-echo "$(color_green "下一步操作:"))"
+echo "$(color_green "下一步操作:")"
 echo "1. 检查新创建的配置文件:"
 echo "   ${EDITOR:-code} $SCRIPT_DIR/local/environment.env"
 
@@ -197,10 +197,10 @@ echo "4. 验证配置是否正确:"
 echo "   env | grep -E '(GOPATH|ANDROID_HOME|BUN_INSTALL)'"
 
 echo
-echo "$(color_blue "注意事项:"))"
+echo "$(color_blue "注意事项:")"
 echo "• 旧配置文件已备份到: $backup_dir/"
 echo "• 建议检查新配置文件中的路径和设置"
 echo "• 如有问题，可以恢复备份文件"
 
 echo
-echo "$(color_green "迁移完成！"))" 
+echo "$(color_green "迁移完成！")"

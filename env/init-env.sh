@@ -94,7 +94,7 @@ echo
 
 # 检查是否有配置文件需要编辑
 if [[ ! -f "$local_path" ]]; then
-    echo "$(color_yellow "提示: 建议立即编辑新创建的配置文件以适配你的环境"))"
+    echo "$(color_yellow "提示: 建议立即编辑新创建的配置文件以适配你的环境")"
     echo
     read -k 1 "REPLY?是否现在打开编辑器编辑配置文件? (y/N): "
     echo
