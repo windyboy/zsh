@@ -41,9 +41,11 @@ if [[ "$TERM_PROGRAM" == "vscode" ]]; then
     # Alternative completion triggers for VS Code terminal
     bindkey '^ ' autosuggest-accept 2>/dev/null || true
     bindkey '^@' complete-word 2>/dev/null || true
-    # Force menu completion for VS Code
-    zstyle ':completion:*' menu yes select=1
-    zstyle ':completion:*' force-list always
+    # Force menu completion for VS Code (only if fzf-tab is not available)
+    if ! command -v fzf >/dev/null 2>&1; then
+        zstyle ':completion:*' menu yes select=1
+        zstyle ':completion:*' force-list always
+    fi
 fi
 bindkey '^T' transpose-chars
 bindkey '^Z' undo

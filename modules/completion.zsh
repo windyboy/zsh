@@ -29,7 +29,9 @@ autoload -Uz _files _directories _cd _ls _cp _mv _rm
 # -------------------- Basic Completion Styles --------------------
 zstyle ':completion:*' completer _complete _match _approximate
 # Menu setting will be overridden by fzf-tab if available
-zstyle ':completion:*' menu yes select=2
+if ! command -v fzf >/dev/null 2>&1; then
+    zstyle ':completion:*' menu yes select=2
+fi
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' verbose yes
@@ -102,9 +104,11 @@ zstyle ':completion:*' insert-tab false
 
 # VS Code Terminal Specific Fixes
 if [[ "$TERM_PROGRAM" == "vscode" ]]; then
-    # Force menu completion to always show in VS Code
-    zstyle ':completion:*' menu yes select=1
-    zstyle ':completion:*' force-list always
+    # Force menu completion to always show in VS Code (only if fzf-tab is not available)
+    if ! command -v fzf >/dev/null 2>&1; then
+        zstyle ':completion:*' menu yes select=1
+        zstyle ':completion:*' force-list always
+    fi
     # Ensure completions are shown immediately
     zstyle ':completion:*' list-prompt ''
     zstyle ':completion:*' select-prompt ''
