@@ -76,11 +76,6 @@ alias gco='git checkout'
 alias gb='git branch'
 
 # Add your personal functions here
-# Quick directory creation and navigation
-mkcd() {
-    mkdir -p "$1" && cd "$1"
-}
-
 # Extract various archive formats
 function extract() {
     if [ -f "$1" ]; then
