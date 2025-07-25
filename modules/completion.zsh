@@ -14,6 +14,10 @@ else
     color_green() { echo -e "\033[32m$1\033[0m"; }
 fi
 
+# Module specific wrappers
+comp_color_red()   { color_red "$@"; }
+comp_color_green() { color_green "$@"; }
+
 # -------------------- Completion Cache --------------------
 COMPLETION_CACHE_FILE="$ZSH_CACHE_DIR/zcompdump"
 autoload -Uz compinit

@@ -14,6 +14,10 @@ else
     color_green() { echo -e "\033[32m$1\033[0m"; }
 fi
 
+# Module specific wrappers
+kb_color_red()   { color_red "$@"; }
+kb_color_green() { color_green "$@"; }
+
 # -------------------- Basic Editing/Navigation --------------------
 bindkey -e
 bindkey '^A' beginning-of-line

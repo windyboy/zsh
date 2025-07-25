@@ -14,6 +14,10 @@ else
     color_green() { echo -e "\033[32m$1\033[0m"; }
 fi
 
+# Module specific wrappers
+core_color_red()   { color_red "$@"; }
+core_color_green() { color_green "$@"; }
+
 # -------------------- Module Loading Status --------------------
 export ZSH_MODULES_LOADED=""
 
