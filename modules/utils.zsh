@@ -5,8 +5,7 @@
 # =============================================================================
 
 # Color output tools
-color_red()   { echo -e "\033[31m$1\033[0m"; }
-color_green() { echo -e "\033[32m$1\033[0m"; }
+source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 
 # -------------------- File/Directory Operations --------------------
 # Backup file
