@@ -17,6 +17,11 @@ backup() {
     cp "$file" "${file}.backup.$(date +%Y%m%d_%H%M%S)"
     color_green "Backed up: ${file}.backup.$(date +%Y%m%d_%H%M%S)"
 }
+# Create directory and enter
+mkcd() {
+    [[ $# -eq 0 ]] && echo "Usage: mkcd <directory_name>" && return 1
+    mkdir -p "$1" && cd "$1"
+}
 # Find files/directories
 ff() { [[ $# -eq 0 ]] && echo "Usage: ff <pattern>" && return 1; find . -name "*$1*" -type f 2>/dev/null; }
 fd() { [[ $# -eq 0 ]] && echo "Usage: fd <pattern>" && return 1; find . -name "*$1*" -type d 2>/dev/null; }

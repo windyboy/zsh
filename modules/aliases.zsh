@@ -45,11 +45,7 @@ alias projects='cd ~/Projects' downloads='cd ~/Downloads' documents='cd ~/Docume
 alias now='date +"%T"' nowdate='date +"%d-%m-%Y"'
 
 # -------------------- High-Frequency Functions --------------------
-# Create directory and enter
-mkcd() {
-    [[ $# -eq 0 ]] && echo "Usage: mkcd <directory_name>" && return 1
-    mkdir -p "$1" && cd "$1"
-}
+# mkcd/myip helpers moved to utils.zsh
 # Quick directory navigation up
 up() {
     local levels=${1:-1} path=""
@@ -80,8 +76,7 @@ serve() {
     echo "Starting HTTP server: port $port, directory $dir"
     python3 -m http.server "$port" --directory "$dir"
 }
-# Get external IP
-myip() { curl -s ifconfig.me; }
+# External IP helper provided by utils.zsh
 # Quick git commit
 function gcm() {
     [[ $# -eq 0 ]] && echo "Usage: gcm <message>" && return 1
