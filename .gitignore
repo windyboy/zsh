@@ -90,5 +90,6 @@ cache/maintenance_report_*.txt
 data/backups/ 
 
 # Zsh completion cache
-.zcompdump
+.zcompdump*
+
 
