@@ -5,14 +5,7 @@
 # =============================================================================
 
 # Color output tools
-# Load centralized color functions if available
-if [[ -f "$HOME/.config/zsh/modules/colors.zsh" ]]; then
-    source "$HOME/.config/zsh/modules/colors.zsh"
-else
-    # Fallback color functions
-    color_red()   { echo -e "\033[31m$1\033[0m"; }
-    color_green() { echo -e "\033[32m$1\033[0m"; }
-fi
+source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 
 # Module specific wrappers
 comp_color_red()   { color_red "$@"; }
