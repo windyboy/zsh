@@ -434,19 +434,19 @@ check_extract_deps() {
     local missing_deps=()
 
     # Essential tools
-    [[ ! -f /usr/bin/tar ]] && missing_deps+=("tar")
-    [[ ! -f /usr/bin/gunzip ]] && missing_deps+=("gunzip")
-    [[ ! -f /usr/bin/bunzip2 ]] && missing_deps+=("bunzip2")
-    [[ ! -f /usr/bin/unxz ]] && missing_deps+=("unxz")
-    [[ ! -f /usr/bin/unzip ]] && missing_deps+=("unzip")
+    command -v tar >/dev/null 2>&1 || missing_deps+=("tar")
+    command -v gunzip >/dev/null 2>&1 || missing_deps+=("gunzip")
+    command -v bunzip2 >/dev/null 2>&1 || missing_deps+=("bunzip2")
+    command -v unxz >/dev/null 2>&1 || missing_deps+=("unxz")
+    command -v unzip >/dev/null 2>&1 || missing_deps+=("unzip")
 
     # Optional tools
-    [[ ! -f /usr/bin/unar ]] && missing_deps+=("unar")
-    [[ ! -f /usr/bin/7z ]] && missing_deps+=("7z")
-    [[ ! -f /usr/bin/cabextract ]] && missing_deps+=("cabextract")
-    [[ ! -f /usr/bin/ar ]] && missing_deps+=("ar")
-    [[ ! -f /usr/bin/dpkg ]] && missing_deps+=("dpkg")
-    [[ ! -f /usr/bin/rpm2cpio ]] && missing_deps+=("rpm2cpio")
+    command -v unar >/dev/null 2>&1 || missing_deps+=("unar")
+    command -v 7z >/dev/null 2>&1 || missing_deps+=("7z")
+    command -v cabextract >/dev/null 2>&1 || missing_deps+=("cabextract")
+    command -v ar >/dev/null 2>&1 || missing_deps+=("ar")
+    command -v dpkg >/dev/null 2>&1 || missing_deps+=("dpkg")
+    command -v rpm2cpio >/dev/null 2>&1 || missing_deps+=("rpm2cpio")
 
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
         echo "⚠️  Missing extraction dependencies: ${missing_deps[*]}"
