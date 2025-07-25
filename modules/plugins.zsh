@@ -116,7 +116,8 @@ if command -v fzf >/dev/null 2>&1; then
     # zstyle ':fzf-tab:*' accept-line 'ctrl-space'
 
     # Preview configurations (smart content detection)
-    _fzf_tab_preview() {
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath"'
+    zstyle ':fzf-tab:complete:*:*' fzf-preview '
         if [[ -d "$realpath" ]]; then
             ls -la "$realpath"
         elif [[ -f "$realpath" ]]; then
@@ -128,9 +129,7 @@ if command -v fzf >/dev/null 2>&1; then
         else
             echo "$realpath"
         fi
-    }
-    zstyle ':fzf-tab:complete:*:*' fzf-preview _fzf_tab_preview
-    zstyle ':fzf-tab:complete:cd:*' fzf-preview _fzf_tab_preview
+    '
 fi
 
 # -------------------- Common Functions --------------------
