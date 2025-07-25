@@ -30,8 +30,8 @@ fi
 if [[ -o interactive ]]; then
     zinit ice wait"0" lucid
     zinit light zdharma-continuum/fast-syntax-highlighting 2>/dev/null || true
-    zinit ice wait"0" lucid
-    zinit light zsh-users/zsh-autosuggestions 2>/dev/null || true
+    # zinit ice wait"0" lucid
+    # zinit light zsh-users/zsh-autosuggestions 2>/dev/null || true
     zinit ice wait"0" lucid
     zinit light zsh-users/zsh-completions 2>/dev/null || true
     zinit snippet https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh
@@ -82,8 +82,9 @@ export ZSH_AUTOSUGGEST_STRATEGY=(history)
 export ZSH_AUTOSUGGEST_USE_ASYNC=0
 export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 export ZSH_AUTOSUGGEST_HISTORY_IGNORE="cd *"
+export ZSH_AUTOSUGGEST_COMPLETION_IGNORE="cd *"
 # Increase function nesting limit to prevent FUNCNEST errors
-export FUNCNEST=50
+export FUNCNEST=100
 # Configure fzf-tab if available
 if command -v fzf >/dev/null 2>&1; then
     # Set FZF default options for consistent behavior

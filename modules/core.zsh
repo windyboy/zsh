@@ -21,7 +21,7 @@ export ZSH_MODULES_LOADED=""
 core_init_dirs() {
     local dirs=("$ZSH_CACHE_DIR" "$ZSH_DATA_DIR" "$ZSH_CONFIG_DIR/custom" "$ZSH_CONFIG_DIR/completions")
     for dir in "${dirs[@]}"; do
-        [[ ! -d "$dir" ]] && mkdir -p "$dir" 2>/dev/null && core_color_green "Created: $dir"
+        [[ ! -d "$dir" ]] && mkdir -p "$dir" 2>/dev/null && color_green "Created: $dir"
     done
 }
 core_init_dirs
@@ -51,7 +51,7 @@ alias -g G='| grep' L='| less' H='| head' T='| tail' S='| sort' U='| uniq' C='| 
 reload() {
     [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: reload" && return 0
     echo "🔄 Reloading ZSH configuration..."
-    source ~/.zshrc && core_color_green "✅ Configuration reloaded"
+    source ~/.zshrc && color_green "✅ Configuration reloaded"
 }
 # Configuration validation
 validate() {
@@ -59,9 +59,9 @@ validate() {
     local errors=0
     local required_dirs=("$ZSH_CONFIG_DIR" "$ZSH_CACHE_DIR" "$ZSH_DATA_DIR")
     local core_files=("$ZSH_CONFIG_DIR/zshrc" "$ZSH_CONFIG_DIR/modules/core.zsh")
-    for dir in "${required_dirs[@]}"; do [[ ! -d "$dir" ]] && core_color_red "❌ Missing directory: $dir" && ((errors++)); done
-    for file in "${core_files[@]}"; do [[ ! -f "$file" ]] && core_color_red "❌ Missing file: $file" && ((errors++)); done
-    (( errors == 0 )) && core_color_green "Configuration validation passed" || core_color_red "Configuration validation failed: $errors errors"
+    for dir in "${required_dirs[@]}"; do [[ ! -d "$dir" ]] && color_red "❌ Missing directory: $dir" && ((errors++)); done
+    for file in "${core_files[@]}"; do [[ ! -f "$file" ]] && color_red "❌ Missing file: $file" && ((errors++)); done
+    (( errors == 0 )) && color_green "Configuration validation passed" || color_red "Configuration validation failed: $errors errors"
     return $errors
 }
 # System status
@@ -82,7 +82,7 @@ perf() {
     echo "Aliases: ${alias_count:-0}"
     [[ -n "$memory_kb" && "$memory_kb" =~ ^[0-9]+$ ]] && echo "Memory: $(echo "scale=1; $memory_kb / 1024" | bc 2>/dev/null) MB" || echo "Memory: Unknown"
     [[ -f "$HISTFILE" ]] && echo "History: $(wc -l < "$HISTFILE" 2>/dev/null) lines"
-    (( func_count < 100 )) && core_color_green "Performance: Excellent" || (( func_count < 200 )) && echo "Performance: Good" || core_color_red "Performance: Optimization recommended"
+    (( func_count < 100 )) && color_green "Performance: Excellent" || (( func_count < 200 )) && echo "Performance: Good" || color_red "Performance: Optimization recommended"
 }
 # Version information
 version() {
