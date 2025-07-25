@@ -56,7 +56,7 @@ echo
 # Version information with beautiful formatting
 status_color_cyan "📦 Version Information"
 status_color_yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-printf "  %s %s %s\n" "🏷️" "Version:" "$(status_color_bold "4.2.1 (Personal Minimal)")"
+printf "  %s %s %s\n" "🏷️" "Version:" "$(status_color_bold "4.2.2 (Personal Minimal)")"
 printf "  %s %s %s\n" "🎯" "Architecture:" "$(status_color_cyan "Modular & Minimal")"
 printf "  %s %s %s\n" "⚡" "Performance:" "$(status_color_green "Optimized")"
 printf "  %s %s %s\n" "🎨" "Experience:" "$(status_color_purple "Personalized")"

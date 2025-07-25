@@ -1,4 +1,4 @@
-# ZSH Configuration v4.2.1
+# ZSH Configuration v4.2.2
 
 High-performance, modular ZSH configuration system optimized for personal work environments. Features beautiful English interface, comprehensive status monitoring, and intelligent scoring system.
 
@@ -487,6 +487,6 @@ exec zsh
 
 ---
 
-**版本**: 4.2.1  
-**最后更新**: 2024-12-19  
+**版本**: 4.2.2  
+**最后更新**: 2025-07-25  
 **许可证**: MIT 
