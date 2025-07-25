@@ -4,13 +4,13 @@
 # Version: 4.1 - Streamlined for Personal Use
 # =============================================================================
 
-# Load environment variables first (core environment setup)
-if [[ -f "$HOME/.config/zsh/zshenv" ]]; then
-    source "$HOME/.config/zsh/zshenv"
-fi
-
 # Set ZSH configuration root directory (compatible with direct calls)
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
+
+# Load environment variables first (core environment setup)
+if [[ -f "$ZSH_CONFIG_DIR/zshenv" ]]; then
+    source "$ZSH_CONFIG_DIR/zshenv"
+fi
 
 # Load core modules (order cannot be changed)
 for mod in core path plugins completion aliases keybindings utils; do

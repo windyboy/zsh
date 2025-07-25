@@ -101,7 +101,19 @@ if command -v fzf >/dev/null 2>&1; then
 
     # Custom fzf flags for fzf-tab
     # Note: fzf-tab does not follow FZF_DEFAULT_OPTS by default
-    zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+    # Adjust preview window size based on terminal
+    if [[ "$TERM_PROGRAM" == "vscode" ]]; then
+        # VS Code terminal - disable preview if terminal is too small, otherwise use minimal preview
+        if [[ "$LINES" -gt 20 ]]; then
+            zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:30%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+        else
+            # Disable preview for very small terminals
+            zstyle ':fzf-tab:complete:*' fzf-flags --color=fg:1,fg+:2 --bind=tab:accept
+        fi
+    else
+        # Standard preview window for other terminals
+        zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+    fi
 
     # Switch group using ',' and '.'
     zstyle ':fzf-tab:*' switch-group ',' '.'
@@ -116,23 +128,65 @@ if command -v fzf >/dev/null 2>&1; then
     # zstyle ':fzf-tab:*' accept-line 'ctrl-space'
 
     # Preview configurations (smart content detection)
-    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath"'
-    zstyle ':fzf-tab:complete:*:*' fzf-preview '
-        if [[ -d "$realpath" ]]; then
-            ls -la "$realpath"
-        elif [[ -f "$realpath" ]]; then
-            if command -v bat >/dev/null 2>&1; then
-                bat --style=numbers --color=always --line-range :50 "$realpath" 2>/dev/null
+    # Use simpler preview commands to avoid function call issues
+    if [[ "$TERM_PROGRAM" == "vscode" && "$LINES" -le 20 ]]; then
+        # Disable preview for small VS Code terminals
+        zstyle ':fzf-tab:complete:*:*' fzf-preview ''
+    else
+        # Enable preview for larger terminals
+        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
+        zstyle ':fzf-tab:complete:*:*' fzf-preview '
+            if [[ -d "$realpath" ]]; then
+                ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"
+            elif [[ -f "$realpath" ]]; then
+                if command -v bat >/dev/null 2>&1; then
+                    bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null
+                else
+                    head -10 "$realpath" 2>/dev/null || echo "File: $realpath"
+                fi
             else
-                head -50 "$realpath" 2>/dev/null
+                echo "$realpath"
             fi
-        else
-            echo "$realpath"
-        fi
-    '
+        '
+    fi
 fi
 
 # -------------------- Common Functions --------------------
+test_fzf_tab() {
+    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: test_fzf_tab" && return 0
+    
+    echo "🧪 Testing fzf-tab functionality..."
+    echo "TERM_PROGRAM: $TERM_PROGRAM"
+    echo "TERM: $TERM"
+    echo "COLUMNS: $COLUMNS"
+    echo "LINES: $LINES"
+    echo ""
+    
+    # Check if fzf-tab is loaded
+    if (( ${+functions[_fzf_tab_complete]} )); then
+        echo "✅ fzf-tab function loaded"
+    else
+        echo "❌ fzf-tab function not loaded"
+    fi
+    
+    # Check fzf-tab configuration
+    echo ""
+    echo "🔧 fzf-tab configuration:"
+    zstyle -L | grep fzf-tab | head -5
+    
+    # Test basic fzf functionality
+    echo ""
+    echo "🎯 Testing fzf directly:"
+    if echo "test" | fzf --preview "echo 'Preview test'" --preview-window=right:40%:wrap >/dev/null 2>&1; then
+        echo "✅ fzf preview works"
+    else
+        echo "❌ fzf preview failed"
+    fi
+    
+    echo ""
+    echo "💡 Try typing 'ls ' and pressing TAB to test completion preview"
+}
+
 plugins() {
     [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: plugins" && return 0
 
