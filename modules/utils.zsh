@@ -5,8 +5,7 @@
 # =============================================================================
 
 # Color output tools
-color_red()   { echo -e "\033[31m$1\033[0m"; }
-color_green() { echo -e "\033[32m$1\033[0m"; }
+source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 
 # -------------------- File/Directory Operations --------------------
 # Backup file
@@ -16,6 +15,11 @@ backup() {
     [[ ! -f "$file" ]] && color_red "Not found: $file" && return 1
     cp "$file" "${file}.backup.$(date +%Y%m%d_%H%M%S)"
     color_green "Backed up: ${file}.backup.$(date +%Y%m%d_%H%M%S)"
+}
+# Create directory and enter
+mkcd() {
+    [[ $# -eq 0 ]] && echo "Usage: mkcd <directory_name>" && return 1
+    mkdir -p "$1" && cd "$1"
 }
 # Find files/directories
 ff() { [[ $# -eq 0 ]] && echo "Usage: ff <pattern>" && return 1; find . -name "*$1*" -type f 2>/dev/null; }

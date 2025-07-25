@@ -41,9 +41,9 @@ reload_zshenv() {
 }
 
 # Aliases for reload functions
-alias r='zsh_reload'
+alias r='reload_source'
 alias rs='reload_source'
-alias rz='zsh_reload'
+alias rz='reload_source'
 alias rsenv='reload_zshenv'
 alias sz='source ~/.zshenv'
 
@@ -76,11 +76,6 @@ alias gco='git checkout'
 alias gb='git branch'
 
 # Add your personal functions here
-# Quick directory creation and navigation
-mkcd() {
-    mkdir -p "$1" && cd "$1"
-}
-
 # Extract various archive formats
 function extract() {
     if [ -f "$1" ]; then
