@@ -45,7 +45,7 @@ fi
 # Test 2: Check for duplicate aliases
 echo ""
 echo "2️⃣  Checking aliases..."
-duplicate_aliases=$(alias | awk '{print $1}' | sort | uniq -d)
+duplicate_aliases=$(alias | cut -d= -f1 | sed 's/^alias //g' | sort | uniq -d)
 if [[ -n "$duplicate_aliases" ]]; then
     error "Duplicate aliases found:"
     echo "$duplicate_aliases" | sed 's/^/  • /'
