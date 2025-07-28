@@ -1,4 +1,16 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
+
+# Re-exec with zsh if available. This allows the script to show a helpful
+# message when zsh is not installed instead of failing with "env: zsh: No
+# such file or directory".
+if [[ -z "${ZSH_VERSION:-}" ]]; then
+    if command -v zsh >/dev/null 2>&1; then
+        exec zsh "$0" "$@"
+    else
+        echo "❌ zsh is required but not installed." >&2
+        exit 1
+    fi
+fi
 # =============================================================================
 # Simple Plugin Conflict Test
 # =============================================================================
@@ -70,7 +82,7 @@ echo "4️⃣  Checking specific plugin conflicts..."
 
 # Check if ls alias conflicts exist
 if alias ls >/dev/null 2>&1; then
-    local ls_alias=$(alias ls)
+    ls_alias=$(alias ls)
     log "ls alias: $ls_alias"
 else
     error "No ls alias found"
