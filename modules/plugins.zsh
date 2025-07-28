@@ -8,6 +8,10 @@
 # Load centralized color functions
 source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 
+# Allow disabling plugins via environment variables
+: "${ZSH_ENABLE_PLUGINS:=1}"
+: "${ZSH_ENABLE_OPTIONAL_PLUGINS:=1}"
+
 # -------------------- Plugin Initialization --------------------
 plugin_init() {
     [[ -n "$ZINIT" ]] && return
@@ -39,6 +43,8 @@ typeset -ga BUILTIN_SNIPPETS=(
 )
 
 plugins_load() {
+    (( ZSH_ENABLE_PLUGINS )) || { color_yellow "Plugins disabled via ZSH_ENABLE_PLUGINS=0"; return; }
+
     plugin_init
     [[ ! -o interactive ]] && return
 
@@ -51,7 +57,7 @@ plugins_load() {
         zinit snippet "$snip"
     done
 
-    if command -v fzf >/dev/null 2>&1; then
+    if (( ZSH_ENABLE_OPTIONAL_PLUGINS )) && command -v fzf >/dev/null 2>&1; then
         for p in "${OPTIONAL_ZINIT_PLUGINS[@]}"; do
             zinit ice wait"0" lucid
             zinit light "$p" 2>/dev/null || true
@@ -60,6 +66,7 @@ plugins_load() {
 }
 
 plugins_update() {
+    (( ZSH_ENABLE_PLUGINS )) || { color_yellow "Plugins disabled. Skip update"; return; }
     plugin_init
     zinit self-update && zinit update --all
 }

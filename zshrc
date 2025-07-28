@@ -7,6 +7,12 @@
 # Set ZSH configuration root directory (compatible with direct calls)
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 
+# Minimum required version
+autoload -Uz is-at-least
+if ! is-at-least 5.8 $ZSH_VERSION; then
+    echo "[zshrc] Warning: ZSH 5.8+ recommended. Current: $ZSH_VERSION" >&2
+fi
+
 # Load environment variables first (core environment setup)
 if [[ -f "$ZSH_CONFIG_DIR/zshenv" ]]; then
     source "$ZSH_CONFIG_DIR/zshenv"

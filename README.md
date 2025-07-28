@@ -16,7 +16,7 @@ High-performance, modular ZSH configuration system optimized for personal work e
 ## 📋 System Requirements
 
 ### Required Dependencies
-- **ZSH**: Version 5.8 or higher
+- **ZSH**: Version 5.8 or higher (the configuration checks this on startup)
 - **Git**: For plugin management
 
 ### Optional Dependencies (Recommended)
@@ -271,6 +271,8 @@ config env      # 编辑环境配置
 本项目采用简化的环境变量配置方式：
 - **核心环境变量**：在 `zshenv` 中直接设置（XDG路径、ZSH路径、历史记录等）
 - **插件环境变量**：在 `modules/plugins.zsh` 中管理（ZSH自动建议配置等）
+- `ZSH_ENABLE_PLUGINS` 控制是否加载所有插件
+- `ZSH_ENABLE_OPTIONAL_PLUGINS` 控制可选插件（如 fzf-tab）
 - **主题环境变量**：在 `themes/prompt.zsh` 中管理（Oh My Posh配置等）
 - **用户环境变量**：使用模板化管理（开发工具路径、包管理器镜像等）
 
