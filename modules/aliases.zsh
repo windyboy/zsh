@@ -1,58 +1,58 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Aliases and Functions Module - Common Aliases and High-Frequency Functions
-# Description: Only high-frequency, essential, memorable commands with unified lowercase naming and clear comments.
+# Aliases and Functions Module - Optimized for High-Frequency Use
 # =============================================================================
 
-# -------------------- File/Directory Operations --------------------
-# Directory navigation
-alias ..='cd ..' ...='cd ../..' ....='cd ../../..' ~='cd ~' -- -='cd -'
-
-# File operations (safe mode - defined in core.zsh)
-# alias cp='cp -i' mv='mv -i' rm='rm -i'
-
-# Clear screen, disk, memory
-alias c='clear' df='df -h' du='du -h' top='htop'
-
-# -------------------- ls/eza Unified Style --------------------
-if command -v eza >/dev/null 2>&1; then
-    alias ls='eza --color=always --group-directories-first'
-    alias ll='eza -la --color=always --group-directories-first --icons'
-    alias la='eza -a --color=always --group-directories-first --icons'
-else
-    alias ls='ls --color=auto' ll='ls -la --color=auto' la='ls -A --color=auto'
-fi
-
-# -------------------- Git Shortcuts --------------------
-alias g='git' ga='git add' gc='git commit -v' gd='git diff' gl='git pull' gp='git push' gst='git status' glog='git log --oneline --decorate --graph'
-
-# -------------------- Node/Python Shortcuts --------------------
-if command -v npm >/dev/null 2>&1; then
-    alias ni='npm install' nr='npm run' ns='npm start' nt='npm test'
-fi
-if command -v python3 >/dev/null 2>&1; then
-    alias py='python3' pip='pip3'
-fi
-
-# -------------------- Quick Edit/Navigation --------------------
-# Quick edit configuration
-alias zshrc='${EDITOR:-code} ~/.config/zsh/zshrc'
-alias zshenv='${EDITOR:-code} ~/.config/zsh/zshenv'
-# Quick navigation
-alias projects='cd ~/Projects' downloads='cd ~/Downloads' documents='cd ~/Documents'
-
-# -------------------- Time --------------------
-alias now='date +"%T"' nowdate='date +"%d-%m-%Y"'
-
-# -------------------- High-Frequency Functions --------------------
-# mkcd/myip helpers moved to utils.zsh
-# Quick directory navigation up
+# -------------------- 目录/文件操作 --------------------
+alias ..='cd ..'
+alias ...='cd ../..'
 up() {
     local levels=${1:-1} path=""
     for ((i=0; i<levels; i++)); do path="../$path"; done
     cd "$path"
 }
-# Safe delete (move to trash)
+
+# -------------------- ls/eza 相关 --------------------
+if command -v eza >/dev/null 2>&1; then
+    alias ls='eza --color=always --group-directories-first'
+    alias ll='eza -la --color=always --group-directories-first --icons'
+    alias la='eza -a --color=always --group-directories-first --icons'
+else
+    alias ls='ls --color=auto'
+    alias ll='ls -la --color=auto'
+    alias la='ls -A --color=auto'
+fi
+
+# -------------------- Git 相关 --------------------
+alias g='git'
+alias ga='git add'
+alias gc='git commit -v'
+alias gd='git diff'
+alias gl='git pull'
+alias gp='git push'
+alias gst='git status'
+alias glog='git log --oneline --decorate --graph'
+unalias gcm 2>/dev/null
+gcm() {
+    [[ $# -eq 0 ]] && echo "Usage: gcm <message>" && return 1
+    git commit -m "$*"
+}
+
+# -------------------- 开发工具 --------------------
+if command -v npm >/dev/null 2>&1; then
+    alias ni='npm install'
+fi
+if command -v python3 >/dev/null 2>&1; then
+    alias py='python3'
+fi
+
+# -------------------- 配置/导航 --------------------
+alias zshrc='${EDITOR:-code} ~/.config/zsh/zshrc'
+
+# -------------------- 时间/日期 --------------------
+alias now='date +"%T"'
+
+# -------------------- 其他高频 --------------------
 trash() {
     [[ $# -eq 0 ]] && echo "Usage: trash <file1> [file2] ..." && return 1
     local trash_dir="$HOME/.local/share/Trash/files"
@@ -68,19 +68,11 @@ trash() {
         fi
     done
 }
-
-# Start local HTTP server (merge serve, prioritize function)
 unalias serve 2>/dev/null
 serve() {
     local port="${1:-8000}" dir="${2:-.}"
     echo "Starting HTTP server: port $port, directory $dir"
     python3 -m http.server "$port" --directory "$dir"
-}
-# External IP helper provided by utils.zsh
-# Quick git commit
-function gcm() {
-    [[ $# -eq 0 ]] && echo "Usage: gcm <message>" && return 1
-    git commit -m "$*"
 }
 
 # -------------------- Reserved Custom Area --------------------

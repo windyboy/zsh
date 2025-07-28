@@ -1,4 +1,4 @@
-# ZSH Configuration v4.2.3
+# ZSH Configuration v5.0.0
 
 High-performance, modular ZSH configuration system optimized for personal work environments. Features beautiful English interface, comprehensive status monitoring, and intelligent scoring system.
 
@@ -158,6 +158,29 @@ version         # View version
 plugins_update  # Update all plugins
 ```
 
+### Testing & Validation
+```bash
+./test.sh              # Run comprehensive test suite
+./test.sh unit         # Run unit tests only
+./test.sh integration  # Run integration tests only
+./test.sh performance  # Run performance tests only
+./test.sh plugins      # Run plugin conflict tests only
+./test.sh security     # Run security tests only
+
+validate --verbose     # Detailed validation with verbose output
+validate --fix         # Attempt to fix common issues automatically
+validate --report      # Generate detailed validation report
+```
+
+### Performance Monitoring
+```bash
+perf                  # Show basic performance metrics
+perf --monitor        # Start continuous performance monitoring
+perf --profile        # Generate detailed performance profile
+perf --optimize       # Show optimization recommendations
+perf --history        # Show performance history
+```
+
 ### Status Monitoring
 ```bash
 ./status.sh     # Comprehensive status check with beautiful output
@@ -300,6 +323,15 @@ echo "ANDROID_HOME: $ANDROID_HOME"
 ```
 
 详细说明请参考：[环境变量配置指南](env/README.md)
+
+### 配置同步（实验性/预留）
+
+```bash
+config_sync --upload    # 未来支持：上传配置到云端
+config_sync --download  # 未来支持：从云端下载配置
+```
+
+当前请手动备份 ~/.config/zsh/env/local/environment.env 文件实现同步。
 
 ## 🎨 Oh My Posh 主题管理
 

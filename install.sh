@@ -190,16 +190,68 @@ set_shell() {
     fi
 }
 
+# Parse arguments
+INTERACTIVE_MODE=0
+for arg in "$@"; do
+    case "$arg" in
+        --interactive)
+            INTERACTIVE_MODE=1
+            ;;
+    esac
+done
+
+# Interactive setup function
+interactive_setup() {
+    echo "🧑‍💻 Welcome to the ZSH Interactive Setup!"
+    echo "Let's customize your environment. Press Enter to accept defaults."
+    echo
+
+    # Set default editor
+    read -p "Default editor (code/vim/nano) [code]: " editor
+    editor=${editor:-code}
+    export EDITOR="$editor"
+    export VISUAL="$editor"
+
+    # Install recommended plugins
+    read -p "Install recommended plugins (fzf, zoxide, eza, oh-my-posh)? [Y/n]: " plugins
+    plugins=${plugins:-Y}
+    if [[ "$plugins" =~ ^[Yy]$ ]]; then
+        echo "Installing recommended plugins..."
+        if command -v brew >/dev/null 2>&1; then
+            brew install fzf zoxide eza oh-my-posh
+        elif command -v apt >/dev/null 2>&1; then
+            sudo apt install fzf zoxide eza oh-my-posh
+        fi
+    fi
+
+    # Set default theme
+    read -p "Install and use oh-my-posh theme (agnoster)? [Y/n]: " theme
+    theme=${theme:-Y}
+    if [[ "$theme" =~ ^[Yy]$ ]]; then
+        ./install-themes.sh agnoster
+        echo 'eval "$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)"' >> "$HOME/.zshrc"
+    fi
+
+    # Save to environment config
+    mkdir -p "$HOME/.config/zsh/env/local"
+    cat > "$HOME/.config/zsh/env/local/environment.env" <<EOF
+EDITOR="$editor"
+VISUAL="$editor"
+EOF
+    echo "✅ Interactive setup complete!"
+}
+
 # Main installation
 main() {
     log "Starting ZSH installation..."
-    
     check_prereq
     setup_dirs
     install_zinit
     setup_config
     set_shell
-    
+    if [[ $INTERACTIVE_MODE -eq 1 ]]; then
+        interactive_setup
+    fi
     success "Installation completed!"
     log "Next: restart terminal and run './status.sh'"
 }

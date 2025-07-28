@@ -125,6 +125,12 @@ config() {
     fi
 }
 
+# 配置同步（占位）
+config_sync() {
+    echo "[TODO] 配置同步功能暂未实现。未来可支持云端上传/下载 ~/.config/zsh/env/local/environment.env 等文件。"
+    echo "如需手动同步，请自行备份和还原配置文件。"
+}
+
 # -------------------- FZF Widget Management --------------------
 fzf_widgets() {
     [[ "$1" == "-h" || "$1" == "--help" ]] && {
