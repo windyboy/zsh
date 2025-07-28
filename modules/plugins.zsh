@@ -242,7 +242,7 @@ if command -v fzf >/dev/null 2>&1; then
         # Preview for files (simple and safe)
         zstyle ':fzf-tab:complete:*:*' fzf-preview '
             if [[ -d "$realpath" ]]; then
-                ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
+                ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"
             elif [[ -f "$realpath" ]]; then
                 if command -v bat >/dev/null 2>&1; then
                     bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null
@@ -250,7 +250,7 @@ if command -v fzf >/dev/null 2>&1; then
                     head -10 "$realpath" 2>/dev/null || echo "File: $realpath"
                 fi
             else
-                echo "$realpath"'
+                echo "$realpath"
             fi
         '
     fi
