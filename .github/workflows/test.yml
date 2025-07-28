@@ -34,7 +34,8 @@ jobs:
           
       - name: Run installation script
         run: |
-          bash install.sh --interactive
+          # Run installer in non-interactive mode for CI
+          bash install.sh
           
       - name: Run status check
         run: |
@@ -92,7 +93,7 @@ jobs:
           echo "Checking for potential security issues..."
           
           # Check for hardcoded secrets
-          if grep -r "password\|secret\|key\|token" . --exclude-dir=.git --exclude=*.md; then
+          if grep -r "password\|secret\|key\|token" . --exclude-dir=.git --exclude="*.md"; then
             echo "⚠️  Potential secrets found in code"
             exit 1
           fi
@@ -100,4 +101,4 @@ jobs:
           # Check file permissions
           find . -name "*.sh" -exec ls -la {} \;
           
-          echo "✅ Security scan completed" 
+          echo "✅ Security scan completed"
