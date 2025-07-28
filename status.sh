@@ -4,14 +4,28 @@
 # Version: 4.3 - Enhanced Beautiful Output
 # =============================================================================
 
-# Enhanced color functions for beautiful output
-status_color_red()    { echo -e "\033[31m$1\033[0m"; }
-status_color_green()  { echo -e "\033[32m$1\033[0m"; }
-status_color_yellow() { echo -e "\033[33m$1\033[0m"; }
-status_color_blue()   { echo -e "\033[34m$1\033[0m"; }
-status_color_purple() { echo -e "\033[35m$1\033[0m"; }
-status_color_cyan()   { echo -e "\033[36m$1\033[0m"; }
-status_color_bold()   { echo -e "\033[1m$1\033[0m"; }
+# Load shared color functions
+ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
+if [[ -f "$ZSH_CONFIG_DIR/modules/colors.zsh" ]]; then
+    source "$ZSH_CONFIG_DIR/modules/colors.zsh"
+else
+    color_red()    { echo -e "\033[31m$1\033[0m"; }
+    color_green()  { echo -e "\033[32m$1\033[0m"; }
+    color_yellow() { echo -e "\033[33m$1\033[0m"; }
+    color_blue()   { echo -e "\033[34m$1\033[0m"; }
+    color_magenta(){ echo -e "\033[35m$1\033[0m"; }
+    color_cyan()   { echo -e "\033[36m$1\033[0m"; }
+    color_bold()   { echo -e "\033[1m$1\033[0m"; }
+fi
+
+# Local wrappers for status script
+status_color_red()    { color_red "$@"; }
+status_color_green()  { color_green "$@"; }
+status_color_yellow() { color_yellow "$@"; }
+status_color_blue()   { color_blue "$@"; }
+status_color_purple() { color_magenta "$@"; }
+status_color_cyan()   { color_cyan "$@"; }
+status_color_bold()   { color_bold "$@"; }
 status_color_dim()    { echo -e "\033[2m$1\033[0m"; }
 
 # Progress indicator function
