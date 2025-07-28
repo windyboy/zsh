@@ -5,6 +5,10 @@ cache/
 **/*.zwc
 *.zwc.old
 
+# CI/CD artifacts
+.github/workflows/.cache/
+.github/workflows/logs/
+
 # Backup files
 *.bak
 *.backup

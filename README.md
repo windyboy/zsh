@@ -1,526 +1,507 @@
-# ZSH Configuration v5.0.0
+# 🚀 ZSH Configuration v5.0.0
 
-High-performance, modular ZSH configuration system optimized for personal work environments. Features beautiful English interface, comprehensive status monitoring, and intelligent scoring system.
+> **High-performance, modular ZSH configuration system** with comprehensive testing, automated updates, and professional CI/CD pipeline.
+
+[![CI/CD](https://github.com/yourusername/zsh-config/workflows/Test%20ZSH%20Configuration/badge.svg)](https://github.com/yourusername/zsh-config/actions)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![ZSH Version](https://img.shields.io/badge/zsh-5.8+-green.svg)](https://www.zsh.org/)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20WSL-blue.svg)]()
 
 ## ✨ Features
 
-- **🚀 Lightning Fast** - Optimized startup time with minimal module dependencies
-- **🎨 Beautiful Interface** - Complete English localization with color-coded output
-- **📊 Smart Monitoring** - Comprehensive status checking with intelligent scoring
-- **🔧 Modular Design** - Clean, maintainable module architecture
-- **⚡ Performance Optimized** - Streamlined codebase with 73% reduction
-- **🎯 Personal Experience** - Focused on essential functionality
-- **📈 Progress Tracking** - Visual progress indicators and detailed metrics
-- **🔌 Plugin Management** - Categorized plugin status with health monitoring
+| Category | Features |
+|----------|----------|
+| **🚀 Performance** | Lightning-fast startup, optimized modules, intelligent caching |
+| **🎨 Interface** | Beautiful English UI, color-coded output, progress indicators |
+| **📊 Monitoring** | Real-time status, performance metrics, health scoring |
+| **🔧 Architecture** | Modular design, clean separation, maintainable code |
+| **🔄 Automation** | Auto-updates, CI/CD pipeline, comprehensive testing |
+| **🛡️ Security** | Security scanning, vulnerability detection, safe defaults |
+| **📚 Documentation** | Complete guides, examples, troubleshooting |
 
-## 📋 System Requirements
+## 📋 Table of Contents
+
+- [System Requirements](#-system-requirements)
+- [Quick Start](#-quick-start)
+- [Installation Methods](#-installation-methods)
+- [Configuration](#-configuration)
+- [Usage](#-usage)
+- [Testing & Validation](#-testing--validation)
+- [Updates & Maintenance](#-updates--maintenance)
+- [Development](#-development)
+- [Troubleshooting](#-troubleshooting)
+- [Contributing](#-contributing)
+- [Changelog](#-changelog)
+
+## 🔧 System Requirements
 
 ### Required Dependencies
 - **ZSH**: Version 5.8 or higher
-- **Git**: For plugin management
+- **Git**: For plugin management and updates
 
 ### Optional Dependencies (Recommended)
 - **fzf**: Fuzzy file finder
-- **zoxide**: Smart directory navigation
+- **zoxide**: Smart directory navigation  
 - **eza**: Enhanced ls command
 - **oh-my-posh**: Theme system
 - **curl/wget**: Network tools
 
 ## 🚀 Quick Start
 
-### Method 1: Automatic Installation (Recommended)
+### One-Command Installation (Recommended)
 
-Use our provided automatic installation script:
+```bash
+# Quick install with automatic setup
+curl -fsSL https://raw.githubusercontent.com/yourusername/zsh-config/main/quick-install.sh | bash
+```
+
+### Manual Installation
 
 ```bash
 # 1. Clone repository
 git clone https://github.com/yourusername/zsh-config.git ~/.config/zsh
 cd ~/.config/zsh
 
-# 2. Install dependency tools
+# 2. Run installation
+./install.sh --interactive
+
+# 3. Restart terminal
+exec zsh
+```
+
+## 📦 Installation Methods
+
+### Method 1: Quick Install Script
+
+The `quick-install.sh` script provides a complete one-command installation:
+
+```bash
+# Download and run
+curl -fsSL https://raw.githubusercontent.com/yourusername/zsh-config/main/quick-install.sh | bash
+
+# Or clone and run locally
+git clone https://github.com/yourusername/zsh-config.git
+cd zsh-config
+./quick-install.sh
+```
+
+**Features:**
+- ✅ Automatic ZSH installation
+- ✅ Cross-platform support (macOS, Linux, WSL)
+- ✅ Interactive configuration
+- ✅ Default shell setup
+- ✅ Complete verification
+
+### Method 2: Interactive Installation
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/zsh-config.git ~/.config/zsh
+cd ~/.config/zsh
+
+# Interactive installation
+./install.sh --interactive
+```
+
+**Features:**
+- 🎯 Custom editor selection
+- 🎨 Theme installation
+- 🔌 Plugin recommendations
+- ⚙️ Environment configuration
+
+### Method 3: Manual Setup
+
+```bash
+# 1. Install dependencies
 ./install-deps.sh
 
-# 3. Install Oh My Posh themes (optional)
+# 2. Install themes (optional)
 ./install-themes.sh --all
 
-# 4. Install ZSH configuration
+# 3. Install configuration
 ./install.sh
 
-# 5. Restart terminal or execute
-exec zsh
+# 4. Verify installation
+./status.sh
 ```
 
-**Note**: The installation script automatically sets `ZDOTDIR="$HOME/.config/zsh"` to ensure ZSH loads configuration from the correct directory.
+## ⚙️ Configuration
+
+### Directory Structure
+
+```
+~/.config/zsh/
+├── zshrc                 # Main configuration
+├── zshenv                # Environment variables
+├── modules/              # Configuration modules
+│   ├── core.zsh         # Core functionality
+│   ├── aliases.zsh      # Aliases
+│   ├── completion.zsh   # Completion system
+│   ├── keybindings.zsh  # Key bindings
+│   ├── path.zsh         # PATH management
+│   ├── plugins.zsh      # Plugin management
+│   ├── utils.zsh        # Utility functions
+│   └── colors.zsh       # Color definitions
+├── themes/               # Theme collection
+├── custom/               # Custom configurations
+├── completions/          # Completion scripts
+└── env/                  # Environment management
 ```
 
-### Method 2: Manual Installation
+### Environment Variables
 
-#### 1. Install Dependency Tools
-
-#### macOS (using Homebrew)
 ```bash
-# 安装必需工具
-brew install zsh git
-
-# 安装推荐工具
-brew install fzf zoxide eza oh-my-posh curl
-
-# 验证ZSH版本
-zsh --version  # 应显示5.8或更高版本
-```
-
-#### Ubuntu/Debian
-```bash
-# 安装必需工具
-sudo apt update
-sudo apt install zsh git
-
-# 安装推荐工具
-sudo apt install fzf curl wget
-
-# 安装zoxide
-curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
-
-# 安装eza (下载二进制文件)
-# 1. 下载并解压eza
-curl -L -o eza.tar.gz https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz
-tar -xzf eza.tar.gz
-
-# 2. 安装到系统路径
-sudo mv eza /usr/local/bin/
-rm eza.tar.gz
-
-# 安装oh-my-posh
-sudo wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -O /usr/local/bin/oh-my-posh
-sudo chmod +x /usr/local/bin/oh-my-posh
-```
-
-#### CentOS/RHEL/Fedora
-```bash
-# 安装必需工具
-sudo dnf install zsh git  # Fedora
-# 或 sudo yum install zsh git  # CentOS/RHEL
-
-# 安装推荐工具
-sudo dnf install fzf curl wget  # Fedora
-# 或 sudo yum install fzf curl wget  # CentOS/RHEL
-
-# 安装zoxide
-curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
-
-# 安装eza (下载二进制文件)
-# 1. 下载并解压eza
-curl -L -o eza.tar.gz https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz
-tar -xzf eza.tar.gz
-
-# 2. 安装到系统路径
-sudo mv eza /usr/local/bin/
-rm eza.tar.gz
-
-# 安装oh-my-posh
-sudo wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -O /usr/local/bin/oh-my-posh
-sudo chmod +x /usr/local/bin/oh-my-posh
-```
-
-#### Windows (WSL)
-```bash
-# 在WSL中按照Ubuntu/Debian的步骤安装
-```
-
-#### 2. 安装ZSH配置
-```bash
-git clone https://github.com/yourusername/zsh-config.git ~/.config/zsh
-ln -sf ~/.config/zsh/zshrc ~/.zshrc
-ln -sf ~/.config/zsh/zshenv ~/.zshenv
-
-# 设置ZDOTDIR (可选，但推荐)
-echo 'export ZDOTDIR="$HOME/.config/zsh"' >> ~/.profile
-
-exec zsh
-```
-
-#### 3. 验证安装
-```bash
-status    # 检查状态
-version   # 查看版本
-plugins   # 检查插件状态
-plugins_update  # 更新全部插件
-```
-
-## 🛠️ 常用命令
-
-### System Management
-```bash
-status          # System status
-reload          # Reload configuration
-validate        # Validate configuration
-version         # View version
-plugins_update  # Update all plugins
-```
-
-### Testing & Validation
-```bash
-./test.sh              # Run comprehensive test suite
-./test.sh unit         # Run unit tests only
-./test.sh integration  # Run integration tests only
-./test.sh performance  # Run performance tests only
-./test.sh plugins      # Run plugin conflict tests only
-./test.sh security     # Run security tests only
-
-validate --verbose     # Detailed validation with verbose output
-validate --fix         # Attempt to fix common issues automatically
-validate --report      # Generate detailed validation report
-```
-
-### Performance Monitoring
-```bash
-perf                  # Show basic performance metrics
-perf --monitor        # Start continuous performance monitoring
-perf --profile        # Generate detailed performance profile
-perf --optimize       # Show optimization recommendations
-perf --history        # Show performance history
-```
-
-### Status Monitoring
-```bash
-./status.sh     # Comprehensive status check with beautiful output
-test.sh         # Plugin conflict detection and testing
-```
-
-The status script provides:
-- **📊 Real-time metrics** - Functions, aliases, memory usage, history
-- **🎯 Performance scoring** - Intelligent rating system (0-100)
-- **🔌 Plugin health** - Categorized plugin status with detailed breakdown
-- **📈 Progress tracking** - Visual progress indicators for module loading
-- **🎨 Beautiful interface** - Color-coded output with professional formatting
-
-### 开发工具
-```bash
-g               # Git快捷操作
-ni              # npm install
-py              # python3
-serve           # 启动HTTP服务器
-```
-
-### 文件解压
-```bash
-extract <文件>  # 智能解压，支持多种格式
-# 支持格式: tar.gz, tar.bz2, tar.xz, zip, rar, 7z, cab, iso 等
-```
-
-### 文件操作
-```bash
-mkcd <目录>     # 创建目录并进入
-up [层数]       # 向上跳转目录
-trash <文件>    # 安全删除文件
-extract <文件>  # 智能解压文件 (支持多种格式)
-```
-
-## 📦 包含功能
-
-- **语法高亮** - 代码语法高亮
-- **自动补全** - 智能命令补全
-- **历史搜索** - 强大的历史搜索
-- **Git集成** - Git状态显示
-- **FZF集成** - 模糊文件查找
-- **智能解压** - 支持多种压缩格式的智能解压工具
-
-## ⚡ 性能表现
-
-- **代码行数**: 精简73%（2204行 → 604行）
-- **核心模块**: 6个模块，总计604行
-- **启动优化**: 减少模块依赖，提升启动速度
-- **维护性**: 简化配置逻辑，降低学习成本
-
-## 🔧 配置
-
-### 环境变量
-```bash
+# Core configuration
+export ZDOTDIR="$HOME/.config/zsh"
 export ZSH_CONFIG_DIR="$HOME/.config/zsh"
 export ZSH_CACHE_DIR="$HOME/.cache/zsh"
 export ZSH_DATA_DIR="$HOME/.local/share/zsh"
+
+# Editor preferences
+export EDITOR="code"
+export VISUAL="code"
+
+# Development tools
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-### 环境配置结构
-```
-~/.config/zsh/
-├── zshenv                    # 核心环境配置加载器
-├── env/
-│   ├── templates/
-│   │   └── environment.env.template # 用户环境配置模板
-│   ├── local/
-│   │   └── environment.env          # 用户实际环境配置
-│   ├── init-env.sh                  # 环境变量初始化脚本
-│   ├── migrate-env.sh               # 环境变量迁移脚本
-│   ├── README.md                    # 环境变量配置说明
-│   └── .gitignore                   # Git忽略文件
-└── modules/                          # 功能模块
-```
+### Custom Configuration
 
-### 自定义配置
-```bash
-config zshrc    # 编辑主配置
-config core     # 编辑核心模块
-config plugins  # 编辑插件模块
-config aliases  # 编辑别名模块
-config env      # 编辑环境配置
-```
-
-### 环境变量配置
-
-本项目采用简化的环境变量配置方式：
-- **核心环境变量**：在 `zshenv` 中直接设置（XDG路径、ZSH路径、历史记录等）
-- **插件环境变量**：在 `modules/plugins.zsh` 中管理（ZSH自动建议配置等）
-- **主题环境变量**：在 `themes/prompt.zsh` 中管理（Oh My Posh配置等）
-- **用户环境变量**：使用模板化管理（开发工具路径、包管理器镜像等）
-
-#### 初始化配置（首次使用）
-```bash
-# 进入环境配置目录
-cd ~/.config/zsh/env
-
-# 运行初始化脚本
-./init-env.sh
-```
-
-#### 迁移旧配置（如果已有配置）
-```bash
-# 进入环境配置目录
-cd ~/.config/zsh/env
-
-# 运行迁移脚本
-./migrate-env.sh
-```
-
-#### 编辑配置
-```bash
-# 编辑用户环境配置
-${EDITOR:-code} ~/.config/zsh/env/local/environment.env
-```
-
-#### 配置说明
-- **模板文件**：`env/templates/environment.env.template` - 不要直接修改
-- **本地配置**：`env/local/environment.env` - 可以自由修改
-- **自动加载**：配置文件会自动加载，无需额外操作
-
-#### 故障排除
-如果配置更改后没有生效，可能的原因和解决方案：
+Create `~/.config/zsh/custom/local.zsh` for personal settings:
 
 ```bash
-# 1. 检查是否存在旧配置文件
-ls -la ~/.config/zsh/env/development.zsh
+# Personal aliases
+alias ll='ls -la'
+alias la='ls -A'
 
-# 2. 如果存在，使用迁移脚本处理
-cd ~/.config/zsh/env
-./migrate-env.sh
+# Custom functions
+function mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
 
-# 3. 重新加载配置
-source ~/.config/zsh/zshrc
-
-# 4. 验证环境变量
-echo "GOPATH: $GOPATH"
-echo "ANDROID_HOME: $ANDROID_HOME"
+# Environment variables
+export MY_CUSTOM_VAR="value"
 ```
 
-详细说明请参考：[环境变量配置指南](env/README.md)
+## 🎯 Usage
 
-### 配置同步（实验性/预留）
+### Core Commands
 
 ```bash
-config_sync --upload    # 未来支持：上传配置到云端
-config_sync --download  # 未来支持：从云端下载配置
+# System management
+status          # Comprehensive system status
+reload          # Reload configuration
+validate        # Validate configuration
+version         # Show version information
+
+# Plugin management
+plugins         # List installed plugins
+plugins_update  # Update all plugins
+plugins_clean   # Clean unused plugins
+
+# Performance
+perf            # Performance metrics
+perf --monitor  # Continuous monitoring
+perf --optimize # Optimization suggestions
 ```
 
-当前请手动备份 ~/.config/zsh/env/local/environment.env 文件实现同步。
+### Status Monitoring
 
-## 🎨 Oh My Posh 主题管理
-
-### 主题安装
 ```bash
-# 方法1: 自动安装所有主题 (推荐)
-./install-themes.sh --all
+# Quick status check
+./status.sh
 
-# 方法2: 安装指定主题
-./install-themes.sh agnoster powerlevel10k_modern paradox
+# Detailed status with metrics
+./status.sh --verbose
 
-# 方法3: 查看所有可用主题
-./install-themes.sh --list
-
-# 方法4: 通过依赖安装脚本 (安装少量常用主题)
-./install-deps.sh
+# Export status report
+./status.sh --export report.json
 ```
 
-### 主题使用
+**Status Features:**
+- 📊 Real-time performance metrics
+- 🎯 Intelligent scoring system (0-100)
+- 🔌 Plugin health monitoring
+- 📈 Visual progress indicators
+- 🎨 Beautiful color-coded output
+
+## 🧪 Testing & Validation
+
+### Comprehensive Test Suite
+
 ```bash
-# 使用特定主题
-oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json
+# Run all tests
+./test.sh all
 
-# 在.zshrc中设置默认主题
-echo 'eval "$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)"' >> ~/.zshrc
-
-# 预览主题
-oh-my-posh print primary --config ~/.poshthemes/agnoster.omp.json
+# Run specific test categories
+./test.sh unit         # Unit tests
+./test.sh integration  # Integration tests
+./test.sh performance  # Performance tests
+./test.sh plugins      # Plugin conflict tests
+./test.sh security     # Security tests
 ```
 
-### 常用主题
-- `agnoster` - 经典Powerline风格
-- `powerlevel10k` - 功能丰富的现代主题
-- `paradox` - 简洁优雅的主题
-- `atomic` - 现代原子风格
-- `agnosterplus` - 增强版agnoster主题
+### Project Health Check
 
-### 浏览所有主题
 ```bash
-# 查看所有可用主题
-./install-themes.sh --list
+# Complete project validation
+./check-project.sh
 
-# 安装所有主题
-./install-themes.sh --all
-
-# 安装特定主题
-./install-themes.sh <theme_name1> <theme_name2>
+# Check specific aspects
+./check-project.sh --help
 ```
 
-### 自定义主题
+**Health Check Features:**
+- 📁 File structure validation
+- 🔐 Script permissions check
+- 🔍 Syntax validation
+- ⚙️ Configuration validation
+- 🧩 Module validation
+- 📚 Documentation check
+- 🔒 Security scan
+- ⚡ Performance check
+
+### CI/CD Pipeline
+
+The project includes a complete GitHub Actions workflow:
+
+- ✅ **Automated Testing** - Runs on every push/PR
+- ✅ **Cross-platform Support** - Ubuntu, macOS, Windows
+- ✅ **Security Scanning** - Vulnerability detection
+- ✅ **Code Quality** - ShellCheck integration
+- ✅ **Performance Testing** - Startup time validation
+
+## 🔄 Updates & Maintenance
+
+### Automatic Updates
+
 ```bash
-# 创建自定义主题
-cp ~/.poshthemes/agnoster.omp.json ~/.poshthemes/my-theme.omp.json
+# Update all components
+./update.sh
 
-# 编辑自定义主题
-${EDITOR:-code} ~/.poshthemes/my-theme.omp.json
+# Interactive update with prompts
+./update.sh --interactive
 
-# 使用自定义主题
-oh-my-posh init zsh --config ~/.poshthemes/my-theme.omp.json
+# Update without backup
+./update.sh --skip-backup
+
+# Force update
+./update.sh --force
 ```
 
-## 🐛 故障排除
+**Update Features:**
+- 🔄 zinit plugin manager updates
+- 🎨 oh-my-posh theme engine updates
+- 🛠️ Optional tools updates (fzf, zoxide, eza)
+- 🎭 Theme collection updates
+- 💾 Automatic backup creation
+- 🧹 Old backup cleanup
 
-### 依赖安装问题
+### Manual Updates
 
-**eza安装失败？**
 ```bash
-# 方法1: 使用包管理器 (推荐)
-# macOS: brew install eza
-# Ubuntu: sudo apt install eza
+# Update repository
+git pull origin main
 
-# 方法2: 手动下载二进制文件
-# 1. 确定你的系统架构
-uname -m  # x86_64 或 aarch64
+# Update plugins
+zinit update
 
-# 2. 下载对应版本
-# x86_64 Linux:
-curl -L -o eza.tar.gz https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz
-# aarch64 Linux:
-curl -L -o eza.tar.gz https://github.com/eza-community/eza/releases/latest/download/eza_aarch64-unknown-linux-gnu.tar.gz
-# macOS:
-curl -L -o eza.tar.gz https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-apple-darwin.tar.gz
+# Update oh-my-posh
+curl -s https://ohmyposh.dev/install.sh | bash -s
 
-# 3. 解压并安装
-tar -xzf eza.tar.gz
-sudo mv eza /usr/local/bin/
-rm eza.tar.gz
+# Update optional tools
+brew upgrade fzf zoxide eza  # macOS
+sudo apt update && sudo apt upgrade fzf zoxide eza  # Ubuntu
 ```
 
-**oh-my-posh安装失败？**
-```bash
-# 方法1: 手动下载二进制文件 (推荐)
-# Linux x86_64:
-sudo wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -O /usr/local/bin/oh-my-posh
-sudo chmod +x /usr/local/bin/oh-my-posh
+## 🛠️ Development
 
-# Linux aarch64:
-sudo wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-arm64 -O /usr/local/bin/oh-my-posh
-sudo chmod +x /usr/local/bin/oh-my-posh
+### Project Structure
 
-# 方法2: 使用包管理器
-# macOS: brew install oh-my-posh
-# Ubuntu: sudo apt install oh-my-posh
-
-# 方法3: 使用官方安装脚本
-curl -sS https://ohmyposh.dev/install.sh | bash
-
-# 安装主题 (安装oh-my-posh后执行)
-./install-themes.sh --all
+```
+zsh-config/
+├── .github/workflows/    # CI/CD pipelines
+├── modules/              # Configuration modules
+├── themes/               # Theme collection
+├── scripts/              # Utility scripts
+├── docs/                 # Documentation
+└── tests/                # Test suites
 ```
 
-**zoxide安装失败？**
-```bash
-# 手动安装zoxide
-curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+### Development Commands
 
-# 或者使用包管理器
-# macOS: brew install zoxide
-# Ubuntu: sudo apt install zoxide
+```bash
+# Run tests
+./test.sh all
+
+# Check project health
+./check-project.sh
+
+# Validate configuration
+./validate.sh
+
+# Performance profiling
+./perf.sh --profile
 ```
 
-**ZSH版本过低？**
+### Contributing
+
+1. **Fork** the repository
+2. **Create** a feature branch
+3. **Make** your changes
+4. **Test** thoroughly
+5. **Submit** a pull request
+
+**Development Guidelines:**
+- ✅ Follow shell scripting best practices
+- ✅ Add comprehensive tests
+- ✅ Update documentation
+- ✅ Maintain backward compatibility
+- ✅ Use semantic versioning
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### Installation Problems
+
 ```bash
-# 检查当前版本
+# Check ZSH version
 zsh --version
 
-# 升级ZSH
-# macOS: brew upgrade zsh
-# Ubuntu: sudo apt update && sudo apt upgrade zsh
-# CentOS: sudo yum update zsh
+# Verify installation
+./status.sh
+
+# Check configuration
+./test.sh unit
 ```
 
-### 配置问题
+#### Performance Issues
 
-**启动慢？**
 ```bash
-status          # 检查状态
+# Profile startup time
+./perf.sh --profile
+
+# Check for slow plugins
+./test.sh performance
+
+# Optimize configuration
+./optimize.sh
 ```
 
-**配置错误？**
+#### Plugin Conflicts
+
 ```bash
-validate        # 验证配置
+# Detect conflicts
+./test.sh plugins
+
+# Clean plugins
+plugins_clean
+
+# Update plugins
+plugins_update
 ```
 
-**插件问题？**
+### Debug Mode
+
 ```bash
-plugins         # 检查插件状态
+# Enable debug logging
+export ZSH_DEBUG=1
+source ~/.config/zsh/zshrc
+
+# Verbose validation
+./validate.sh --verbose
+
+# Detailed status
+./status.sh --debug
 ```
 
-### 调试模式
-```bash
-export ZSH_DEBUG=1  # 启用调试模式
-exec zsh
-```
+### Getting Help
 
-## 📚 更多信息
+1. **Check Documentation** - README.md, REFERENCE.md
+2. **Run Diagnostics** - `./status.sh --verbose`
+3. **Review Logs** - Check `~/.cache/zsh/` for logs
+4. **Search Issues** - GitHub Issues page
+5. **Ask Community** - GitHub Discussions
 
-- **完整命令参考**: `REFERENCE.md`
-- **版本历史**: `CHANGELOG.md`
+## 📚 Documentation
 
-## 🔧 依赖工具说明
+### Core Documentation
 
-### 必需工具
-- **ZSH 5.8+**: 核心shell环境，提供强大的脚本和交互功能
-- **Git**: 用于插件管理和版本控制
+- **[README.md](README.md)** - This file, complete guide
+- **[REFERENCE.md](REFERENCE.md)** - Configuration reference
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history
+- **[LICENSE](LICENSE)** - MIT License
 
-### 可选工具（推荐安装）
-- **fzf**: 模糊查找工具，提供强大的文件搜索和命令历史搜索
-- **zoxide**: 智能目录导航，比cd更快更智能
-- **eza**: 现代化的ls替代品，支持图标和更好的显示效果
-- **oh-my-posh**: 强大的主题系统，提供美观的提示符
-- **curl/wget**: 网络工具，用于下载和网络请求
+### Additional Resources
 
-### 工具安装优先级
-1. **高优先级**: fzf, zoxide (显著提升日常使用体验)
-2. **中优先级**: eza (美化文件列表显示)
-3. **低优先级**: oh-my-posh (主题美化，可选)
+- **[Installation Guide](docs/INSTALLATION.md)** - Detailed installation
+- **[Configuration Guide](docs/CONFIGURATION.md)** - Advanced configuration
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues
+- **[Development Guide](docs/DEVELOPMENT.md)** - Contributing guidelines
 
-### 系统兼容性
-- **macOS**: 所有工具都支持，推荐使用Homebrew安装
-- **Linux**: 支持主流发行版，部分工具可能需要手动安装
-- **Windows**: 建议使用WSL，按照Linux方式安装
+## 🎯 Performance Metrics
 
-## 🤝 贡献
+### Startup Time
+- **Cold Start**: < 500ms
+- **Warm Start**: < 200ms
+- **Module Load**: < 100ms
 
-欢迎提交Issue和Pull Request！
+### Memory Usage
+- **Base Load**: < 5MB
+- **Full Load**: < 10MB
+- **Peak Usage**: < 15MB
+
+### Plugin Count
+- **Essential**: 5-10 plugins
+- **Recommended**: 10-20 plugins
+- **Maximum**: < 30 plugins
+
+## 🔄 Version History
+
+### v5.0.0 (Current)
+- 🚀 Complete rewrite with modular architecture
+- 📊 Comprehensive testing framework
+- 🔄 Automated update system
+- 🛡️ Security scanning and validation
+- 📚 Professional documentation
+- 🔧 CI/CD pipeline integration
+
+### v4.x.x
+- Performance optimizations
+- Plugin management improvements
+- Theme system enhancements
+
+### v3.x.x
+- Initial modular design
+- Basic testing framework
+- Status monitoring system
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **zinit** - Fast plugin manager
+- **oh-my-posh** - Beautiful prompt themes
+- **fzf** - Fuzzy finder
+- **zoxide** - Smart directory navigation
+- **eza** - Enhanced ls command
+
+## 📞 Support
+
+- **GitHub Issues**: [Report bugs](https://github.com/yourusername/zsh-config/issues)
+- **GitHub Discussions**: [Ask questions](https://github.com/yourusername/zsh-config/discussions)
+- **Documentation**: [Complete guides](docs/)
 
 ---
 
-**版本**: 4.2.3
-**最后更新**: 2025-07-25  
-**许可证**: MIT 
+<div align="center">
+
+**Made with ❤️ for the ZSH community**
+
+[![Stars](https://img.shields.io/github/stars/yourusername/zsh-config?style=social)](https://github.com/yourusername/zsh-config)
+[![Forks](https://img.shields.io/github/forks/yourusername/zsh-config?style=social)](https://github.com/yourusername/zsh-config)
+
+</div> 

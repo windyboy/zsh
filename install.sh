@@ -77,7 +77,10 @@ check_optional_tools() {
 # Setup directories
 setup_dirs() {
     log "Setting up directories..."
-    mkdir -p "$HOME/.config/zsh" "$HOME/.cache/zsh" "$HOME/.local/share/zsh"
+    if ! mkdir -p "$HOME/.config/zsh" "$HOME/.cache/zsh" "$HOME/.local/share/zsh"; then
+        error "Failed to create directories"
+        return 1
+    fi
     success "Directories ready"
 }
 
@@ -117,7 +120,10 @@ install_zinit() {
     
     if [[ ! -d "$zinit_dir" ]]; then
         log "Installing zinit..."
-        git clone https://github.com/zdharma-continuum/zinit.git "$zinit_dir"
+        if ! git clone https://github.com/zdharma-continuum/zinit.git "$zinit_dir"; then
+            error "Failed to install zinit"
+            return 1
+        fi
         success "Zinit installed"
     else
         log "Zinit already installed"
@@ -130,21 +136,37 @@ setup_config() {
     
     # Backup existing files
     if [[ -f "$HOME/.zshrc" ]]; then
-        mv "$HOME/.zshrc" "$HOME/.zshrc.backup.$(date +%Y%m%d_%H%M%S)"
+        if ! mv "$HOME/.zshrc" "$HOME/.zshrc.backup.$(date +%Y%m%d_%H%M%S)"; then
+            error "Failed to backup .zshrc"
+            return 1
+        fi
         warning "Backed up existing .zshrc"
     fi
     
     if [[ -f "$HOME/.zshenv" ]]; then
-        mv "$HOME/.zshenv" "$HOME/.zshenv.backup.$(date +%Y%m%d_%H%M%S)"
+        if ! mv "$HOME/.zshenv" "$HOME/.zshenv.backup.$(date +%Y%m%d_%H%M%S)"; then
+            error "Failed to backup .zshenv"
+            return 1
+        fi
         warning "Backed up existing .zshenv"
     fi
     
     # Create symlinks
-    ln -sf "$HOME/.config/zsh/zshrc" "$HOME/.zshrc"
-    ln -sf "$HOME/.config/zsh/zshenv" "$HOME/.zshenv"
+    if ! ln -sf "$HOME/.config/zsh/zshrc" "$HOME/.zshrc"; then
+        error "Failed to create .zshrc symlink"
+        return 1
+    fi
+    
+    if ! ln -sf "$HOME/.config/zsh/zshenv" "$HOME/.zshenv"; then
+        error "Failed to create .zshenv symlink"
+        return 1
+    fi
     
     # Set ZDOTDIR in shell profile if not already set
-    setup_zdotdir
+    if ! setup_zdotdir; then
+        error "Failed to setup ZDOTDIR"
+        return 1
+    fi
     
     success "Configuration ready"
 }
@@ -244,14 +266,37 @@ EOF
 # Main installation
 main() {
     log "Starting ZSH installation..."
-    check_prereq
-    setup_dirs
-    install_zinit
-    setup_config
-    set_shell
-    if [[ $INTERACTIVE_MODE -eq 1 ]]; then
-        interactive_setup
+    
+    if ! check_prereq; then
+        error "Prerequisites check failed"
+        exit 1
     fi
+    
+    if ! setup_dirs; then
+        error "Directory setup failed"
+        exit 1
+    fi
+    
+    if ! install_zinit; then
+        error "Zinit installation failed"
+        exit 1
+    fi
+    
+    if ! setup_config; then
+        error "Configuration setup failed"
+        exit 1
+    fi
+    
+    if ! set_shell; then
+        warning "Failed to set default shell (this is not critical)"
+    fi
+    
+    if [[ $INTERACTIVE_MODE -eq 1 ]]; then
+        if ! interactive_setup; then
+            warning "Interactive setup had issues"
+        fi
+    fi
+    
     success "Installation completed!"
     log "Next: restart terminal and run './status.sh'"
 }

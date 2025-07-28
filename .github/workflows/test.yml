@@ -1,0 +1,103 @@
+name: Test ZSH Configuration
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install ZSH
+        run: |
+          sudo apt update
+          sudo apt install -y zsh git curl wget
+          zsh --version
+          
+      - name: Install dependencies
+        run: |
+          # Install basic dependencies
+          sudo apt install -y build-essential
+          
+          # Install optional tools for testing
+          sudo apt install -y fzf zoxide eza
+          
+          # Install oh-my-posh
+          wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -O /usr/local/bin/oh-my-posh
+          chmod +x /usr/local/bin/oh-my-posh
+          
+      - name: Run installation script
+        run: |
+          bash install.sh --interactive
+          
+      - name: Run status check
+        run: |
+          zsh status.sh
+          
+      - name: Run comprehensive tests
+        run: |
+          zsh test.sh all
+          
+      - name: Test configuration loading
+        run: |
+          # Test if configuration loads without errors
+          zsh -c "source ~/.config/zsh/zshrc && echo 'Configuration loaded successfully'"
+          
+      - name: Verify installation
+        run: |
+          # Check if key components are installed
+          echo "Checking installation..."
+          [[ -d "$HOME/.local/share/zsh/zinit" ]] || exit 1
+          [[ -L "$HOME/.zshrc" ]] || exit 1
+          [[ -L "$HOME/.zshenv" ]] || exit 1
+          echo "✅ Installation verification passed"
+          
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install shellcheck
+        run: |
+          sudo apt update
+          sudo apt install -y shellcheck
+          
+      - name: Lint shell scripts
+        run: |
+          shellcheck install.sh
+          shellcheck status.sh
+          shellcheck test.sh
+          shellcheck install-deps.sh
+          shellcheck install-themes.sh
+          shellcheck optimize.sh
+          
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Security scan
+        run: |
+          # Check for potential security issues
+          echo "Checking for potential security issues..."
+          
+          # Check for hardcoded secrets
+          if grep -r "password\|secret\|key\|token" . --exclude-dir=.git --exclude=*.md; then
+            echo "⚠️  Potential secrets found in code"
+            exit 1
+          fi
+          
+          # Check file permissions
+          find . -name "*.sh" -exec ls -la {} \;
+          
+          echo "✅ Security scan completed" 

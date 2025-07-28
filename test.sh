@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 # =============================================================================
 # ZSH Configuration Test Suite
 # Version: 5.0 - Comprehensive Testing Framework
