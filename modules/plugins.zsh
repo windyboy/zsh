@@ -12,29 +12,55 @@ source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 : "${ZSH_ENABLE_PLUGINS:=1}"
 : "${ZSH_ENABLE_OPTIONAL_PLUGINS:=1}"
 
+# Set ZINIT_HOME globally
+export ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit"
+
 # -------------------- Plugin Initialization --------------------
 plugin_init() {
     [[ -n "$ZINIT" ]] && return
-    local ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit"
+    
     local ZINIT_BIN="${ZINIT_HOME}/zinit.git"
-    [[ ! -f "$ZINIT_BIN/zinit.zsh" ]] && echo "📦 Installing zinit..." && mkdir -p "$ZINIT_HOME" && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_BIN"
-    source "$ZINIT_BIN/zinit.zsh" 2>/dev/null
-    ZINIT[MUTE_WARNINGS]=1 2>/dev/null || true
-    ZINIT[OPTIMIZE_OUT_DISK_ACCESSES]=1 2>/dev/null || true
-    ZINIT[COMPINIT_OPTS]="-C" 2>/dev/null || true
-    ZINIT[NO_ALIASES]=1 2>/dev/null || true
+    
+    # Create directory if it doesn't exist
+    [[ ! -d "$ZINIT_HOME" ]] && mkdir -p "$ZINIT_HOME"
+    
+    # Install zinit if not present
+    if [[ ! -f "$ZINIT_BIN/zinit.zsh" ]]; then
+        echo "📦 Installing zinit..."
+        if git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_BIN" 2>/dev/null; then
+            echo "✅ zinit installed successfully"
+        else
+            echo "❌ Failed to install zinit"
+            return 1
+        fi
+    fi
+    
+    # Source zinit with error handling
+    if source "$ZINIT_BIN/zinit.zsh" 2>/dev/null; then
+        ZINIT[MUTE_WARNINGS]=1 2>/dev/null || true
+        ZINIT[OPTIMIZE_OUT_DISK_ACCESSES]=1 2>/dev/null || true
+        ZINIT[COMPINIT_OPTS]="-C" 2>/dev/null || true
+        ZINIT[NO_ALIASES]=1 2>/dev/null || true
+        echo "✅ zinit loaded successfully"
+        return 0
+    else
+        echo "❌ Failed to load zinit"
+        return 1
+    fi
 }
 
 typeset -ga ZINIT_PLUGINS=(
     zdharma-continuum/fast-syntax-highlighting
+    zsh-users/zsh-autosuggestions
     zsh-users/zsh-completions
     zsh-users/zsh-history-substring-search
     le0me55i/zsh-extract
     rupa/z
+    Aloxaf/fzf-tab
 )
 
 typeset -ga OPTIONAL_ZINIT_PLUGINS=(
-    Aloxaf/fzf-tab
+    # Add other optional plugins here if needed
 )
 
 typeset -ga BUILTIN_SNIPPETS=(
@@ -45,23 +71,68 @@ typeset -ga BUILTIN_SNIPPETS=(
 plugins_load() {
     (( ZSH_ENABLE_PLUGINS )) || { color_yellow "Plugins disabled via ZSH_ENABLE_PLUGINS=0"; return; }
 
-    plugin_init
+    # Initialize zinit with error handling
+    if ! plugin_init; then
+        color_red "❌ Failed to initialize plugin system"
+        return 1
+    fi
+    
     [[ ! -o interactive ]] && return
 
+    # Load core plugins with error handling
+    local loaded_plugins=0
+    local total_plugins=${#ZINIT_PLUGINS[@]}
+    
     for p in "${ZINIT_PLUGINS[@]}"; do
-        zinit ice wait"0" lucid
-        zinit light "$p" 2>/dev/null || true
+        if [[ "$p" == "Aloxaf/fzf-tab" ]]; then
+            # Special handling for fzf-tab
+            if zinit ice wait"0" lucid 2>/dev/null && zinit light "$p" 2>/dev/null; then
+                ((loaded_plugins++))
+                echo "✅ Loaded fzf-tab plugin"
+            else
+                color_yellow "⚠️  Failed to load plugin: $p"
+            fi
+        else
+            if zinit ice wait"0" lucid 2>/dev/null && zinit light "$p" 2>/dev/null; then
+                ((loaded_plugins++))
+            else
+                color_yellow "⚠️  Failed to load plugin: $p"
+            fi
+        fi
     done
 
+    # Load builtin snippets
     for snip in "${BUILTIN_SNIPPETS[@]}"; do
-        zinit snippet "$snip"
+        if zinit snippet "$snip" 2>/dev/null; then
+            ((loaded_plugins++))
+        else
+            color_yellow "⚠️  Failed to load snippet: $snip"
+        fi
     done
 
+    # Load optional plugins if enabled and dependencies are available
     if (( ZSH_ENABLE_OPTIONAL_PLUGINS )) && command -v fzf >/dev/null 2>&1; then
         for p in "${OPTIONAL_ZINIT_PLUGINS[@]}"; do
-            zinit ice wait"0" lucid
-            zinit light "$p" 2>/dev/null || true
+            if zinit ice wait"0" lucid 2>/dev/null && zinit light "$p" 2>/dev/null; then
+                ((loaded_plugins++))
+            else
+                color_yellow "⚠️  Failed to load optional plugin: $p"
+            fi
         done
+    fi
+    
+    # Report loading status
+    if [[ $loaded_plugins -gt 0 ]]; then
+        color_green "✅ Loaded $loaded_plugins plugins successfully"
+    else
+        color_red "❌ No plugins loaded successfully"
+    fi
+    
+    # Fallback: manually load fzf-tab if not loaded by zinit
+    if ! (( ${+functions[_fzf_tab_complete]} )) && ! (( ${+functions[_fzf-tab-apply]} )) && ! (( ${+functions[-ftb-complete]} )); then
+        if [[ -f "$ZINIT_HOME/plugins/Aloxaf---fzf-tab/fzf-tab.plugin.zsh" ]]; then
+            source "$ZINIT_HOME/plugins/Aloxaf---fzf-tab/fzf-tab.plugin.zsh" 2>/dev/null && echo "✅ Manually loaded fzf-tab plugin"
+        fi
     fi
 }
 
@@ -152,23 +223,20 @@ if command -v fzf >/dev/null 2>&1; then
     # Accept line with ctrl-space (disabled to avoid conflicts with autosuggest)
     # zstyle ':fzf-tab:*' accept-line 'ctrl-space'
 
-    # Preview configurations (smart content detection)
-    # Use simpler preview commands to avoid function call issues
+    # Preview configurations (enabled for more completions)
     if [[ "$TERM_PROGRAM" == "vscode" && "$LINES" -le 20 ]]; then
         # Disable preview for small VS Code terminals
         zstyle ':fzf-tab:complete:*:*' fzf-preview ''
     else
-        # Enable preview for larger terminals
+        # Preview for directories
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
+        
+        # Preview for files (simple and safe)
         zstyle ':fzf-tab:complete:*:*' fzf-preview '
             if [[ -d "$realpath" ]]; then
                 ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"
             elif [[ -f "$realpath" ]]; then
-                if command -v bat >/dev/null 2>&1; then
-                    bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null
-                else
-                    head -10 "$realpath" 2>/dev/null || echo "File: $realpath"
-                fi
+                file "$realpath" 2>/dev/null || echo "File: $realpath"
             else
                 echo "$realpath"
             fi
@@ -177,6 +245,7 @@ if command -v fzf >/dev/null 2>&1; then
 fi
 
 # -------------------- Common Functions --------------------
+# Test fzf-tab functionality
 test_fzf_tab() {
     [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: test_fzf_tab" && return 0
     
@@ -187,11 +256,12 @@ test_fzf_tab() {
     echo "LINES: $LINES"
     echo ""
     
-    # Check if fzf-tab is loaded
-    if (( ${+functions[_fzf_tab_complete]} )); then
+    # Check if fzf-tab is loaded (check for multiple possible function names)
+    if (( ${+functions[_fzf_tab_complete]} )) || (( ${+functions[_fzf-tab-apply]} )) || (( ${+functions[-ftb-complete]} )); then
         echo "✅ fzf-tab function loaded"
     else
         echo "❌ fzf-tab function not loaded"
+        return 1
     fi
     
     # Check fzf-tab configuration
@@ -210,6 +280,23 @@ test_fzf_tab() {
     
     echo ""
     echo "💡 Try typing 'ls ' and pressing TAB to test completion preview"
+    echo "💡 If preview doesn't work, try: zstyle ':fzf-tab:complete:*:*' fzf-preview ''"
+}
+
+# Test actual tab completion
+test_tab_completion() {
+    echo "🧪 Testing tab completion functionality..."
+    echo ""
+    echo "Try these commands to test tab completion:"
+    echo "1. Type 'ls ' and press TAB"
+    echo "2. Type 'cd ' and press TAB"
+    echo "3. Type 'cat ' and press TAB"
+    echo ""
+    echo "If you see errors, run: disable_fzf_preview"
+    echo "If you want to re-enable directory previews: enable_fzf_preview"
+    echo ""
+    echo "Current fzf-tab configuration:"
+    zstyle -L | grep fzf-tab | head -3
 }
 
 plugins() {
@@ -547,6 +634,105 @@ check_extract_conflicts() {
     fi
 }
 
+# -------------------- Plugin Status Functions --------------------
+plugin_status() {
+    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: plugin_status" && return 0
+
+    echo "🔌 Plugin Status Report"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    # Check zinit status
+    if [[ -n "$ZINIT" ]]; then
+        color_green "✅ zinit loaded"
+        echo "   Home: $ZINIT_HOME"
+    else
+        color_red "❌ zinit not loaded"
+    fi
+    
+    echo ""
+    echo "📦 Core Plugins:"
+    local loaded_count=0
+    local total_count=${#ZINIT_PLUGINS[@]}
+    
+    # Check core plugins
+    for plugin in "${ZINIT_PLUGINS[@]}"; do
+        local plugin_name="${plugin##*/}"
+        local plugin_dir="${plugin//\//---}"
+        # Check zinit plugin directory structure (uses --- instead of /)
+        if [[ -d "$ZINIT_HOME/plugins/$plugin_dir" ]]; then
+            color_green "   ✅ $plugin_name"
+            ((loaded_count++))
+        else
+            color_red "   ❌ $plugin_name"
+        fi
+    done
+    
+    echo ""
+    echo "🛠️  Tool Dependencies:"
+    local tools=("fzf" "zoxide" "eza")
+    for tool in "${tools[@]}"; do
+        if command -v "$tool" >/dev/null 2>&1; then
+            color_green "   ✅ $tool"
+        else
+            color_red "   ❌ $tool"
+        fi
+    done
+    
+    echo ""
+    echo "📊 Summary:"
+    echo "   Core plugins: $loaded_count/$total_count loaded"
+    echo "   Load rate: $((loaded_count * 100 / total_count))%"
+    
+    # Check for common issues
+    echo ""
+    echo "🔍 Common Issues:"
+    if [[ -z "$ZINIT" ]]; then
+        color_red "   • zinit not loaded - check installation"
+    fi
+    
+    if [[ ! -d "$ZINIT_HOME" ]]; then
+        color_red "   • ZINIT_HOME directory missing"
+    fi
+    
+    if [[ ! -f "$ZINIT_HOME/zinit.git/zinit.zsh" ]]; then
+        color_red "   • zinit installation incomplete"
+    fi
+}
+
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED plugins"
 echo "INFO: Plugins module initialized"
+
+# Disable fzf-tab preview (useful for troubleshooting)
+disable_fzf_preview() {
+    echo "🔧 Disabling fzf-tab preview..."
+    zstyle ':fzf-tab:complete:*:*' fzf-preview ''
+    echo "✅ fzf-tab preview disabled"
+    echo "💡 Restart your shell or reload config to re-enable"
+}
+
+# Enable fzf-tab preview with enhanced settings
+enable_fzf_preview() {
+    echo "🔧 Enabling fzf-tab preview with enhanced settings..."
+    
+    # Preview for directories
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
+    
+    # Preview for files and directories (enhanced)
+    zstyle ':fzf-tab:complete:*:*' fzf-preview '
+        if [[ -d "$realpath" ]]; then
+            ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"
+        elif [[ -f "$realpath" ]]; then
+            if command -v bat >/dev/null 2>&1; then
+                bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || file "$realpath" 2>/dev/null || echo "File: $realpath"
+            else
+                file "$realpath" 2>/dev/null || echo "File: $realpath"
+            fi
+        else
+            echo "$realpath"
+        fi
+    '
+    
+    echo "✅ fzf-tab preview enabled with enhanced settings"
+    echo "💡 Directories show contents, files show type or content preview"
+}

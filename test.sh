@@ -193,9 +193,93 @@ run_performance_tests() {
     test_assert "Alias count < 100" "[[ $alias_count -lt 100 ]]" "Too many aliases: $alias_count"
 }
 
-# Plugin Conflict Tests
+# Plugin Tests
 run_plugin_tests() {
-    test_section "Plugin Conflict Tests"
+    test_section "Plugin Tests"
+    
+    # Test zinit availability
+    if [[ -n "$ZINIT" ]]; then
+        test_assert "zinit is loaded" "true" "zinit not loaded"
+    else
+        test_skip "zinit tests" "zinit not available"
+        return
+    fi
+    
+    # Test core plugins
+    local core_plugins=(
+        "fast-syntax-highlighting"
+        "zsh-autosuggestions"
+        "zsh-completions"
+        "zsh-history-substring-search"
+        "z"
+        "zsh-extract"
+        "fzf-tab"
+    )
+    
+    for plugin in "${core_plugins[@]}"; do
+        # Check zinit plugin directory structure (uses --- instead of /)
+        local plugin_dir="${plugin//\//---}"
+        if [[ -d "$ZINIT_HOME/plugins/$plugin_dir" ]]; then
+            test_assert "$plugin plugin installed" "true" "$plugin not installed"
+        else
+            test_skip "$plugin plugin" "$plugin not installed"
+        fi
+    done
+    
+    # Test plugin functions
+    test_assert "extract function exists" "command -v extract >/dev/null 2>&1" "extract function not found"
+    test_assert "z function exists" "command -v z >/dev/null 2>&1" "z function not found"
+    
+    # Test autosuggestions
+    if (( ${+functions[_zsh_autosuggest_bind_widgets]} )); then
+        test_assert "zsh-autosuggestions loaded" "true" "zsh-autosuggestions not loaded"
+    else
+        test_skip "zsh-autosuggestions" "zsh-autosuggestions not loaded"
+    fi
+    
+    # Test syntax highlighting
+    if (( ${+functions[_zsh_highlight]} )); then
+        test_assert "fast-syntax-highlighting loaded" "true" "fast-syntax-highlighting not loaded"
+    else
+        test_skip "fast-syntax-highlighting" "fast-syntax-highlighting not loaded"
+    fi
+    
+    # Test tool dependencies
+    local tools=("fzf" "zoxide" "eza")
+    for tool in "${tools[@]}"; do
+        if command -v "$tool" >/dev/null 2>&1; then
+            test_assert "$tool available" "true" "$tool not available"
+        else
+            test_skip "$tool" "$tool not installed"
+        fi
+    done
+}
+
+# Security Tests
+run_security_tests() {
+    test_section "Security Tests"
+    
+    # Test file permissions - cross-platform compatible
+    local perms="0"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        perms=$(stat -f %Lp "$ZSH_CONFIG_DIR/zshrc" 2>/dev/null || echo "0")
+    else
+        # Linux and other Unix-like systems
+        perms=$(stat -c %a "$ZSH_CONFIG_DIR/zshrc" 2>/dev/null || echo "0")
+    fi
+    test_assert "Config files secure" "[[ $perms -le 644 ]]" "Config files have insecure permissions: $perms"
+    
+    # Test for dangerous aliases
+    test_assert "No dangerous rm alias" "! alias | grep -q '^alias rm=' || alias rm | grep -q 'rm -i'" "Dangerous rm alias found"
+    
+    # Test for command injection vulnerabilities
+    test_assert "No eval in functions" "! grep -r '^[[:space:]]*eval ' \"$ZSH_CONFIG_DIR/modules/\" 2>/dev/null | grep -v 'eval \"\$(oh-my-posh'" "Potential eval usage found"
+}
+
+# Conflict Detection Tests
+run_conflict_tests() {
+    test_section "Conflict Detection Tests"
     
     # Test for duplicate aliases
     local duplicate_aliases=$(alias | cut -d= -f1 | sed 's/^alias //g' | sort | uniq -d)
@@ -211,21 +295,10 @@ run_plugin_tests() {
     # Test for zstyle conflicts
     local duplicate_zstyles=$(zstyle -L | grep -E '^[[:space:]]*:' | awk '{print $1}' | sort | uniq -d)
     test_assert "No duplicate zstyles" "[[ -z \"$duplicate_zstyles\" ]]" "Duplicate zstyle configurations found"
-}
-
-# Security Tests
-run_security_tests() {
-    test_section "Security Tests"
     
-    # Test file permissions
-    local perms=$(stat -c %a "$ZSH_CONFIG_DIR/zshrc" 2>/dev/null || stat -f %Lp "$ZSH_CONFIG_DIR/zshrc" 2>/dev/null || echo "0")
-    test_assert "Config files secure" "[[ $perms -le 644 ]]" "Config files have insecure permissions: $perms"
-    
-    # Test for dangerous aliases
-    test_assert "No dangerous rm alias" "! alias | grep -q '^alias rm=' || alias rm | grep -q 'rm -i'" "Dangerous rm alias found"
-    
-    # Test for command injection vulnerabilities
-    test_assert "No eval in functions" "! grep -r '^[[:space:]]*eval ' \"$ZSH_CONFIG_DIR/modules/\" 2>/dev/null | grep -v 'eval \"\$(oh-my-posh'" "Potential eval usage found"
+    # Test for function name conflicts
+    local duplicate_functions=$(declare -F 2>/dev/null | awk '{print $3}' | sort | uniq -d)
+    test_assert "No duplicate functions" "[[ -z \"$duplicate_functions\" ]]" "Duplicate functions found: $duplicate_functions"
 }
 
 # Main test runner
@@ -254,6 +327,9 @@ main() {
         "plugins")
             run_plugin_tests
             ;;
+        "conflicts")
+            run_conflict_tests
+            ;;
         "security")
             run_security_tests
             ;;
@@ -262,6 +338,7 @@ main() {
             run_integration_tests
             run_performance_tests
             run_plugin_tests
+            run_conflict_tests
             run_security_tests
             ;;
     esac
@@ -277,7 +354,8 @@ show_help() {
     echo "  unit         - Run unit tests only"
     echo "  integration  - Run integration tests only"
     echo "  performance  - Run performance tests only"
-    echo "  plugins      - Run plugin conflict tests only"
+    echo "  plugins      - Run plugin tests only"
+    echo "  conflicts    - Run conflict detection tests only"
     echo "  security     - Run security tests only"
     echo "  all          - Run all tests (default)"
     echo
@@ -285,6 +363,7 @@ show_help() {
     echo "  $0              # Run all tests"
     echo "  $0 unit         # Run unit tests only"
     echo "  $0 performance  # Run performance tests only"
+    echo "  $0 plugins      # Run plugin tests only"
 }
 
 # Parse command line arguments
