@@ -240,19 +240,7 @@ if command -v fzf >/dev/null 2>&1; then
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
         
         # Preview for files (simple and safe)
-        zstyle ':fzf-tab:complete:*:*' fzf-preview '
-            if [[ -d "$realpath" ]]; then
-                ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"
-            elif [[ -f "$realpath" ]]; then
-                if command -v bat >/dev/null 2>&1; then
-                    bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null
-                else
-                    head -10 "$realpath" 2>/dev/null || echo "File: $realpath"
-                fi
-            else
-                echo "$realpath"
-            fi
-        '
+        zstyle ':fzf-tab:complete:*:*' fzf-preview '[[ -d "$realpath" ]] && ls -la "$realpath" 2>/dev/null || [[ -f "$realpath" ]] && (command -v bat >/dev/null 2>&1 && bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null) || echo "$realpath"'
     fi
 
 fi
@@ -732,19 +720,7 @@ enable_fzf_preview() {
     zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
     
     # Preview for files and directories (enhanced)
-    zstyle ':fzf-tab:complete:*:*' fzf-preview '
-        if [[ -d "$realpath" ]]; then
-            ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"
-        elif [[ -f "$realpath" ]]; then
-            if command -v bat >/dev/null 2>&1; then
-                bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || file "$realpath" 2>/dev/null || echo "File: $realpath"
-            else
-                file "$realpath" 2>/dev/null || echo "File: $realpath"
-            fi
-        else
-            echo "$realpath"
-        fi
-    '
+    zstyle ':fzf-tab:complete:*:*' fzf-preview '[[ -d "$realpath" ]] && ls -la "$realpath" 2>/dev/null || [[ -f "$realpath" ]] && (command -v bat >/dev/null 2>&1 && bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || file "$realpath" 2>/dev/null) || echo "$realpath"'
     
     echo "✅ fzf-tab preview enabled with enhanced settings"
     echo "💡 Directories show contents, files show type or content preview"
