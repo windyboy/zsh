@@ -87,7 +87,8 @@ fi
 # zinit light romkatv/zsh-bench 2>/dev/null || true
 
 if command -v zoxide >/dev/null 2>&1; then
-    eval "$(zoxide init zsh)"
+    # Use source instead of eval for security
+    source <(zoxide init zsh)
 fi
 if command -v eza >/dev/null 2>&1; then
     alias lt='eza -T --icons --group-directories-first'

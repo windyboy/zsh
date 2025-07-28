@@ -174,11 +174,17 @@ validate() {
         
         if [[ "$fix_mode" == "true" ]]; then
             log_validation "info" "Attempting to fix: $issue"
-            if eval "$fix_command"; then
-                log_validation "success" "Fixed: $issue"
-                return 0
+            # Use command substitution instead of eval for security
+            if [[ "$fix_command" =~ ^(mkdir|chmod|chown|ln|cp|mv|rm)\  ]]; then
+                if $fix_command; then
+                    log_validation "success" "Fixed: $issue"
+                    return 0
+                else
+                    log_validation "warning" "Failed to fix: $issue"
+                    return 1
+                fi
             else
-                log_validation "warning" "Failed to fix: $issue"
+                log_validation "warning" "Skipping potentially unsafe command: $fix_command"
                 return 1
             fi
         fi

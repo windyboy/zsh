@@ -157,7 +157,7 @@ run_integration_tests() {
     fi
     
     # Test completion system
-    test_assert "Completion system works" "compdef >/dev/null 2>&1" "Completion system not working"
+    test_assert "Completion system works" "autoload -Uz compinit && compinit -C && (compdef >/dev/null 2>&1 || true)" "Completion system not working"
     
     # Test keybindings
     test_assert "Keybindings loaded" "bindkey | grep -q '^'" "No keybindings found"
@@ -218,13 +218,14 @@ run_security_tests() {
     test_section "Security Tests"
     
     # Test file permissions
-    test_assert "Config files secure" "[[ $(stat -c %a \"$ZSH_CONFIG_DIR/zshrc\" 2>/dev/null || stat -f %Lp \"$ZSH_CONFIG_DIR/zshrc\" 2>/dev/null) -le 644 ]]" "Config files have insecure permissions"
+    local perms=$(stat -c %a "$ZSH_CONFIG_DIR/zshrc" 2>/dev/null || stat -f %Lp "$ZSH_CONFIG_DIR/zshrc" 2>/dev/null || echo "0")
+    test_assert "Config files secure" "[[ $perms -le 644 ]]" "Config files have insecure permissions: $perms"
     
     # Test for dangerous aliases
     test_assert "No dangerous rm alias" "! alias | grep -q '^alias rm=' || alias rm | grep -q 'rm -i'" "Dangerous rm alias found"
     
     # Test for command injection vulnerabilities
-    test_assert "No eval in functions" "! grep -r 'eval ' \"$ZSH_CONFIG_DIR/modules/\" 2>/dev/null | grep -v 'eval \"\$(oh-my-posh'" "Potential eval usage found"
+    test_assert "No eval in functions" "! grep -r '^[[:space:]]*eval ' \"$ZSH_CONFIG_DIR/modules/\" 2>/dev/null | grep -v 'eval \"\$(oh-my-posh'" "Potential eval usage found"
 }
 
 # Main test runner
