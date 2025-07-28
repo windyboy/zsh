@@ -30,6 +30,8 @@ env/
 ### 2. 插件环境变量（在modules/plugins.zsh中管理）
 - ZSH自动建议配置
 - 其他插件相关配置
+- `ZSH_ENABLE_PLUGINS`：是否加载所有插件（1/0）
+- `ZSH_ENABLE_OPTIONAL_PLUGINS`：是否加载可选插件（如fzf-tab）
 
 ### 3. 主题环境变量（在themes/prompt.zsh中管理）
 - Oh My Posh配置

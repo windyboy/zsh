@@ -36,8 +36,13 @@
 ## 🔧 System Requirements
 
 ### Required Dependencies
+<<<<<<< HEAD
 - **ZSH**: Version 5.8 or higher
 - **Git**: For plugin management and updates
+=======
+- **ZSH**: Version 5.8 or higher (the configuration checks this on startup)
+- **Git**: For plugin management
+>>>>>>> ac16eed89bb6d528f3565da520287a46f6fd429e
 
 ### Optional Dependencies (Recommended)
 - **fzf**: Fuzzy file finder
@@ -167,7 +172,60 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ### Custom Configuration
 
+<<<<<<< HEAD
 Create `~/.config/zsh/custom/local.zsh` for personal settings:
+=======
+### 自定义配置
+```bash
+config zshrc    # 编辑主配置
+config core     # 编辑核心模块
+config plugins  # 编辑插件模块
+config aliases  # 编辑别名模块
+config env      # 编辑环境配置
+```
+
+### 环境变量配置
+
+本项目采用简化的环境变量配置方式：
+- **核心环境变量**：在 `zshenv` 中直接设置（XDG路径、ZSH路径、历史记录等）
+- **插件环境变量**：在 `modules/plugins.zsh` 中管理（ZSH自动建议配置等）
+- `ZSH_ENABLE_PLUGINS` 控制是否加载所有插件
+- `ZSH_ENABLE_OPTIONAL_PLUGINS` 控制可选插件（如 fzf-tab）
+- **主题环境变量**：在 `themes/prompt.zsh` 中管理（Oh My Posh配置等）
+- **用户环境变量**：使用模板化管理（开发工具路径、包管理器镜像等）
+
+#### 初始化配置（首次使用）
+```bash
+# 进入环境配置目录
+cd ~/.config/zsh/env
+
+# 运行初始化脚本
+./init-env.sh
+```
+
+#### 迁移旧配置（如果已有配置）
+```bash
+# 进入环境配置目录
+cd ~/.config/zsh/env
+
+# 运行迁移脚本
+./migrate-env.sh
+```
+
+#### 编辑配置
+```bash
+# 编辑用户环境配置
+${EDITOR:-code} ~/.config/zsh/env/local/environment.env
+```
+
+#### 配置说明
+- **模板文件**：`env/templates/environment.env.template` - 不要直接修改
+- **本地配置**：`env/local/environment.env` - 可以自由修改
+- **自动加载**：配置文件会自动加载，无需额外操作
+
+#### 故障排除
+如果配置更改后没有生效，可能的原因和解决方案：
+>>>>>>> ac16eed89bb6d528f3565da520287a46f6fd429e
 
 ```bash
 # Personal aliases
