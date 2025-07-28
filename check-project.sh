@@ -4,7 +4,7 @@
 # Comprehensive project validation and health check
 # =============================================================================
 
-set -euo pipefail
+set -uo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -37,22 +37,22 @@ run_test() {
     local test_name="$1"
     local test_command="$2"
     local description="${3:-}"
-    
+
     ((TOTAL_TESTS++))
-    
-    if eval "$test_command" >/dev/null 2>&1; then
+
+    set +e
+    eval "$test_command" >/dev/null 2>&1
+    local result=$?
+
+    if [[ $result -eq 0 ]]; then
         ((PASSED_TESTS++))
         success "$test_name"
-        if [[ -n "$description" ]]; then
-            echo "    $description"
-        fi
+        [[ -n "$description" ]] && echo "    $description"
         return 0
     else
         ((FAILED_TESTS++))
         error "$test_name"
-        if [[ -n "$description" ]]; then
-            echo "    $description"
-        fi
+        [[ -n "$description" ]] && echo "    $description"
         return 1
     fi
 }
@@ -61,22 +61,22 @@ run_warning_test() {
     local test_name="$1"
     local test_command="$2"
     local description="${3:-}"
-    
+
     ((TOTAL_TESTS++))
-    
-    if eval "$test_command" >/dev/null 2>&1; then
+
+    set +e
+    eval "$test_command" >/dev/null 2>&1
+    local result=$?
+
+    if [[ $result -eq 0 ]]; then
         ((PASSED_TESTS++))
         success "$test_name"
-        if [[ -n "$description" ]]; then
-            echo "    $description"
-        fi
+        [[ -n "$description" ]] && echo "    $description"
         return 0
     else
         ((WARNINGS++))
         warning "$test_name"
-        if [[ -n "$description" ]]; then
-            echo "    $description"
-        fi
+        [[ -n "$description" ]] && echo "    $description"
         return 1
     fi
 }
