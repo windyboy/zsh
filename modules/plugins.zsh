@@ -206,6 +206,13 @@ if command -v fzf >/dev/null 2>&1; then
             # Disable preview for very small terminals
             zstyle ':fzf-tab:complete:*' fzf-flags --color=fg:1,fg+:2 --bind=tab:accept
         fi
+    elif [[ "$TERM_PROGRAM" == "Apple_Terminal" ]]; then
+        # macOS Terminal - slightly narrower preview window for better fit
+        if [[ "$COLUMNS" -lt 120 ]]; then
+            zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:50%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+        else
+            zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+        fi
     else
         # Standard preview window for other terminals
         zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
@@ -223,25 +230,31 @@ if command -v fzf >/dev/null 2>&1; then
     # Accept line with ctrl-space (disabled to avoid conflicts with autosuggest)
     # zstyle ':fzf-tab:*' accept-line 'ctrl-space'
 
-    # Preview configurations (enabled for more completions)
+    # Preview configurations (smart content detection)
+    # Use simpler preview commands to avoid function call issues
     if [[ "$TERM_PROGRAM" == "vscode" && "$LINES" -le 20 ]]; then
         # Disable preview for small VS Code terminals
         zstyle ':fzf-tab:complete:*:*' fzf-preview ''
     else
-        # Preview for directories
+        # Enable preview for larger terminals
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
         
         # Preview for files (simple and safe)
         zstyle ':fzf-tab:complete:*:*' fzf-preview '
             if [[ -d "$realpath" ]]; then
-                ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"
+                ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
             elif [[ -f "$realpath" ]]; then
-                file "$realpath" 2>/dev/null || echo "File: $realpath"
+                if command -v bat >/dev/null 2>&1; then
+                    bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null
+                else
+                    head -10 "$realpath" 2>/dev/null || echo "File: $realpath"
+                fi
             else
-                echo "$realpath"
+                echo "$realpath"'
             fi
         '
     fi
+
 fi
 
 # -------------------- Common Functions --------------------
