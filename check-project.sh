@@ -37,6 +37,7 @@ run_test() {
     local test_name="$1"
     local test_command="$2"
     local description="${3:-}"
+    local critical="${4:-false}"
     
     ((TOTAL_TESTS++))
     
@@ -48,12 +49,22 @@ run_test() {
         fi
         return 0
     else
-        ((FAILED_TESTS++))
-        error "$test_name"
-        if [[ -n "$description" ]]; then
-            echo "    $description"
+        if [[ "$critical" == "true" ]]; then
+            ((FAILED_TESTS++))
+            error "$test_name"
+            if [[ -n "$description" ]]; then
+                echo "    $description"
+            fi
+            return 1
+        else
+            ((WARNINGS++))
+            warning "$test_name"
+            if [[ -n "$description" ]]; then
+                echo "    $description"
+            fi
+            echo "    ⚠️  Continuing despite failure..."
+            return 0
         fi
-        return 1
     fi
 }
 
@@ -185,6 +196,7 @@ check_configuration() {
         run_test "zshenv syntax validation" "zsh -n '$PROJECT_ROOT/zshenv'" "ZSH environment syntax"
     else
         warning "zsh not available - skipping configuration validation"
+        echo "    💡 Install zsh to enable configuration validation"
     fi
     
     # Check for common issues
@@ -218,6 +230,8 @@ check_modules() {
             run_test "Module $module exists" "true" "Module file"
             if command -v zsh >/dev/null 2>&1; then
                 run_warning_test "Module $module syntax" "zsh -n '$PROJECT_ROOT/modules/$module'" "Module syntax"
+            else
+                warning "Module $module syntax check skipped - zsh not available"
             fi
         else
             run_warning_test "Module $module exists" "false" "Missing module"

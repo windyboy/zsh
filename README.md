@@ -36,13 +36,9 @@
 ## 🔧 System Requirements
 
 ### Required Dependencies
-<<<<<<< HEAD
 - **ZSH**: Version 5.8 or higher
 - **Git**: For plugin management and updates
-=======
-- **ZSH**: Version 5.8 or higher (the configuration checks this on startup)
-- **Git**: For plugin management
->>>>>>> ac16eed89bb6d528f3565da520287a46f6fd429e
+
 
 ### Optional Dependencies (Recommended)
 - **fzf**: Fuzzy file finder
@@ -172,9 +168,8 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ### Custom Configuration
 
-<<<<<<< HEAD
+
 Create `~/.config/zsh/custom/local.zsh` for personal settings:
-=======
 ### 自定义配置
 ```bash
 config zshrc    # 编辑主配置
@@ -282,6 +277,76 @@ perf --optimize # Optimization suggestions
 - 🔌 Plugin health monitoring
 - 📈 Visual progress indicators
 - 🎨 Beautiful color-coded output
+
+## 🛠 Helper Commands
+
+以下是一些用于管理自定义配置的常用命令：
+
+### 安装与依赖管理
+
+```bash
+# 手动安装依赖
+./install-deps.sh
+
+# 安装主题
+./install-themes.sh
+
+# 安装配置（交互式模式）
+./install.sh --interactive
+
+# 快速安装（非交互式）
+./quick-install.sh
+```
+
+### 配置管理
+
+```bash
+# 检查当前状态
+./status.sh
+
+# 优化配置
+./optimize.sh
+
+# 备份配置
+./backup/
+
+# 恢复配置
+./backup/restore.sh
+```
+
+### 测试与验证
+
+```bash
+# 运行单元测试
+./test.sh unit
+
+# 运行性能测试
+./test.sh performance
+
+# 运行完整测试套件
+./test.sh all
+
+# 项目健康检查
+./check-project.sh
+```
+
+### 更新与维护
+
+```bash
+# 更新配置
+./update.sh
+
+# 检查更新
+./update.sh --check
+
+# 强制更新
+./update.sh --force
+```
+
+**注意事项：**
+- 所有脚本执行前确保 `zsh`, `git` 等依赖已安装
+- 建议在修改配置前先备份：`cp -r ~/.config/zsh ~/.config/zsh.backup`
+- 如遇到问题，可查看日志：`./status.sh --verbose`
 
 ## 🧪 Testing & Validation
 

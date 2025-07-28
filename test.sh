@@ -9,7 +9,12 @@ if [[ -z "${ZSH_VERSION:-}" ]]; then
     if command -v zsh >/dev/null 2>&1; then
         exec zsh "$0" "$@"
     else
-        echo "❌ zsh is required but not installed." >&2
+        echo "❌ test.sh must be run with zsh but zsh is not installed or not in PATH" >&2
+        echo "💡 Please install zsh before running tests:" >&2
+        echo "   • macOS: brew install zsh" >&2
+        echo "   • Ubuntu/Debian: sudo apt install zsh" >&2
+        echo "   • CentOS/RHEL: sudo yum install zsh" >&2
+        echo "   • Arch: sudo pacman -S zsh" >&2
         exit 1
     fi
 fi
