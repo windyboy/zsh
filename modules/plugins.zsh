@@ -135,6 +135,13 @@ if command -v fzf >/dev/null 2>&1; then
             # Disable preview for very small terminals
             zstyle ':fzf-tab:complete:*' fzf-flags --color=fg:1,fg+:2 --bind=tab:accept
         fi
+    elif [[ "$TERM_PROGRAM" == "Apple_Terminal" ]]; then
+        # macOS Terminal - slightly narrower preview window for better fit
+        if [[ "$COLUMNS" -lt 120 ]]; then
+            zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:50%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+        else
+            zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+        fi
     else
         # Standard preview window for other terminals
         zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
@@ -154,26 +161,43 @@ if command -v fzf >/dev/null 2>&1; then
 
     # Preview configurations (smart content detection)
     # Use simpler preview commands to avoid function call issues
-    if [[ "$TERM_PROGRAM" == "vscode" && "$LINES" -le 20 ]]; then
+        if [[ "$TERM_PROGRAM" == "vscode" && "$LINES" -le 20 ]]; then
         # Disable preview for small VS Code terminals
         zstyle ':fzf-tab:complete:*:*' fzf-preview ''
-    else
-        # Enable preview for larger terminals
-        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
+    elif [[ "$TERM_PROGRAM" == "Apple_Terminal" ]]; then
+        # macOS Terminal preview tweaks
+        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null | head -20 || echo "Directory: $realpath"'
         zstyle ':fzf-tab:complete:*:*' fzf-preview '
             if [[ -d "$realpath" ]]; then
-                ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"
+                ls -la "$realpath" 2>/dev/null | head -20 || echo "Directory: $realpath"'
             elif [[ -f "$realpath" ]]; then
                 if command -v bat >/dev/null 2>&1; then
                     bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null
                 else
-                    head -10 "$realpath" 2>/dev/null || echo "File: $realpath"
+                    head -10 "$realpath" 2>/dev/null || echo "File: $realpath"'
                 fi
             else
-                echo "$realpath"
+                echo "$realpath"'
+            fi
+        '
+    else
+        # Enable preview for other terminals
+        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
+        zstyle ':fzf-tab:complete:*:*' fzf-preview '
+            if [[ -d "$realpath" ]]; then
+                ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
+            elif [[ -f "$realpath" ]]; then
+                if command -v bat >/dev/null 2>&1; then
+                    bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null
+                else
+                    head -10 "$realpath" 2>/dev/null || echo "File: $realpath"'
+                fi
+            else
+                echo "$realpath"'
             fi
         '
     fi
+
 fi
 
 # -------------------- Common Functions --------------------
