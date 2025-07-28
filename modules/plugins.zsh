@@ -8,8 +8,9 @@
 # Load centralized color functions
 source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 
-# -------------------- zinit Installation and Loading --------------------
-if [[ -z "$ZINIT" ]]; then
+# -------------------- Plugin Initialization --------------------
+plugin_init() {
+    [[ -n "$ZINIT" ]] && return
     local ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit"
     local ZINIT_BIN="${ZINIT_HOME}/zinit.git"
     [[ ! -f "$ZINIT_BIN/zinit.zsh" ]] && echo "📦 Installing zinit..." && mkdir -p "$ZINIT_HOME" && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_BIN"
@@ -18,44 +19,60 @@ if [[ -z "$ZINIT" ]]; then
     ZINIT[OPTIMIZE_OUT_DISK_ACCESSES]=1 2>/dev/null || true
     ZINIT[COMPINIT_OPTS]="-C" 2>/dev/null || true
     ZINIT[NO_ALIASES]=1 2>/dev/null || true
-fi
+}
 
-# -------------------- Essential Plugins (High Frequency) --------------------
-if [[ -o interactive ]]; then
-    zinit ice wait"0" lucid
-    zinit light zdharma-continuum/fast-syntax-highlighting 2>/dev/null || true
-    # zinit ice wait"0" lucid
-    # zinit light zsh-users/zsh-autosuggestions 2>/dev/null || true
-    zinit ice wait"0" lucid
-    zinit light zsh-users/zsh-completions 2>/dev/null || true
-    zinit snippet https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh
-    zinit snippet https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/history/history.plugin.zsh
-fi
+typeset -ga ZINIT_PLUGINS=(
+    zdharma-continuum/fast-syntax-highlighting
+    zsh-users/zsh-completions
+    zsh-users/zsh-history-substring-search
+    le0me55i/zsh-extract
+    rupa/z
+)
 
-# -------------------- Optional Enhancement Plugins --------------------
-if command -v fzf >/dev/null 2>&1; then
-    zinit ice wait"0" lucid
-    zinit light Aloxaf/fzf-tab 2>/dev/null || true
-fi
+typeset -ga OPTIONAL_ZINIT_PLUGINS=(
+    Aloxaf/fzf-tab
+)
 
-# Load history substring search plugin
-zinit ice wait"0" lucid
-zinit light zsh-users/zsh-history-substring-search 2>/dev/null || true
+typeset -ga BUILTIN_SNIPPETS=(
+    https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh
+    https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/history/history.plugin.zsh
+)
+
+plugins_load() {
+    plugin_init
+    [[ ! -o interactive ]] && return
+
+    for p in "${ZINIT_PLUGINS[@]}"; do
+        zinit ice wait"0" lucid
+        zinit light "$p" 2>/dev/null || true
+    done
+
+    for snip in "${BUILTIN_SNIPPETS[@]}"; do
+        zinit snippet "$snip"
+    done
+
+    if command -v fzf >/dev/null 2>&1; then
+        for p in "${OPTIONAL_ZINIT_PLUGINS[@]}"; do
+            zinit ice wait"0" lucid
+            zinit light "$p" 2>/dev/null || true
+        done
+    fi
+}
+
+plugins_update() {
+    plugin_init
+    zinit self-update && zinit update --all
+}
+
+# Load plugins immediately on module load
+plugins_load
+
 # Configure history substring search (official recommendation)
 export HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1
 # Ensure the plugin is loaded by sourcing it directly if zinit fails
 if ! (( ${+functions[history-substring-search-up]} )); then
     source "$ZINIT_HOME/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.zsh" 2>/dev/null || true
 fi
-
-# Load file extraction tool (le0me55i/zsh-extract) - Smart file extraction
-# Supports: tar, gz, bz2, xz, zip, rar, 7z, lzma, lzop, cab, ar, deb, rpm, iso
-zinit ice wait"0" lucid
-zinit light le0me55i/zsh-extract 2>/dev/null || true
-
-# Load directory jump tool (rupa/z) - Smart directory navigation
-zinit ice wait"0" lucid
-zinit light rupa/z 2>/dev/null || true
 
 # Load performance benchmark tool (romkatv/zsh-bench) - Optional for development
 # Uncomment the following lines if you need performance testing

@@ -1,4 +1,4 @@
-# ZSH Configuration v4.2.2
+# ZSH Configuration v4.2.3
 
 High-performance, modular ZSH configuration system optimized for personal work environments. Features beautiful English interface, comprehensive status monitoring, and intelligent scoring system.
 
@@ -144,6 +144,7 @@ exec zsh
 status    # 检查状态
 version   # 查看版本
 plugins   # 检查插件状态
+plugins_update  # 更新全部插件
 ```
 
 ## 🛠️ 常用命令
@@ -154,6 +155,7 @@ status          # System status
 reload          # Reload configuration
 validate        # Validate configuration
 version         # View version
+plugins_update  # Update all plugins
 ```
 
 ### Status Monitoring
@@ -487,6 +489,6 @@ exec zsh
 
 ---
 
-**版本**: 4.2.2  
+**版本**: 4.2.3
 **最后更新**: 2025-07-25  
 **许可证**: MIT 

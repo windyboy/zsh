@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.3] - 2025-07-26
+
+### 🔧 Plugin Management Refactor
+- **Simpler Loading** - Plugins are defined in arrays and loaded in a loop
+- **Lifecycle Commands** - Added `plugins_update` for easy updates
+- **Documentation Update** - README now reflects new command
+
 ## [4.2.2] - 2025-07-25
 
 ### 🔍 Project Review & Documentation Update
