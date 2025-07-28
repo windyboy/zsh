@@ -36,13 +36,8 @@
 ## 🔧 System Requirements
 
 ### Required Dependencies
-<<<<<<< HEAD
-- **ZSH**: Version 5.8 or higher
+- **ZSH**: Version 5.8 or higher (checked on startup)
 - **Git**: For plugin management and updates
-=======
-- **ZSH**: Version 5.8 or higher (the configuration checks this on startup)
-- **Git**: For plugin management
->>>>>>> ac16eed89bb6d528f3565da520287a46f6fd429e
 
 ### Optional Dependencies (Recommended)
 - **fzf**: Fuzzy file finder
@@ -172,10 +167,8 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ### Custom Configuration
 
-<<<<<<< HEAD
-Create `~/.config/zsh/custom/local.zsh` for personal settings:
-=======
-### 自定义配置
+Create `~/.config/zsh/custom/local.zsh` for personal settings. You can also use the helper commands to edit modules:
+
 ```bash
 config zshrc    # 编辑主配置
 config core     # 编辑核心模块
@@ -225,7 +218,6 @@ ${EDITOR:-code} ~/.config/zsh/env/local/environment.env
 
 #### 故障排除
 如果配置更改后没有生效，可能的原因和解决方案：
->>>>>>> ac16eed89bb6d528f3565da520287a46f6fd429e
 
 ```bash
 # Personal aliases
