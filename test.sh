@@ -75,7 +75,8 @@ test_section() {
 }
 
 test_summary() {
-    local end_time=$(date +%s)
+    local end_time
+    end_time=$(date +%s)
     local duration=$((end_time - TEST_START_TIME))
     
     echo
@@ -109,6 +110,7 @@ load_config_for_testing() {
     
     # Load configuration in test mode
     export ZSH_TEST_MODE=1
+    # shellcheck source=/dev/null
     source "$ZSH_CONFIG_DIR/zshrc" >/dev/null 2>&1
 }
 
@@ -171,25 +173,33 @@ run_performance_tests() {
     test_section "Performance Tests"
     
     # Test startup time
-    local start_time=$(date +%s.%N)
+    local start_time
+    start_time=$(date +%s.%N)
+    # shellcheck source=/dev/null
     source "$ZSH_CONFIG_DIR/zshrc" >/dev/null 2>&1
-    local end_time=$(date +%s.%N)
-    local startup_time=$(echo "$end_time - $start_time" | bc 2>/dev/null || echo "0")
+    local end_time
+    end_time=$(date +%s.%N)
+    local startup_time
+    startup_time=$(echo "$end_time - $start_time" | bc 2>/dev/null || echo "0")
     
     test_assert "Startup time < 2s" "[[ $(echo "$startup_time < 2" | bc 2>/dev/null || echo "0") -eq 1 ]]" "Startup time too slow: ${startup_time}s"
     
     # Test memory usage
-    local memory_kb=$(ps -p $$ -o rss 2>/dev/null | awk 'NR==2 {gsub(/ /, "", $1); print $1}')
-    local memory_mb=$(echo "scale=1; ${memory_kb:-0} / 1024" | bc 2>/dev/null || echo "0")
+    local memory_kb
+    memory_kb=$(ps -p $$ -o rss 2>/dev/null | awk 'NR==2 {gsub(/ /, "", $1); print $1}')
+    local memory_mb
+    memory_mb=$(echo "scale=1; ${memory_kb:-0} / 1024" | bc 2>/dev/null || echo "0")
     
     test_assert "Memory usage < 10MB" "[[ $(echo "$memory_mb < 10" | bc 2>/dev/null || echo "0") -eq 1 ]]" "Memory usage too high: ${memory_mb}MB"
     
     # Test function count
-    local func_count=$(declare -F 2>/dev/null | wc -l 2>/dev/null)
+    local func_count
+    func_count=$(declare -F 2>/dev/null | wc -l 2>/dev/null)
     test_assert "Function count < 200" "[[ $func_count -lt 200 ]]" "Too many functions: $func_count"
     
     # Test alias count
-    local alias_count=$(alias 2>/dev/null | wc -l 2>/dev/null)
+    local alias_count
+    alias_count=$(alias 2>/dev/null | wc -l 2>/dev/null)
     test_assert "Alias count < 100" "[[ $alias_count -lt 100 ]]" "Too many aliases: $alias_count"
 }
 
@@ -282,22 +292,27 @@ run_conflict_tests() {
     test_section "Conflict Detection Tests"
     
     # Test for duplicate aliases
-    local duplicate_aliases=$(alias | cut -d= -f1 | sed 's/^alias //g' | sort | uniq -d)
+    local duplicate_aliases
+    duplicate_aliases=$(alias | cut -d= -f1 | sed 's/^alias //g' | sort | uniq -d)
     test_assert "No duplicate aliases" "[[ -z \"$duplicate_aliases\" ]]" "Duplicate aliases found: $duplicate_aliases"
     
     # Test for key binding conflicts
-    local ctrl_t_bindings=$(bindkey | grep '^\^T' | wc -l)
+    local ctrl_t_bindings
+    ctrl_t_bindings=$(bindkey | grep -c '^\^T')
     test_assert "Ctrl+T binding unique" "[[ $ctrl_t_bindings -le 1 ]]" "Ctrl+T bound multiple times"
     
-    local ctrl_r_bindings=$(bindkey | grep '^\^R' | wc -l)
+    local ctrl_r_bindings
+    ctrl_r_bindings=$(bindkey | grep -c '^\^R')
     test_assert "Ctrl+R binding unique" "[[ $ctrl_r_bindings -le 1 ]]" "Ctrl+R bound multiple times"
     
     # Test for zstyle conflicts
-    local duplicate_zstyles=$(zstyle -L | grep -E '^[[:space:]]*:' | awk '{print $1}' | sort | uniq -d)
+    local duplicate_zstyles
+    duplicate_zstyles=$(zstyle -L | grep -E '^[[:space:]]*:' | awk '{print $1}' | sort | uniq -d)
     test_assert "No duplicate zstyles" "[[ -z \"$duplicate_zstyles\" ]]" "Duplicate zstyle configurations found"
     
     # Test for function name conflicts
-    local duplicate_functions=$(declare -F 2>/dev/null | awk '{print $3}' | sort | uniq -d)
+    local duplicate_functions
+    duplicate_functions=$(declare -F 2>/dev/null | awk '{print $3}' | sort | uniq -d)
     test_assert "No duplicate functions" "[[ -z \"$duplicate_functions\" ]]" "Duplicate functions found: $duplicate_functions"
 }
 

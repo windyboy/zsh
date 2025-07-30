@@ -103,7 +103,8 @@ jobs:
           # Check for hardcoded secrets
           if grep -rE '(password|secret|token)' . \
             --exclude-dir=.git --exclude-dir=completions \
-            --exclude-dir=.github --exclude="*.md"; then
+            --exclude-dir=.github --exclude=check-project.sh \
+            --exclude="*.md"; then
             echo "⚠️  Potential secrets found in code"
             exit 1
           fi

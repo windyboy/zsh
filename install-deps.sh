@@ -89,7 +89,8 @@ install_eza() {
     
     # 正确的下载URL格式
     local eza_url="https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os}.tar.gz"
-    local temp_dir=$(mktemp -d)
+    local temp_dir
+    temp_dir=$(mktemp -d)
     
     log "下载eza: $eza_url"
     if curl -L -o "$temp_dir/eza.tar.gz" "$eza_url" 2>/dev/null; then
@@ -101,8 +102,8 @@ install_eza() {
             elif mkdir -p ~/.local/bin && mv eza ~/.local/bin/ 2>/dev/null; then
                 # 确保 ~/.local/bin 在 PATH 中
                 for rc_file in ~/.bashrc ~/.zshrc; do
-                    if [[ -f "$rc_file" ]] && ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$rc_file"; then
-                        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$rc_file"
+                    if [[ -f "$rc_file" ]] && ! grep -q "export PATH=\"\$HOME/.local/bin:\$PATH\"" "$rc_file"; then
+                        echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$rc_file"
                     fi
                 done
                 success "eza安装到 ~/.local/bin/"
@@ -138,7 +139,8 @@ install_oh_my_posh() {
         mkdir -p "$themes_dir"
         
         # Create temporary directory for cloning
-        local temp_dir=$(mktemp -d)
+        local temp_dir
+        temp_dir=$(mktemp -d)
         cd "$temp_dir"
         
         # Clone the oh-my-posh repository to get all themes
@@ -150,7 +152,8 @@ install_oh_my_posh() {
                 local theme_count=0
                 for theme_file in oh-my-posh/themes/*.omp.json; do
                     if [[ -f "$theme_file" ]]; then
-                        local theme_name=$(basename "$theme_file")
+                        local theme_name
+                        theme_name=$(basename "$theme_file")
                         cp "$theme_file" "$themes_dir/"
                         ((theme_count++))
                         log "主题 ${theme_name} 复制成功"
@@ -160,7 +163,8 @@ install_oh_my_posh() {
                 # Also copy YAML themes if they exist
                 for theme_file in oh-my-posh/themes/*.omp.yaml; do
                     if [[ -f "$theme_file" ]]; then
-                        local theme_name=$(basename "$theme_file")
+                        local theme_name
+                        theme_name=$(basename "$theme_file")
                         cp "$theme_file" "$themes_dir/"
                         ((theme_count++))
                         log "主题 ${theme_name} 复制成功"
@@ -224,7 +228,8 @@ install_macos() {
         mkdir -p "$themes_dir"
         
         # Create temporary directory for cloning
-        local temp_dir=$(mktemp -d)
+        local temp_dir
+        temp_dir=$(mktemp -d)
         cd "$temp_dir"
         
         # Clone the oh-my-posh repository to get all themes
@@ -236,7 +241,8 @@ install_macos() {
                 local theme_count=0
                 for theme_file in oh-my-posh/themes/*.omp.json; do
                     if [[ -f "$theme_file" ]]; then
-                        local theme_name=$(basename "$theme_file")
+                        local theme_name
+                        theme_name=$(basename "$theme_file")
                         cp "$theme_file" "$themes_dir/"
                         ((theme_count++))
                         log "主题 ${theme_name} 复制成功"
@@ -246,7 +252,8 @@ install_macos() {
                 # Also copy YAML themes if they exist
                 for theme_file in oh-my-posh/themes/*.omp.yaml; do
                     if [[ -f "$theme_file" ]]; then
-                        local theme_name=$(basename "$theme_file")
+                        local theme_name
+                        theme_name=$(basename "$theme_file")
                         cp "$theme_file" "$themes_dir/"
                         ((theme_count++))
                         log "主题 ${theme_name} 复制成功"
@@ -321,7 +328,8 @@ install_ubuntu() {
 
 # Install on CentOS/RHEL/Fedora
 install_centos() {
-    local pkg_manager=$(detect_package_manager)
+    local pkg_manager
+    pkg_manager=$(detect_package_manager)
     
     if [[ "$pkg_manager" == "dnf" ]]; then
         log "检测到Fedora系统，使用dnf安装..."
@@ -370,14 +378,16 @@ main() {
         return 1
     fi
     
-    local os=$(detect_os)
+    local os
+    os=$(detect_os)
     
     case "$os" in
         "macos")
             install_macos
             ;;
         "linux")
-            local pkg_manager=$(detect_package_manager)
+            local pkg_manager
+            pkg_manager=$(detect_package_manager)
             if [[ "$pkg_manager" == "apt" ]]; then
                 install_ubuntu
             elif [[ "$pkg_manager" == "dnf" || "$pkg_manager" == "yum" ]]; then
