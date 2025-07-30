@@ -8,7 +8,7 @@
 # Load shared color functions
 ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 if [[ -f "$ZSH_CONFIG_DIR/modules/colors.zsh" ]]; then
-    # shellcheck source=modules/colors.zsh
+    # shellcheck disable=SC1091
     source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 else
     color_red()    { echo -e "\033[31m$1\033[0m"; }
