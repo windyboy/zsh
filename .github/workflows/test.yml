@@ -31,25 +31,33 @@ jobs:
           # Install oh-my-posh
           sudo wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -O /usr/local/bin/oh-my-posh
           sudo chmod +x /usr/local/bin/oh-my-posh
-          
+
+      - name: Prepare installation directory
+        run: |
+          mkdir -p ~/.config
+          cp -r $GITHUB_WORKSPACE ~/.config/zsh
+
       - name: Run installation script
         run: |
+          cd ~/.config/zsh
           # Run installer in non-interactive mode for CI
           bash install.sh
-          
+
       - name: Run status check
         run: |
+          cd ~/.config/zsh
           zsh status.sh
-          
+
       - name: Run comprehensive tests
         run: |
+          cd ~/.config/zsh
           zsh test.sh all
-          
+
       - name: Test configuration loading
         run: |
           # Test if configuration loads without errors
           zsh -c "source ~/.config/zsh/zshrc && echo 'Configuration loaded successfully'"
-          
+
       - name: Verify installation
         run: |
           # Check if key components are installed
