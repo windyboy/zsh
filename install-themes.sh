@@ -3,7 +3,7 @@
 # Oh My Posh 主题安装脚本
 # 从GitHub下载所有可用的主题
 
-set -e
+set -euo pipefail
 
 # 颜色定义
 RED='\033[0;31m'

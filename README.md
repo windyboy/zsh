@@ -63,10 +63,13 @@ curl -fsSL https://raw.githubusercontent.com/yourusername/zsh-config/main/quick-
 git clone https://github.com/yourusername/zsh-config.git ~/.config/zsh
 cd ~/.config/zsh
 
-# 2. Run installation
+# 2. Install dependencies
+./install-deps.sh
+
+# 3. Run installation
 ./install.sh --interactive
 
-# 3. Restart terminal
+# 4. Restart terminal
 exec zsh
 ```
 
@@ -179,6 +182,21 @@ config aliases  # 编辑别名模块
 config env      # 编辑环境配置
 ```
 
+
+#### Example `local.zsh`
+```bash
+# Personal aliases
+alias ll='ls -la'
+alias la='ls -A'
+
+# Custom functions
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+# Environment variables
+export MY_CUSTOM_VAR="value"
+```
 ### 环境变量配置
 
 本项目采用简化的环境变量配置方式：
@@ -218,23 +236,6 @@ ${EDITOR:-code} ~/.config/zsh/env/local/environment.env
 - **本地配置**：`env/local/environment.env` - 可以自由修改
 - **自动加载**：配置文件会自动加载，无需额外操作
 
-#### 故障排除
-如果配置更改后没有生效，可能的原因和解决方案：
->>>>>>> ac16eed89bb6d528f3565da520287a46f6fd429e
-
-```bash
-# Personal aliases
-alias ll='ls -la'
-alias la='ls -A'
-
-# Custom functions
-function mkcd() {
-    mkdir -p "$1" && cd "$1"
-}
-
-# Environment variables
-export MY_CUSTOM_VAR="value"
-```
 
 ## 🎯 Usage
 
@@ -627,4 +628,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 [![Stars](https://img.shields.io/github/stars/yourusername/zsh-config?style=social)](https://github.com/yourusername/zsh-config)
 [![Forks](https://img.shields.io/github/forks/yourusername/zsh-config?style=social)](https://github.com/yourusername/zsh-config)
 
-</div> 
+</div>

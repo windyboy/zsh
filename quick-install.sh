@@ -225,4 +225,4 @@ case "${1:-}" in
 esac
 
 # Run main function
-main "$@" 
+main "$@"
