@@ -1,11 +1,10 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Core ZSH Configuration - Environment Core Settings
-# Description: Only essential, high-frequency, minimal core environment configuration with clear comments and unified naming.
+# Core ZSH Configuration - Essential Core Settings
+# Description: Core functionality, validation, and performance monitoring
 # =============================================================================
 
 # Color output tools
-# Load centralized color functions
 source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 
 # Module specific wrappers
@@ -24,25 +23,12 @@ core_init_dirs() {
 }
 core_init_dirs
 
-# -------------------- Security/History/Navigation --------------------
-setopt NO_CLOBBER RM_STAR_WAIT PIPE_FAIL
-setopt HIST_IGNORE_SPACE HIST_IGNORE_ALL_DUPS
-alias rm='rm -i' cp='cp -i' mv='mv -i'
-umask 022
-setopt APPEND_HISTORY SHARE_HISTORY HIST_SAVE_NO_DUPS HIST_FIND_NO_DUPS
-setopt INC_APPEND_HISTORY EXTENDED_HISTORY HIST_EXPIRE_DUPS_FIRST HIST_VERIFY
-# History configuration is now handled by environment variables
-setopt AUTO_CD AUTO_PUSHD PUSHD_IGNORE_DUPS PUSHD_SILENT CDABLE_VARS
-setopt EXTENDED_GLOB NO_CASE_GLOB NUMERIC_GLOB_SORT
+# -------------------- Core Settings --------------------
 setopt CORRECT CORRECT_ALL
 setopt NO_HUP NO_CHECK_JOBS
 setopt AUTO_PARAM_KEYS AUTO_PARAM_SLASH COMPLETE_IN_WORD HASH_LIST_ALL
 setopt INTERACTIVE_COMMENTS MULTIOS NOTIFY
 unsetopt BEEP CASE_GLOB FLOW_CONTROL
-
-# -------------------- Global Aliases --------------------
-alias -g ...='../..' ....='../../..' .....='../../../..' ......='../../../../..'
-alias -g G='| grep' L='| less' H='| head' T='| tail' S='| sort' U='| uniq' C='| wc -l'
 
 # -------------------- Common Functions --------------------
 # Reload configuration
@@ -74,6 +60,7 @@ reload() {
     source "$ZSH_CONFIG_DIR/zshrc"
     color_green "✅ Configuration reloaded"
 }
+
 # Configuration validation
 validate() {
     [[ "$1" == "-h" || "$1" == "--help" ]] && {
@@ -102,100 +89,51 @@ validate() {
     # Parse options
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --verbose|-v)
-                verbose=true
-                shift
-                ;;
-            --fix|-f)
-                fix_mode=true
-                shift
-                ;;
-            --report|-r)
-                report_mode=true
-                report_file="$ZSH_CACHE_DIR/validation_report_$(date +%Y%m%d_%H%M%S).txt"
-                shift
-                ;;
-            --all|-a)
-                # Default behavior, no additional action needed
-                shift
-                ;;
-            *)
-                color_red "Unknown option: $1"
-                return 1
-                ;;
+            --verbose|-v) verbose=true; shift ;;
+            --fix|-f) fix_mode=true; shift ;;
+            --report|-r) report_mode=true; shift ;;
+            --all|-a) shift ;;
+            *) echo "Unknown option: $1"; return 1 ;;
         esac
     done
     
-    # Initialize report if needed
-    if [[ "$report_mode" == "true" ]]; then
-        mkdir -p "$ZSH_CACHE_DIR"
-        echo "ZSH Configuration Validation Report" > "$report_file"
-        echo "Generated: $(date)" >> "$report_file"
-        echo "================================================" >> "$report_file"
-        echo >> "$report_file"
-    fi
-    
-    # Helper function to log validation results
+    # Helper functions
     log_validation() {
         local level="$1"
         local message="$2"
-        local details="$3"
-        
         case "$level" in
-            "error")
-                ((validation_errors++))
-                color_red "❌ $message"
-                [[ -n "$details" ]] && echo "   $details"
-                ;;
-            "warning")
-                ((validation_warnings++))
-                color_yellow "⚠️  $message"
-                [[ -n "$details" ]] && echo "   $details"
-                ;;
-            "success")
-                color_green "✅ $message"
-                ;;
-            "info")
-                [[ "$verbose" == "true" ]] && echo "ℹ️  $message"
-                ;;
+            "info") [[ "$verbose" == "true" ]] && echo "ℹ️  $message" ;;
+            "success") echo "✅ $message" ;;
+            "warning") echo "⚠️  $message"; ((validation_warnings++)) ;;
+            "error") echo "❌ $message"; ((validation_errors++)) ;;
         esac
-        
-        # Add to report if in report mode
-        if [[ "$report_mode" == "true" ]]; then
-            echo "[$level] $message" >> "$report_file"
-            [[ -n "$details" ]] && echo "   $details" >> "$report_file"
-        fi
     }
     
-    # Helper function to attempt fixes
     attempt_fix() {
-        local issue="$1"
-        local fix_command="$2"
-        
+        local description="$1"
+        local command="$2"
         if [[ "$fix_mode" == "true" ]]; then
-            log_validation "info" "Attempting to fix: $issue"
+            log_validation "info" "Attempting to fix: $description"
             # Use command substitution instead of eval for security
-            if [[ "$fix_command" =~ ^(mkdir|chmod|chown|ln|cp|mv|rm)\  ]]; then
-                if $fix_command; then
-                    log_validation "success" "Fixed: $issue"
+            if [[ "$command" =~ ^(mkdir|chmod|chown|ln|cp|mv|rm)\  ]]; then
+                if $command 2>/dev/null; then
+                    log_validation "success" "Fixed: $description"
                     return 0
                 else
-                    log_validation "warning" "Failed to fix: $issue"
+                    log_validation "warning" "Failed to fix: $description"
                     return 1
                 fi
             else
-                log_validation "warning" "Skipping potentially unsafe command: $fix_command"
+                log_validation "warning" "Skipping potentially unsafe command: $command"
                 return 1
             fi
         fi
         return 1
     }
     
-    echo "🔍 Validating ZSH configuration..."
-    [[ "$verbose" == "true" ]] && echo "Verbose mode enabled"
-    [[ "$fix_mode" == "true" ]] && echo "Fix mode enabled"
-    [[ "$report_mode" == "true" ]] && echo "Report will be saved to: $report_file"
-    echo
+    # Start validation
+    echo "🔍 Configuration Validation"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
     # 1. Check required directories
     log_validation "info" "Checking required directories..."
@@ -245,7 +183,7 @@ validate() {
     
     # 4. Check module loading
     log_validation "info" "Checking module loading..."
-    local modules=("core" "aliases" "plugins" "completion" "keybindings" "utils")
+    local modules=("core" "security" "navigation" "aliases" "plugins" "completion" "keybindings" "utils")
     for module in "${modules[@]}"; do
         local modfile="$ZSH_CONFIG_DIR/modules/${module}.zsh"
         if [[ -f "$modfile" ]]; then
@@ -299,12 +237,6 @@ validate() {
     local ctrl_t_bindings=$(bindkey | grep '^\^T' | wc -l)
     if [[ $ctrl_t_bindings -gt 1 ]]; then
         log_validation "warning" "Ctrl+T bound multiple times ($ctrl_t_bindings bindings)"
-    fi
-    
-    # Check for dangerous aliases
-    if alias | grep -q '^alias rm=' && ! alias rm | grep -q 'rm -i'; then
-        log_validation "warning" "Dangerous rm alias found (not using -i flag)"
-        attempt_fix "Fix dangerous rm alias" "alias rm='rm -i'"
     fi
     
     # 8. Check performance metrics
@@ -380,6 +312,7 @@ validate() {
         return 1
     fi
 }
+
 # System status
 status() {
     echo "📊 Status"
@@ -389,6 +322,7 @@ status() {
     echo "Data Directory: $ZSH_DATA_DIR"
     echo "Loaded Modules: $ZSH_MODULES_LOADED"
 }
+
 # Performance check
 perf() {
     [[ "$1" == "-h" || "$1" == "--help" ]] && {
@@ -398,13 +332,6 @@ perf() {
         echo "  --profile, -p    Generate detailed performance profile"
         echo "  --optimize, -o   Show optimization recommendations"
         echo "  --history, -h    Show performance history"
-        echo "  --all, -a        Show all performance metrics (default)"
-        echo
-        echo "Examples:"
-        echo "  perf             # Show basic performance metrics"
-        echo "  perf --monitor   # Start continuous monitoring"
-        echo "  perf --profile   # Generate detailed profile"
-        echo "  perf --optimize  # Show optimization tips"
         return 0
     }
     
@@ -412,36 +339,16 @@ perf() {
     local profile_mode=false
     local optimize_mode=false
     local history_mode=false
-    local profile_file=""
+    local profile_file="$ZSH_CACHE_DIR/performance_profile_$(date +%Y%m%d_%H%M%S).txt"
     
     # Parse options
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --monitor|-m)
-                monitor_mode=true
-                shift
-                ;;
-            --profile|-p)
-                profile_mode=true
-                profile_file="$ZSH_CACHE_DIR/performance_profile_$(date +%Y%m%d_%H%M%S).txt"
-                shift
-                ;;
-            --optimize|-o)
-                optimize_mode=true
-                shift
-                ;;
-            --history|-h)
-                history_mode=true
-                shift
-                ;;
-            --all|-a)
-                # Default behavior, no additional action needed
-                shift
-                ;;
-            *)
-                color_red "Unknown option: $1"
-                return 1
-                ;;
+            --monitor|-m) monitor_mode=true; shift ;;
+            --profile|-p) profile_mode=true; shift ;;
+            --optimize|-o) optimize_mode=true; shift ;;
+            --history|-h) history_mode=true; shift ;;
+            *) echo "Unknown option: $1"; return 1 ;;
         esac
     done
     
@@ -550,7 +457,7 @@ perf() {
             
             # Module analysis
             echo "Module Analysis:"
-            local modules=("core" "aliases" "plugins" "completion" "keybindings" "utils")
+            local modules=("core" "security" "navigation" "aliases" "plugins" "completion" "keybindings" "utils")
             for module in "${modules[@]}"; do
                 local modfile="$ZSH_CONFIG_DIR/modules/${module}.zsh"
                 if [[ -f "$modfile" ]]; then
@@ -707,16 +614,14 @@ perf() {
     local metrics=$(get_performance_metrics)
     display_metrics "$metrics"
 }
+
 # Version information
 version() {
-    echo "📦 ZSH Configuration Version 4.3.0 (Personal Minimal)"
-    echo "Key Features: Minimal architecture, core functionality, performance optimization, personal experience"
-    echo "Modules: core/aliases/plugins/completion/keybindings/utils"
-    echo "Interface: Complete English localization with beautiful status monitoring"
+    echo "📦 ZSH Configuration Version 5.0.0 (Enhanced Modular)"
+    echo "Key Features: Modular architecture, comprehensive testing, performance optimization"
+    echo "Modules: core/security/navigation/aliases/plugins/completion/keybindings/utils"
+    echo "Interface: Professional monitoring and validation system"
 }
-
-# -------------------- Reserved Custom Area --------------------
-# Custom functions/variables can be added in the custom/ directory
 
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED core"

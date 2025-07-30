@@ -19,7 +19,7 @@ if [[ -f "$ZSH_CONFIG_DIR/zshenv" ]]; then
 fi
 
 # Load core modules (order cannot be changed)
-for mod in core path plugins completion aliases keybindings utils; do
+for mod in core security navigation path plugins completion aliases keybindings utils; do
     local modfile="$ZSH_CONFIG_DIR/modules/${mod}.zsh"
     if [[ -f "$modfile" ]]; then
         source "$modfile"
