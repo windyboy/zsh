@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+# shellcheck shell=bash
 # =============================================================================
 # ZSH Configuration Status Check Script
 # Version: 4.3 - Enhanced Beautiful Output
@@ -284,4 +285,4 @@ status_color_yellow "━━━━━━━━━━━━━━━━━━━�
 status_color_green "✅ Status check completed successfully!"
 status_color_cyan "   Your ZSH configuration is ready to use."
 status_color_dim "   Generated at $(date '+%Y-%m-%d %H:%M:%S')"
-echo 
+echo
