@@ -58,7 +58,8 @@ install_all_themes() {
     mkdir -p "$themes_dir"
     
     # 创建临时目录
-    local temp_dir=$(mktemp -d)
+    local temp_dir
+    temp_dir=$(mktemp -d)
     cd "$temp_dir"
     
     log "克隆Oh My Posh GitHub仓库..."
@@ -74,7 +75,8 @@ install_all_themes() {
             # 复制JSON主题
             for theme_file in oh-my-posh/themes/*.omp.json; do
                 if [[ -f "$theme_file" ]]; then
-                    local theme_name=$(basename "$theme_file")
+                    local theme_name
+                    theme_name=$(basename "$theme_file")
                     cp "$theme_file" "$themes_dir/"
                     ((theme_count++))
                     ((json_count++))
@@ -85,7 +87,8 @@ install_all_themes() {
             # 复制YAML主题
             for theme_file in oh-my-posh/themes/*.omp.yaml; do
                 if [[ -f "$theme_file" ]]; then
-                    local theme_name=$(basename "$theme_file")
+                    local theme_name
+                    theme_name=$(basename "$theme_file")
                     cp "$theme_file" "$themes_dir/"
                     ((theme_count++))
                     ((yaml_count++))
@@ -157,7 +160,8 @@ install_specific_themes() {
 list_available_themes() {
     log "获取GitHub上的可用主题列表..."
     
-    local temp_dir=$(mktemp -d)
+    local temp_dir
+    temp_dir=$(mktemp -d)
     cd "$temp_dir"
     
     if git clone --depth 1 https://github.com/JanDeDobbeleer/oh-my-posh.git; then
@@ -169,7 +173,8 @@ list_available_themes() {
             echo "JSON格式主题:"
             for theme_file in oh-my-posh/themes/*.omp.json; do
                 if [[ -f "$theme_file" ]]; then
-                    local theme_name=$(basename "$theme_file" .omp.json)
+                    local theme_name
+                    theme_name=$(basename "$theme_file" .omp.json)
                     echo "  - $theme_name"
                 fi
             done
@@ -178,7 +183,8 @@ list_available_themes() {
             echo "YAML格式主题:"
             for theme_file in oh-my-posh/themes/*.omp.yaml; do
                 if [[ -f "$theme_file" ]]; then
-                    local theme_name=$(basename "$theme_file" .omp.yaml)
+                    local theme_name
+                    theme_name=$(basename "$theme_file" .omp.yaml)
                     echo "  - $theme_name"
                 fi
             done
