@@ -2,7 +2,7 @@
 
 > **High-performance, modular ZSH configuration system** with comprehensive testing, automated updates, and professional CI/CD pipeline.
 
-[![CI/CD](https://github.com/yourusername/zsh-config/workflows/Test%20ZSH%20Configuration/badge.svg)](https://github.com/yourusername/zsh-config/actions)
+[![CI/CD](https://github.com/windyboy/zsh/workflows/Test%20ZSH%20Configuration/badge.svg)](https://github.com/windyboy/zsh/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![ZSH Version](https://img.shields.io/badge/zsh-5.8+-green.svg)](https://www.zsh.org/)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20WSL-blue.svg)]()
@@ -12,7 +12,7 @@
 | Category | Features |
 |----------|----------|
 | **🚀 Performance** | Lightning-fast startup, optimized modules, intelligent caching |
-| **🎨 Interface** | Beautiful English UI, color-coded output, progress indicators |
+| **🎨 Interface** | Beautiful UI, color-coded output, progress indicators |
 | **📊 Monitoring** | Real-time status, performance metrics, health scoring |
 | **🔧 Architecture** | Modular design, clean separation, maintainable code |
 | **🔄 Automation** | Auto-updates, CI/CD pipeline, comprehensive testing |
@@ -39,7 +39,6 @@
 - **ZSH**: Version 5.8 or higher
 - **Git**: For plugin management and updates
 
-
 ### Optional Dependencies (Recommended)
 - **fzf**: Fuzzy file finder
 - **zoxide**: Smart directory navigation  
@@ -53,14 +52,14 @@
 
 ```bash
 # Quick install with automatic setup
-curl -fsSL https://raw.githubusercontent.com/yourusername/zsh-config/main/quick-install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/windyboy/zsh/main/quick-install.sh | bash
 ```
 
 ### Manual Installation
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/yourusername/zsh-config.git ~/.config/zsh
+git clone https://github.com/windyboy/zsh.git ~/.config/zsh
 cd ~/.config/zsh
 
 # 2. Install dependencies
@@ -81,11 +80,11 @@ The `quick-install.sh` script provides a complete one-command installation:
 
 ```bash
 # Download and run
-curl -fsSL https://raw.githubusercontent.com/yourusername/zsh-config/main/quick-install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/windyboy/zsh/main/quick-install.sh | bash
 
 # Or clone and run locally
-git clone https://github.com/yourusername/zsh-config.git
-cd zsh-config
+git clone https://github.com/windyboy/zsh.git
+cd zsh
 ./quick-install.sh
 ```
 
@@ -100,7 +99,7 @@ cd zsh-config
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/zsh-config.git ~/.config/zsh
+git clone https://github.com/windyboy/zsh.git ~/.config/zsh
 cd ~/.config/zsh
 
 # Interactive installation
@@ -171,17 +170,16 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ### Custom Configuration
 
-
 Create `~/.config/zsh/custom/local.zsh` for personal settings:
-### 自定义配置
-```bash
-config zshrc    # 编辑主配置
-config core     # 编辑核心模块
-config plugins  # 编辑插件模块
-config aliases  # 编辑别名模块
-config env      # 编辑环境配置
-```
 
+```bash
+# Quick configuration commands
+config zshrc    # Edit main configuration
+config core     # Edit core module
+config plugins  # Edit plugin module
+config aliases  # Edit aliases module
+config env      # Edit environment configuration
+```
 
 #### Example `local.zsh`
 ```bash
@@ -197,45 +195,46 @@ mkcd() {
 # Environment variables
 export MY_CUSTOM_VAR="value"
 ```
-### 环境变量配置
 
-本项目采用简化的环境变量配置方式：
-- **核心环境变量**：在 `zshenv` 中直接设置（XDG路径、ZSH路径、历史记录等）
-- **插件环境变量**：在 `modules/plugins.zsh` 中管理（ZSH自动建议配置等）
-- `ZSH_ENABLE_PLUGINS` 控制是否加载所有插件
-- `ZSH_ENABLE_OPTIONAL_PLUGINS` 控制可选插件（如 fzf-tab）
-- **主题环境变量**：在 `themes/prompt.zsh` 中管理（Oh My Posh配置等）
-- **用户环境变量**：使用模板化管理（开发工具路径、包管理器镜像等）
+### Environment Variable Configuration
 
-#### 初始化配置（首次使用）
+This project uses a simplified environment variable configuration approach:
+
+- **Core Environment Variables**: Set directly in `zshenv` (XDG paths, ZSH paths, history, etc.)
+- **Plugin Environment Variables**: Managed in `modules/plugins.zsh` (ZSH autosuggestion config, etc.)
+  - `ZSH_ENABLE_PLUGINS` controls whether to load all plugins
+  - `ZSH_ENABLE_OPTIONAL_PLUGINS` controls optional plugins (like fzf-tab)
+- **Theme Environment Variables**: Managed in `themes/prompt.zsh` (Oh My Posh config, etc.)
+- **User Environment Variables**: Template-based management (development tool paths, package manager mirrors, etc.)
+
+#### Initialize Configuration (First Use)
 ```bash
-# 进入环境配置目录
+# Navigate to environment configuration directory
 cd ~/.config/zsh/env
 
-# 运行初始化脚本
+# Run initialization script
 ./init-env.sh
 ```
 
-#### 迁移旧配置（如果已有配置）
+#### Migrate Old Configuration (If Existing)
 ```bash
-# 进入环境配置目录
+# Navigate to environment configuration directory
 cd ~/.config/zsh/env
 
-# 运行迁移脚本
+# Run migration script
 ./migrate-env.sh
 ```
 
-#### 编辑配置
+#### Edit Configuration
 ```bash
-# 编辑用户环境配置
+# Edit user environment configuration
 ${EDITOR:-code} ~/.config/zsh/env/local/environment.env
 ```
 
-#### 配置说明
-- **模板文件**：`env/templates/environment.env.template` - 不要直接修改
-- **本地配置**：`env/local/environment.env` - 可以自由修改
-- **自动加载**：配置文件会自动加载，无需额外操作
-
+#### Configuration Notes
+- **Template File**: `env/templates/environment.env.template` - Do not modify directly
+- **Local Configuration**: `env/local/environment.env` - Can be freely modified
+- **Auto-loading**: Configuration files are automatically loaded, no additional steps required
 
 ## 🎯 Usage
 
@@ -281,73 +280,73 @@ perf --optimize # Optimization suggestions
 
 ## 🛠 Helper Commands
 
-以下是一些用于管理自定义配置的常用命令：
+Here are some commonly used commands for managing custom configurations:
 
-### 安装与依赖管理
+### Installation and Dependency Management
 
 ```bash
-# 手动安装依赖
+# Manual dependency installation
 ./install-deps.sh
 
-# 安装主题
+# Install themes
 ./install-themes.sh
 
-# 安装配置（交互式模式）
+# Install configuration (interactive mode)
 ./install.sh --interactive
 
-# 快速安装（非交互式）
+# Quick installation (non-interactive)
 ./quick-install.sh
 ```
 
-### 配置管理
+### Configuration Management
 
 ```bash
-# 检查当前状态
+# Check current status
 ./status.sh
 
-# 优化配置
+# Optimize configuration
 ./optimize.sh
 
-# 备份配置
+# Backup configuration
 ./backup/
 
-# 恢复配置
+# Restore configuration
 ./backup/restore.sh
 ```
 
-### 测试与验证
+### Testing and Validation
 
 ```bash
-# 运行单元测试
+# Run unit tests
 ./test.sh unit
 
-# 运行性能测试
+# Run performance tests
 ./test.sh performance
 
-# 运行完整测试套件
+# Run complete test suite
 ./test.sh all
 
-# 项目健康检查
+# Project health check
 ./check-project.sh
 ```
 
-### 更新与维护
+### Updates and Maintenance
 
 ```bash
-# 更新配置
+# Update configuration
 ./update.sh
 
-# 检查更新
+# Check for updates
 ./update.sh --check
 
-# 强制更新
+# Force update
 ./update.sh --force
 ```
 
-**注意事项：**
-- 所有脚本执行前确保 `zsh`, `git` 等依赖已安装
-- 建议在修改配置前先备份：`cp -r ~/.config/zsh ~/.config/zsh.backup`
-- 如遇到问题，可查看日志：`./status.sh --verbose`
+**Important Notes:**
+- Ensure `zsh`, `git` and other dependencies are installed before running any scripts
+- It's recommended to backup before modifying configuration: `cp -r ~/.config/zsh ~/.config/zsh.backup`
+- If you encounter issues, check logs: `./status.sh --verbose`
 
 ## 🧪 Testing & Validation
 
@@ -443,7 +442,7 @@ sudo apt update && sudo apt upgrade fzf zoxide eza  # Ubuntu
 ### Project Structure
 
 ```
-zsh-config/
+zsh/
 ├── .github/workflows/    # CI/CD pipelines
 ├── modules/              # Configuration modules
 ├── themes/               # Theme collection
@@ -559,10 +558,10 @@ source ~/.config/zsh/zshrc
 
 ### Additional Resources
 
-- **[Installation Guide](docs/INSTALLATION.md)** - Detailed installation
-- **[Configuration Guide](docs/CONFIGURATION.md)** - Advanced configuration
-- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues
-- **[Development Guide](docs/DEVELOPMENT.md)** - Contributing guidelines
+- **Installation Guide** - Detailed installation instructions
+- **Configuration Guide** - Advanced configuration options
+- **Troubleshooting** - Common issues and solutions
+- **Development Guide** - Contributing guidelines
 
 ## 🎯 Performance Metrics
 
@@ -615,9 +614,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **GitHub Issues**: [Report bugs](https://github.com/yourusername/zsh-config/issues)
-- **GitHub Discussions**: [Ask questions](https://github.com/yourusername/zsh-config/discussions)
-- **Documentation**: [Complete guides](docs/)
+- **GitHub Issues**: [Report bugs](https://github.com/windyboy/zsh/issues)
+- **GitHub Discussions**: [Ask questions](https://github.com/windyboy/zsh/discussions)
+- **Documentation**: Complete guides in this repository
 
 ---
 
@@ -625,7 +624,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with ❤️ for the ZSH community**
 
-[![Stars](https://img.shields.io/github/stars/yourusername/zsh-config?style=social)](https://github.com/yourusername/zsh-config)
-[![Forks](https://img.shields.io/github/forks/yourusername/zsh-config?style=social)](https://github.com/yourusername/zsh-config)
+[![Stars](https://img.shields.io/github/stars/windyboy/zsh?style=social)](https://github.com/windyboy/zsh)
+[![Forks](https://img.shields.io/github/forks/windyboy/zsh?style=social)](https://github.com/windyboy/zsh)
 
 </div>
