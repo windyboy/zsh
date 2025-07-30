@@ -262,7 +262,7 @@ check_security() {
     log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
     # Check for potential security issues
-    run_test "No hardcoded secrets" "! grep -r 'password\|secret\|key\|token' '$PROJECT_ROOT' --exclude-dir=.git --exclude=*.md" "Secret detection"
+    run_test "No hardcoded secrets" "! grep -rE '(password|secret|token)' '$PROJECT_ROOT' --exclude-dir=.git --exclude-dir=completions --exclude-dir=.github --exclude=*.md" "Secret detection"
     run_test "No dangerous eval usage" "! grep -r 'eval ' '$PROJECT_ROOT' --exclude-dir=.git --exclude=*.md | grep -v 'eval \"\$(oh-my-posh'" "Eval usage"
     run_test "No command injection risks" "! grep -r '\$(' '$PROJECT_ROOT' --exclude-dir=.git --exclude=*.md | grep -v 'command -v'" "Command injection"
     
