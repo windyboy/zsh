@@ -1,11 +1,12 @@
 #!/usr/bin/env zsh
-# shellcheck shell=sh
+# shellcheck shell=bash
 # =============================================================================
 # Simple Performance Optimizer
 # =============================================================================
 
 # Load unified logging system
 if [[ -f "$HOME/.config/zsh/modules/logging.zsh" ]]; then
+    # shellcheck source=/dev/null
     source "$HOME/.config/zsh/modules/logging.zsh"
 else
     # Fallback logging functions
@@ -36,7 +37,8 @@ optimize_history() {
     
     if [[ -f "$HISTFILE" ]]; then
         # Remove duplicates
-        local temp_hist=$(mktemp)
+        local temp_hist
+        temp_hist=$(mktemp)
         tac "$HISTFILE" | awk '!seen[$0]++' | tac > "$temp_hist"
         mv "$temp_hist" "$HISTFILE"
         
@@ -54,17 +56,21 @@ optimize_history() {
 # Optimize PATH
 optimize_path() {
     log "Optimizing PATH..."
-    
-    typeset -U path
-    
+
+    local -a path_array
+    local -A seen
+    IFS=':' read -r -a path_array <<< "$PATH"
+
     local new_path=""
-    for dir in ${(s/:/)PATH}; do
-        if [[ -d "$dir" ]]; then
+    for dir in "${path_array[@]}"; do
+        if [[ -d "$dir" && -z ${seen["$dir"]+1} ]]; then
+            seen["$dir"]=1
             new_path="${new_path:+$new_path:}$dir"
         fi
     done
+
     export PATH="$new_path"
-    
+
     success "PATH optimized"
 }
 
@@ -94,11 +100,13 @@ check_performance() {
     log "Checking performance..."
     
     # Function count
-    local func_count=$(declare -F | wc -l)
+    local func_count
+    func_count=$(declare -F | wc -l)
     log "Functions: $func_count"
     
     # Memory usage
-    local memory=$(ps -o rss= -p $$ | awk '{printf "%.1f MB", $1/1024}')
+    local memory
+    memory=$(ps -o rss= -p $$ | awk '{printf "%.1f MB", $1/1024}')
     log "Memory: $memory"
     
     success "Performance check completed"
