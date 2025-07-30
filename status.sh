@@ -43,6 +43,7 @@ show_progress() {
     printf "] %d%%" $((current * 100 / total))
 }
 
+main() {
 # Load configuration with progress
 echo
 status_color_bold "╔══════════════════════════════════════════════════════════════╗"
@@ -292,3 +293,6 @@ status_color_green "✅ Status check completed successfully!"
 status_color_cyan "   Your ZSH configuration is ready to use."
 status_color_dim "   Generated at $(date '+%Y-%m-%d %H:%M:%S')"
 echo
+}
+
+main "$@"
