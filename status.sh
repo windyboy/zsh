@@ -90,16 +90,17 @@ for module in core aliases plugins completion keybindings utils; do
     current_module=$((current_module + 1))
     local file="$ZSH_CONFIG_DIR/modules/${module}.zsh"
     if [[ -f "$file" ]]; then
-        local lines=$(wc -l < "$file" 2>/dev/null)
+        local lines
+        lines=$(wc -l < "$file" 2>/dev/null)
         total_lines=$((total_lines + lines))
         loaded_modules=$((loaded_modules + 1))
-        printf "  %s %-15s %s %s %s\n" "✅" "$module.zsh" "($(printf '%6d' $lines) lines)" "$(status_color_green "✓")" "$(show_progress $current_module $module_count)"
+        printf "  %s %-15s %s %s %s\n" "✅" "$module.zsh" "($(printf '%6d' "$lines") lines)" "$(status_color_green "✓")" "$(show_progress "$current_module" "$module_count")"
     else
-        printf "  %s %-15s %s %s %s\n" "❌" "$module.zsh" "$(status_color_red "missing")" "$(status_color_red "✗")" "$(show_progress $current_module $module_count)"
+        printf "  %s %-15s %s %s %s\n" "❌" "$module.zsh" "$(status_color_red "missing")" "$(status_color_red "✗")" "$(show_progress "$current_module" "$module_count")"
     fi
 done
 echo
-printf "  %s %s %s %s\n" "📊" "Total:" "$(printf '%6d' $total_lines) lines" "($loaded_modules/$module_count modules loaded)"
+printf "  %s %s %s %s\n" "📊" "Total:" "$(printf '%6d' "$total_lines") lines" "($loaded_modules/$module_count modules loaded)"
 printf "  %s %s %s\n" "📈" "Load Rate:" "$(status_color_green "$((loaded_modules * 100 / module_count))%")"
 echo
 
@@ -107,16 +108,21 @@ echo
 status_color_cyan "⚡ Performance Status"
 status_color_yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 # Get performance metrics
-local func_count=$(declare -F 2>/dev/null | wc -l 2>/dev/null)
-local alias_count=$(alias 2>/dev/null | wc -l 2>/dev/null)
-local memory_kb=$(ps -p $$ -o rss 2>/dev/null | awk 'NR==2 {gsub(/ /, "", $1); print $1}')
-local history_lines=$(wc -l < "$HISTFILE" 2>/dev/null || echo "0")
-local memory_mb=$(echo "scale=1; ${memory_kb:-0} / 1024" | bc 2>/dev/null || echo "Unknown")
+local func_count
+func_count=$(declare -F 2>/dev/null | wc -l 2>/dev/null)
+local alias_count
+alias_count=$(alias 2>/dev/null | wc -l 2>/dev/null)
+local memory_kb
+memory_kb=$(ps -p $$ -o rss 2>/dev/null | awk 'NR==2 {gsub(/ /, "", $1); print $1}')
+local history_lines
+history_lines=$(wc -l < "$HISTFILE" 2>/dev/null || echo "0")
+local memory_mb
+memory_mb=$(echo "scale=1; ${memory_kb:-0} / 1024" | bc 2>/dev/null || echo "Unknown")
 
-printf "  %s %-20s %s\n" "🔧" "Functions:" "$(status_color_cyan "$(printf '%6d' ${func_count:-0})")"
-printf "  %s %-20s %s\n" "⚡" "Aliases:" "$(status_color_cyan "$(printf '%6d' ${alias_count:-0})")"
+printf "  %s %-20s %s\n" "🔧" "Functions:" "$(status_color_cyan "$(printf '%6d' "${func_count:-0}")")"
+printf "  %s %-20s %s\n" "⚡" "Aliases:" "$(status_color_cyan "$(printf '%6d' "${alias_count:-0}")")"
 printf "  %s %-20s %s\n" "💾" "Memory Usage:" "$(status_color_blue "$memory_mb MB")"
-printf "  %s %-20s %s\n" "📚" "History:" "$(status_color_purple "$(printf '%6d' $history_lines) lines")"
+printf "  %s %-20s %s\n" "📚" "History:" "$(status_color_purple "$(printf '%6d' "$history_lines") lines")"
 
 # Performance rating
 local performance_rating=""
