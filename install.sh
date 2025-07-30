@@ -13,7 +13,8 @@ error() { echo "❌ $1"; }
 # Check ZSH version
 check_zsh_version() {
     local required_version="5.8"
-    local current_version=$(zsh --version | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
+    local current_version
+    current_version=$(zsh --version | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
     
     if [[ -z "$current_version" ]]; then
         error "无法获取ZSH版本信息"
@@ -193,9 +194,11 @@ setup_zdotdir() {
     # Check if ZDOTDIR is already set
     if ! grep -q "ZDOTDIR" "$profile_file" 2>/dev/null; then
         log "Setting ZDOTDIR in $profile_file..."
-        echo "" >> "$profile_file"
-        echo "# ZSH Configuration Directory" >> "$profile_file"
-        echo "$zdotdir_line" >> "$profile_file"
+        {
+            echo ""
+            echo "# ZSH Configuration Directory"
+            echo "$zdotdir_line"
+        } >> "$profile_file"
         success "ZDOTDIR configured in $profile_file"
     else
         log "ZDOTDIR already configured in $profile_file"
@@ -230,13 +233,13 @@ interactive_setup() {
     echo
 
     # Set default editor
-    read -p "Default editor (code/vim/nano) [code]: " editor
+    read -r -p "Default editor (code/vim/nano) [code]: " editor
     editor=${editor:-code}
     export EDITOR="$editor"
     export VISUAL="$editor"
 
     # Install recommended plugins
-    read -p "Install recommended plugins (fzf, zoxide, eza, oh-my-posh)? [Y/n]: " plugins
+    read -r -p "Install recommended plugins (fzf, zoxide, eza, oh-my-posh)? [Y/n]: " plugins
     plugins=${plugins:-Y}
     if [[ "$plugins" =~ ^[Yy]$ ]]; then
         echo "Installing recommended plugins..."
@@ -248,11 +251,11 @@ interactive_setup() {
     fi
 
     # Set default theme
-    read -p "Install and use oh-my-posh theme (agnoster)? [Y/n]: " theme
+    read -r -p "Install and use oh-my-posh theme (agnoster)? [Y/n]: " theme
     theme=${theme:-Y}
     if [[ "$theme" =~ ^[Yy]$ ]]; then
         ./install-themes.sh agnoster
-        echo 'eval "$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)"' >> "$HOME/.zshrc"
+        echo "eval \"\$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)\"" >> "$HOME/.zshrc"
     fi
 
     # Save to environment config
