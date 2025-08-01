@@ -29,10 +29,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y zsh
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
-          # Check if zsh is already installed
-          if ! command -v zsh >/dev/null 2>&1; then
-            brew install zsh
-          fi
+          # macOS runners come with zsh pre-installed
+          echo "✅ ZSH is pre-installed on macOS"
         fi
         
         # Verify ZSH installation
@@ -53,14 +51,28 @@ jobs:
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt-get install -y git curl wget bc
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
-          brew install git curl wget bc
+          # macOS runners come with git, curl, and wget pre-installed
+          echo "✅ Core dependencies are pre-installed on macOS"
+          
+          # Install bc if not available
+          if ! command -v bc >/dev/null 2>&1; then
+            echo "Installing bc..."
+            # Try to install bc using available package managers
+            if command -v brew >/dev/null 2>&1; then
+              brew install bc
+            elif command -v port >/dev/null 2>&1; then
+              sudo port install bc
+            else
+              echo "⚠️ bc not available, some tests may fail"
+            fi
+          fi
         fi
         
-        # Install optional tools for testing
+        # Install optional tools for testing (skip on macOS to avoid Homebrew dependency)
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt-get install -y fzf || echo "⚠️ fzf installation failed, continuing..."
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
-          brew install fzf || echo "⚠️ fzf installation failed, continuing..."
+          echo "⚠️ Skipping optional tools installation on macOS (fzf, etc.)"
         fi
         
         echo "✅ Dependencies installed"
@@ -130,11 +142,19 @@ jobs:
       run: |
         echo "🧪 Running basic configuration test..."
         
+        # Set up environment for testing
+        export ZSH_CONFIG_DIR="$HOME/.config/zsh"
+        export ZSH_TEST_MODE=1
+        
         # Test if configuration can be sourced without errors
         if source ~/.config/zsh/zshrc 2>/dev/null; then
           echo "✅ Configuration loaded successfully"
         else
           echo "❌ Configuration loading failed"
+          echo "Debug: Checking configuration files..."
+          ls -la ~/.config/zsh/
+          echo "Debug: Checking zshrc content (first 10 lines):"
+          head -10 ~/.config/zsh/zshrc
           exit 1
         fi
         
@@ -164,11 +184,17 @@ jobs:
       run: |
         echo "🧪 Running test suite..."
         
+        # Set up environment for testing
+        export ZSH_CONFIG_DIR="$HOME/.config/zsh"
+        export ZSH_TEST_MODE=1
+        export CI=true
+        
         # Run the comprehensive test suite
         if ~/.config/zsh/test.sh all; then
           echo "✅ All tests passed"
         else
           echo "⚠️ Some tests failed, but continuing..."
+          echo "Debug: Test script exit code: $?"
         fi
         
     - name: Run status check (if available)
@@ -176,12 +202,17 @@ jobs:
       run: |
         echo "📊 Running status check..."
         
+        # Set up environment for testing
+        export ZSH_CONFIG_DIR="$HOME/.config/zsh"
+        export ZSH_TEST_MODE=1
+        
         # Check if status script exists and is executable
         if [[ -x ~/.config/zsh/status.sh ]]; then
           if ~/.config/zsh/status.sh --verbose 2>/dev/null; then
             echo "✅ Status check passed"
           else
             echo "⚠️ Status check failed, but continuing..."
+            echo "Debug: Status script exit code: $?"
           fi
         else
           echo "⚠️ Status script not found, skipping..."
@@ -192,12 +223,17 @@ jobs:
       run: |
         echo "🔍 Running project health check..."
         
+        # Set up environment for testing
+        export ZSH_CONFIG_DIR="$HOME/.config/zsh"
+        export ZSH_TEST_MODE=1
+        
         # Check if health check script exists and is executable
         if [[ -x ~/.config/zsh/check-project.sh ]]; then
           if ~/.config/zsh/check-project.sh 2>/dev/null; then
             echo "✅ Project health check passed"
           else
             echo "⚠️ Project health check failed, but continuing..."
+            echo "Debug: Health check script exit code: $?"
           fi
         else
           echo "⚠️ Health check script not found, skipping..."
@@ -280,23 +316,29 @@ jobs:
       run: |
         echo "📈 Running performance benchmark..."
         
+        # Set up environment for testing
+        export ZSH_CONFIG_DIR="$HOME/.config/zsh"
+        export ZSH_TEST_MODE=1
+        
         # Source configuration and measure startup time
         start_time=$(date +%s.%N)
         if source ~/.config/zsh/zshrc >/dev/null 2>&1; then
           end_time=$(date +%s.%N)
           
-          startup_time=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "0")
+          # Use awk for floating-point arithmetic (more portable than bc)
+          startup_time=$(awk "BEGIN {printf \"%.3f\", $end_time - $start_time}" 2>/dev/null || echo "0")
           
           echo "Startup time: ${startup_time}s"
           
           # Check if startup time is acceptable (< 5 seconds for CI)
-          if (( $(echo "$startup_time > 5" | bc -l 2>/dev/null || echo "0") )); then
+          if (( $(awk "BEGIN {exit ($startup_time > 5) ? 1 : 0}" 2>/dev/null || echo "0") )); then
             echo "⚠️ Startup time slow: ${startup_time}s (but continuing...)"
           else
             echo "✅ Startup time acceptable: ${startup_time}s"
           fi
         else
           echo "❌ Failed to source configuration"
+          echo "Debug: Configuration loading failed during performance test"
           exit 1
         fi
         
