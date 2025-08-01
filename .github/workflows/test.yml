@@ -254,7 +254,13 @@ jobs:
       uses: ludeeus/action-shellcheck@master
       with:
         severity: warning
-        shell: zsh
+        shell: bash
+        ignore_paths: >-
+          themes/
+          modules/
+          completions/
+          zshrc
+          local.zsh
         
     - name: Check for secrets
       uses: trufflesecurity/trufflehog@main

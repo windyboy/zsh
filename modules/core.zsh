@@ -30,6 +30,26 @@ setopt AUTO_PARAM_KEYS AUTO_PARAM_SLASH COMPLETE_IN_WORD HASH_LIST_ALL
 setopt INTERACTIVE_COMMENTS MULTIOS NOTIFY
 unsetopt BEEP CASE_GLOB FLOW_CONTROL
 
+# -------------------- Enhanced Error Handling --------------------
+# Safe source function with error handling
+safe_source() {
+    local file="$1"
+    local description="${2:-$file}"
+    
+    if [[ -f "$file" ]]; then
+        if source "$file" 2>/dev/null; then
+            color_green "✅ Loaded: $description" >&2
+            return 0
+        else
+            color_yellow "⚠️  Warning: Failed to load $description" >&2
+            return 1
+        fi
+    else
+        color_yellow "⚠️  Warning: File not found: $description" >&2
+        return 1
+    fi
+}
+
 # -------------------- Common Functions --------------------
 # Reload configuration
 reload() {

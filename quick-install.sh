@@ -20,7 +20,6 @@ warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 error() { echo -e "${RED}❌ $1${NC}"; }
 
 # Configuration
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_URL="https://github.com/yourusername/zsh-config.git"
 INSTALL_DIR="$HOME/.config/zsh"
 
@@ -42,7 +41,8 @@ detect_os() {
 
 # Install ZSH on different platforms
 install_zsh() {
-    local os=$(detect_os)
+    local os
+    os=$(detect_os)
     
     case "$os" in
         "macos")
@@ -132,7 +132,8 @@ run_installation() {
 
 # Set default shell
 set_default_shell() {
-    local zsh_path=$(which zsh)
+    local zsh_path
+    zsh_path=$(which zsh)
     
     if [[ "$SHELL" != "$zsh_path" ]]; then
         log "Setting ZSH as default shell..."

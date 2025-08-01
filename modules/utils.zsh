@@ -90,15 +90,28 @@ archive() { [[ $# -lt 2 ]] && echo "Usage: archive <name> <files...>" && return 
 config() {
     [[ "$1" == "-h" || "$1" == "--help" || $# -eq 0 ]] && {
         echo "Usage: config <file>"
-        echo "Editable files:"
+        echo ""
+        echo "📁 Configuration Files:"
         echo "  zshrc      - Main configuration file"
+        echo "  zshenv     - Environment variables"
         echo "  core       - Core module"
         echo "  plugins    - Plugins module"
         echo "  aliases    - Aliases module"
         echo "  completion - Completion module"
         echo "  keybindings - Keybindings module"
         echo "  utils      - Utils module"
-        echo "  env        - Environment configuration"
+        echo ""
+        echo "🌍 Environment Configuration:"
+        echo "  env        - User environment variables (recommended)"
+        echo "  env-template - Environment template file"
+        echo "  env-init    - Initialize environment configuration"
+        echo "  env-migrate - Migrate old environment configuration"
+        echo ""
+        echo "🔧 System Management:"
+        echo "  status     - Show system status"
+        echo "  reload     - Reload configuration"
+        echo "  validate   - Validate configuration"
+        echo "  test       - Run test suite"
         return 1
     }
 
@@ -106,21 +119,101 @@ config() {
     local target_file=""
 
     case "$file" in
+        # Main configuration files
         zshrc) target_file="$ZSH_CONFIG_DIR/zshrc" ;;
+        zshenv) target_file="$ZSH_CONFIG_DIR/zshenv" ;;
+        
+        # Module files
         core) target_file="$ZSH_CONFIG_DIR/modules/core.zsh" ;;
         plugins) target_file="$ZSH_CONFIG_DIR/modules/plugins.zsh" ;;
         aliases) target_file="$ZSH_CONFIG_DIR/modules/aliases.zsh" ;;
         completion) target_file="$ZSH_CONFIG_DIR/modules/completion.zsh" ;;
         keybindings) target_file="$ZSH_CONFIG_DIR/modules/keybindings.zsh" ;;
         utils) target_file="$ZSH_CONFIG_DIR/modules/utils.zsh" ;;
-        env) target_file="$ZSH_CONFIG_DIR/env/development.zsh" ;;
-        *) color_red "Unknown file: $file" && return 1 ;;
+        
+        # Environment configuration
+        env) 
+            # Check for new environment system first
+            if [[ -f "$ZSH_CONFIG_DIR/env/local/environment.env" ]]; then
+                target_file="$ZSH_CONFIG_DIR/env/local/environment.env"
+            elif [[ -f "$ZSH_CONFIG_DIR/env/development.zsh" ]]; then
+                target_file="$ZSH_CONFIG_DIR/env/development.zsh"
+            else
+                color_yellow "⚠️  No environment configuration found"
+                color_cyan "💡 Run 'config env-init' to initialize environment configuration"
+                return 1
+            fi
+            ;;
+        env-template) target_file="$ZSH_CONFIG_DIR/env/templates/environment.env.template" ;;
+        
+        # Environment management commands
+        env-init)
+            if [[ -f "$ZSH_CONFIG_DIR/env/init-env.sh" ]]; then
+                color_cyan "🚀 Initializing environment configuration..."
+                "$ZSH_CONFIG_DIR/env/init-env.sh"
+                if [[ -f "$ZSH_CONFIG_DIR/env/local/environment.env" ]]; then
+                    color_green "✅ Environment configuration initialized"
+                    color_cyan "💡 Edit with: config env"
+                fi
+            else
+                color_red "❌ Environment initialization script not found"
+            fi
+            return 0
+            ;;
+        env-migrate)
+            if [[ -f "$ZSH_CONFIG_DIR/env/migrate-env.sh" ]]; then
+                color_cyan "🔄 Migrating environment configuration..."
+                "$ZSH_CONFIG_DIR/env/migrate-env.sh"
+            else
+                color_red "❌ Environment migration script not found"
+            fi
+            return 0
+            ;;
+        
+        # System management commands
+        status)
+            if [[ -f "$ZSH_CONFIG_DIR/status.sh" ]]; then
+                "$ZSH_CONFIG_DIR/status.sh"
+            else
+                color_red "❌ Status script not found"
+            fi
+            return 0
+            ;;
+        reload)
+            color_cyan "🔄 Reloading configuration..."
+            source "$ZSH_CONFIG_DIR/zshrc"
+            color_green "✅ Configuration reloaded"
+            return 0
+            ;;
+        validate)
+            if [[ -f "$ZSH_CONFIG_DIR/test.sh" ]]; then
+                "$ZSH_CONFIG_DIR/test.sh" all
+            else
+                color_red "❌ Test script not found"
+            fi
+            return 0
+            ;;
+        test)
+            if [[ -f "$ZSH_CONFIG_DIR/test.sh" ]]; then
+                "$ZSH_CONFIG_DIR/test.sh" all
+            else
+                color_red "❌ Test script not found"
+            fi
+            return 0
+            ;;
+        
+        *) 
+            color_red "❌ Unknown configuration: $file"
+            color_cyan "💡 Run 'config --help' for available options"
+            return 1 
+            ;;
     esac
 
     if [[ -f "$target_file" ]]; then
+        color_cyan "📝 Opening: $target_file"
         ${EDITOR:-code} "$target_file"
     else
-        color_red "File does not exist: $target_file"
+        color_red "❌ File does not exist: $target_file"
         return 1
     fi
 }

@@ -1,4 +1,4 @@
-# 🚀 ZSH Configuration v5.0.0
+# 🚀 ZSH Configuration v5.1.0
 
 > **High-performance, modular ZSH configuration system** with comprehensive testing, automated updates, and professional CI/CD pipeline.
 
@@ -170,7 +170,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ### Custom Configuration
 
-Create `~/.config/zsh/custom/local.zsh` for personal settings:
+The `config` command provides easy access to all configuration files:
 
 ```bash
 # Quick configuration commands
@@ -209,26 +209,20 @@ This project uses a simplified environment variable configuration approach:
 
 #### Initialize Configuration (First Use)
 ```bash
-# Navigate to environment configuration directory
-cd ~/.config/zsh/env
-
-# Run initialization script
-./init-env.sh
+# Use the unified config command
+config env-init
 ```
 
 #### Migrate Old Configuration (If Existing)
 ```bash
-# Navigate to environment configuration directory
-cd ~/.config/zsh/env
-
-# Run migration script
-./migrate-env.sh
+# Use the unified config command
+config env-migrate
 ```
 
 #### Edit Configuration
 ```bash
-# Edit user environment configuration
-${EDITOR:-code} ~/.config/zsh/env/local/environment.env
+# Use the unified config command
+config env
 ```
 
 #### Configuration Notes
@@ -256,6 +250,34 @@ plugins_clean   # Clean unused plugins
 perf            # Performance metrics
 perf --monitor  # Continuous monitoring
 perf --optimize # Optimization suggestions
+```
+
+### Unified Configuration Interface
+
+The `config` command provides a unified interface for all configuration management:
+
+```bash
+# Configuration Files
+config zshrc      # Edit main configuration file
+config zshenv     # Edit environment variables
+config core       # Edit core module
+config plugins    # Edit plugins module
+config aliases    # Edit aliases module
+config completion # Edit completion module
+config keybindings # Edit keybindings module
+config utils      # Edit utils module
+
+# Environment Configuration
+config env        # Edit user environment variables (recommended)
+config env-template # View environment template file
+config env-init   # Initialize environment configuration
+config env-migrate # Migrate old environment configuration
+
+# System Management
+config status     # Show system status
+config reload     # Reload configuration
+config validate   # Validate configuration
+config test       # Run test suite
 ```
 
 ### Status Monitoring
@@ -301,33 +323,31 @@ Here are some commonly used commands for managing custom configurations:
 ### Configuration Management
 
 ```bash
-# Check current status
-./status.sh
+# Unified configuration interface
+config status     # Check current status
+config reload     # Reload configuration
+config validate   # Validate configuration
+config test       # Run test suite
 
-# Optimize configuration
-./optimize.sh
-
-# Backup configuration
-./backup/
-
-# Restore configuration
-./backup/restore.sh
+# Direct script access (alternative)
+./status.sh       # Check current status
+./optimize.sh     # Optimize configuration
+./backup/         # Backup configuration
+./backup/restore.sh # Restore configuration
 ```
 
 ### Testing and Validation
 
 ```bash
-# Run unit tests
-./test.sh unit
+# Unified testing interface
+config test       # Run complete test suite
+config validate   # Validate configuration
 
-# Run performance tests
-./test.sh performance
-
-# Run complete test suite
-./test.sh all
-
-# Project health check
-./check-project.sh
+# Direct script access (alternative)
+./test.sh unit    # Run unit tests
+./test.sh performance # Run performance tests
+./test.sh all     # Run complete test suite
+./check-project.sh # Project health check
 ```
 
 ### Updates and Maintenance
@@ -343,10 +363,26 @@ Here are some commonly used commands for managing custom configurations:
 ./update.sh --force
 ```
 
+### Enhanced Plugin Management
+
+The configuration now includes automatic plugin installation and enhanced error handling:
+
+```bash
+# Plugin management with automatic installation
+plugins         # List installed plugins
+plugins_update  # Update all plugins
+plugins_clean   # Clean unused plugins
+
+# Automatic plugin installation
+# Plugins are automatically installed when loading fails
+# Detailed status reporting shows installation progress
+```
+
 **Important Notes:**
 - Ensure `zsh`, `git` and other dependencies are installed before running any scripts
 - It's recommended to backup before modifying configuration: `cp -r ~/.config/zsh ~/.config/zsh.backup`
 - If you encounter issues, check logs: `./status.sh --verbose`
+- Plugins are automatically installed when missing, reducing manual setup
 
 ## 🧪 Testing & Validation
 

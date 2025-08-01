@@ -11,7 +11,7 @@ RED="\033[0;31m"
 GREEN="\033[0;32m"
 YELLOW="\033[1;33m"
 BLUE="\033[0;34m"
-PURPLE="\033[0;35m"
+# PURPLE="\033[0;35m"  # Unused variable
 CYAN="\033[0;36m"
 NC="\033[0m" # No Color
 
@@ -200,12 +200,12 @@ check_configuration() {
     fi
     
     # Check for common issues
-    run_test "No hardcoded paths in zshrc" "! grep -q "/home/" "$PROJECT_ROOT/zshrc"" "Path portability"
-    run_test "No hardcoded paths in zshenv" "! grep -q "/home/" "$PROJECT_ROOT/zshenv"" "Path portability"
+    run_test "No hardcoded paths in zshrc" "! grep -q '/home/' \"$PROJECT_ROOT/zshrc\"" "Path portability"
+    run_test "No hardcoded paths in zshenv" "! grep -q '/home/' \"$PROJECT_ROOT/zshenv\"" "Path portability"
     
     # Check for required variables
-    run_test "ZDOTDIR is set in zshenv" "grep -q "ZDOTDIR" "$PROJECT_ROOT/zshenv"" "Configuration directory"
-    run_test "ZSH_CONFIG_DIR is set" "grep -q "ZSH_CONFIG_DIR" "$PROJECT_ROOT/zshrc"" "Config directory variable"
+    run_test "ZDOTDIR is set in zshenv" "grep -q 'ZDOTDIR' \"$PROJECT_ROOT/zshenv\"" "Configuration directory"
+    run_test "ZSH_CONFIG_DIR is set" "grep -q 'ZSH_CONFIG_DIR' \"$PROJECT_ROOT/zshrc\"" "Config directory variable"
 }
 
 # Module validation tests
@@ -267,7 +267,7 @@ check_security() {
     run_test "No command injection risks" "! grep -r '\$(' \"$PROJECT_ROOT\" --exclude-dir=.git --exclude=*.md | grep -v 'command -v'" "Command injection"
     
     # Check file permissions
-    run_test "Scripts have secure permissions" "find "$PROJECT_ROOT" -name "*.sh" -exec test -x {} \;" "File permissions"
+    run_test "Scripts have secure permissions" "find \"$PROJECT_ROOT\" -name \"*.sh\" -exec test -x {} \;" "File permissions"
 }
 
 # Performance tests
@@ -277,14 +277,15 @@ check_performance() {
     log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
     # Check file sizes
-    local large_files=$(find "$PROJECT_ROOT" -type f -size +1M -not -path "./.git/*" | wc -l)
+    local large_files
+    large_files=$(find "$PROJECT_ROOT" -type f -size +1M -not -path "./.git/*" | wc -l)
     run_test "No large files (>1MB)" "[[ $large_files -eq 0 ]]" "File size optimization"
     
     # Check for unnecessary files
-    run_test "No temporary files" "! find "$PROJECT_ROOT" -name "*.tmp" -o -name "*.temp" -o -name "*~"" "Clean workspace"
+    run_test "No temporary files" "! find \"$PROJECT_ROOT\" -name \"*.tmp\" -o -name \"*.temp\" -o -name \"*~\"" "Clean workspace"
     
     # Check for duplicate functionality
-    run_test "No duplicate aliases in modules" "! find "$PROJECT_ROOT/modules" -name "*.zsh" -exec grep -h "^alias " {} \; | sort | uniq -d" "Alias conflicts"
+    run_test "No duplicate aliases in modules" "! find \"$PROJECT_ROOT/modules\" -name \"*.zsh\" -exec grep -h \"^alias \" {} \; | sort | uniq -d" "Alias conflicts"
 }
 
 # Show summary

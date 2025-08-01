@@ -68,6 +68,28 @@ typeset -ga BUILTIN_SNIPPETS=(
     https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/history/history.plugin.zsh
 )
 
+# Enhanced plugin installation and loading function
+plugin_install_if_missing() {
+    local plugin="$1"
+    local repo="$2"
+    local plugin_name="${plugin##*/}"
+    
+    # Check if plugin is already installed
+    if [[ -d "$ZINIT_HOME/plugins/${repo//\//---}" ]]; then
+        return 0
+    fi
+    
+    # Try to install the plugin
+    color_yellow "📦 Installing plugin: $plugin_name"
+    if zinit ice wait"0" lucid 2>/dev/null && zinit light "$repo" 2>/dev/null; then
+        color_green "✅ Successfully installed: $plugin_name"
+        return 0
+    else
+        color_red "❌ Failed to install: $plugin_name"
+        return 1
+    fi
+}
+
 plugins_load() {
     (( ZSH_ENABLE_PLUGINS )) || { color_yellow "Plugins disabled via ZSH_ENABLE_PLUGINS=0"; return; }
 
@@ -79,53 +101,72 @@ plugins_load() {
     
     [[ ! -o interactive ]] && return
 
-    # Load core plugins with error handling
+    # Load core plugins with enhanced error handling and auto-installation
     local loaded_plugins=0
     local total_plugins=${#ZINIT_PLUGINS[@]}
+    local failed_plugins=()
     
     for p in "${ZINIT_PLUGINS[@]}"; do
-        if [[ "$p" == "Aloxaf/fzf-tab" ]]; then
-            # Special handling for fzf-tab
-            if zinit ice wait"0" lucid 2>/dev/null && zinit light "$p" 2>/dev/null; then
-                ((loaded_plugins++))
-                echo "✅ Loaded fzf-tab plugin"
-            else
-                color_yellow "⚠️  Failed to load plugin: $p"
-            fi
+        local plugin_name="${p##*/}"
+        
+        # Try to load the plugin
+        if zinit ice wait"0" lucid 2>/dev/null && zinit light "$p" 2>/dev/null; then
+            ((loaded_plugins++))
+            color_green "✅ Loaded: $plugin_name"
         else
-            if zinit ice wait"0" lucid 2>/dev/null && zinit light "$p" 2>/dev/null; then
-                ((loaded_plugins++))
+            # If loading fails, try to install it
+            color_yellow "⚠️  Plugin not found, attempting installation: $plugin_name"
+            if plugin_install_if_missing "$plugin_name" "$p"; then
+                # Try loading again after installation
+                if zinit ice wait"0" lucid 2>/dev/null && zinit light "$p" 2>/dev/null; then
+                    ((loaded_plugins++))
+                    color_green "✅ Loaded after installation: $plugin_name"
+                else
+                    failed_plugins+=("$plugin_name")
+                    color_red "❌ Failed to load after installation: $plugin_name"
+                fi
             else
-                color_yellow "⚠️  Failed to load plugin: $p"
+                failed_plugins+=("$plugin_name")
+                color_red "❌ Failed to install: $plugin_name"
             fi
         fi
     done
 
-    # Load builtin snippets
+    # Load builtin snippets with enhanced error handling
     for snip in "${BUILTIN_SNIPPETS[@]}"; do
+        local snippet_name="${snip##*/}"
         if zinit snippet "$snip" 2>/dev/null; then
             ((loaded_plugins++))
+            color_green "✅ Loaded snippet: $snippet_name"
         else
-            color_yellow "⚠️  Failed to load snippet: $snip"
+            color_yellow "⚠️  Failed to load snippet: $snippet_name"
+            failed_plugins+=("$snippet_name")
         fi
     done
 
     # Load optional plugins if enabled and dependencies are available
     if (( ZSH_ENABLE_OPTIONAL_PLUGINS )) && command -v fzf >/dev/null 2>&1; then
         for p in "${OPTIONAL_ZINIT_PLUGINS[@]}"; do
+            local plugin_name="${p##*/}"
             if zinit ice wait"0" lucid 2>/dev/null && zinit light "$p" 2>/dev/null; then
                 ((loaded_plugins++))
+                color_green "✅ Loaded optional: $plugin_name"
             else
-                color_yellow "⚠️  Failed to load optional plugin: $p"
+                color_yellow "⚠️  Failed to load optional plugin: $plugin_name"
+                failed_plugins+=("$plugin_name")
             fi
         done
     fi
     
-    # Report loading status
-    if [[ $loaded_plugins -gt 0 ]]; then
-        color_green "✅ Loaded $loaded_plugins plugins successfully"
-    else
-        color_red "❌ No plugins loaded successfully"
+    # Enhanced loading status report
+    echo
+    color_cyan "📊 Plugin Loading Summary:"
+    color_green "✅ Successfully loaded: $loaded_plugins plugins"
+    if [[ ${#failed_plugins[@]} -gt 0 ]]; then
+        color_red "❌ Failed to load: ${#failed_plugins[@]} plugins"
+        color_yellow "   Failed plugins: ${failed_plugins[*]}"
+        echo
+        color_yellow "💡 Tip: Run 'plugins_update' to update plugins or check network connection"
     fi
     
     # Fallback: manually load fzf-tab if not loaded by zinit

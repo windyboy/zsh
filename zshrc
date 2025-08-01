@@ -13,37 +13,54 @@ if ! is-at-least 5.8 $ZSH_VERSION; then
     echo "[zshrc] Warning: ZSH 5.8+ recommended. Current: $ZSH_VERSION" >&2
 fi
 
+# Simple source function for initial loading
+simple_source() {
+    local file="$1"
+    local description="${2:-$file}"
+    
+    if [[ -f "$file" ]]; then
+        if source "$file" 2>/dev/null; then
+            echo "✅ Loaded: $description" >&2
+            return 0
+        else
+            echo "⚠️  Warning: Failed to load $description" >&2
+            return 1
+        fi
+    else
+        echo "⚠️  Warning: File not found: $description" >&2
+        return 1
+    fi
+}
+
 # Load environment variables first (core environment setup)
-if [[ -f "$ZSH_CONFIG_DIR/zshenv" ]]; then
-    source "$ZSH_CONFIG_DIR/zshenv"
-fi
+simple_source "$ZSH_CONFIG_DIR/zshenv" "environment variables"
 
 # Load core modules (order cannot be changed)
+local loaded_modules=0
+local total_modules=8
 for mod in core security navigation path plugins completion aliases keybindings utils; do
     local modfile="$ZSH_CONFIG_DIR/modules/${mod}.zsh"
-    if [[ -f "$modfile" ]]; then
-        source "$modfile"
-    else
-        echo "[zshrc] Warning: module not found: $modfile" >&2
+    if simple_source "$modfile" "$mod module"; then
+        ((loaded_modules++))
     fi
 done
 
 # Load theme configuration
-if [[ -f "$ZSH_CONFIG_DIR/themes/prompt.zsh" ]]; then
-    source "$ZSH_CONFIG_DIR/themes/prompt.zsh"
-fi
+simple_source "$ZSH_CONFIG_DIR/themes/prompt.zsh" "theme configuration"
 
 # Load user custom extensions (optional)
 if [[ -d "$ZSH_CONFIG_DIR/modules/custom" ]]; then
     for custom in "$ZSH_CONFIG_DIR/modules/custom"/*.zsh(N); do
-        [[ -f "$custom" ]] && source "$custom"
+        [[ -f "$custom" ]] && simple_source "$custom" "custom module: ${custom##*/}"
     done
 fi
 
 # Load local personalization configuration (optional)
-if [[ -f "$ZSH_CONFIG_DIR/local.zsh" ]]; then
-    source "$ZSH_CONFIG_DIR/local.zsh"
-fi
+simple_source "$ZSH_CONFIG_DIR/local.zsh" "local configuration"
 
-# End message
-echo "INFO: zshrc loaded all modules and custom configs"
+# Enhanced loading summary
+if [[ $loaded_modules -eq $total_modules ]]; then
+    echo "✅ All modules loaded successfully ($loaded_modules/$total_modules)" >&2
+else
+    echo "⚠️  Partially loaded: $loaded_modules/$total_modules modules" >&2
+fi
