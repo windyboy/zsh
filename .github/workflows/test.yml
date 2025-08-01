@@ -57,11 +57,9 @@ jobs:
         
         # Copy configuration files
         cp -r . ~/.config/zsh/
-        
-        # Set environment variables
-        echo 'export ZSH_CONFIG_DIR="$HOME/.config/zsh"' >> ~/.zshenv
-        echo 'export ZSH_CACHE_DIR="$HOME/.cache/zsh"' >> ~/.zshenv
-        echo 'export ZSH_DATA_DIR="$HOME/.local/share/zsh"' >> ~/.zshenv
+
+        # Use repository zshenv as ~/.zshenv
+        cp ~/.config/zsh/zshenv ~/.zshenv
         
     - name: Run syntax validation
       shell: zsh {0}
@@ -274,6 +272,9 @@ jobs:
           themes/**
           modules/**
           completions/**
+          env/**
+          zshrc
+          zshenv
           **/*.zsh
         
     - name: Check for secrets
