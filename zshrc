@@ -63,4 +63,4 @@ if [[ $loaded_modules -eq $total_modules ]]; then
     echo "✅ All modules loaded successfully ($loaded_modules/$total_modules)" >&2
 else
     echo "⚠️  Partially loaded: $loaded_modules/$total_modules modules" >&2
-fi
+fi 

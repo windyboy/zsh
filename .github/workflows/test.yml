@@ -295,7 +295,7 @@ jobs:
         chmod +x ~/.config/zsh/*.sh 2>/dev/null || true
         
         # Verify key script permissions
-        local scripts=("install.sh" "status.sh" "test.sh")
+        scripts=("install.sh" "status.sh" "test.sh")
         for script in "${scripts[@]}"; do
           if [[ -f ~/.config/zsh/$script ]]; then
             if [[ -x ~/.config/zsh/$script ]]; then
