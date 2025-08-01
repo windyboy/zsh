@@ -89,16 +89,41 @@ jobs:
       run: |
         echo "🔍 Validating configuration..."
         
-        # Copy validation script to config directory
-        cp validate-config.sh ~/.config/zsh/
-        chmod +x ~/.config/zsh/validate-config.sh
+        # Basic validation - check if key files exist and have correct syntax
+        for file in zshrc zshenv; do
+          if [[ -f ~/.config/zsh/$file ]]; then
+            echo "✅ Found: $file"
+            if zsh -n ~/.config/zsh/$file 2>/dev/null; then
+              echo "✅ Syntax OK: $file"
+            else
+              echo "❌ Syntax error: $file"
+              exit 1
+            fi
+          else
+            echo "❌ Missing: $file"
+            exit 1
+          fi
+        done
         
-        # Run validation
-        if ~/.config/zsh/validate-config.sh; then
-          echo "✅ Configuration validation passed"
+        # Check modules
+        if [[ -d ~/.config/zsh/modules ]]; then
+          echo "✅ Modules directory exists"
+          for module in ~/.config/zsh/modules/*.zsh; do
+            if [[ -f "$module" ]]; then
+              if zsh -n "$module" 2>/dev/null; then
+                echo "✅ Syntax OK: $(basename "$module")"
+              else
+                echo "❌ Syntax error: $(basename "$module")"
+                exit 1
+              fi
+            fi
+          done
         else
-          echo "⚠️ Configuration validation found issues, but continuing..."
+          echo "❌ Modules directory missing"
+          exit 1
         fi
+        
+        echo "✅ Configuration validation passed"
         
     - name: Run basic configuration test
       shell: zsh {0}
@@ -135,16 +160,12 @@ jobs:
         echo "✅ Basic configuration test passed"
         
     - name: Run test suite
-      shell: bash
+      shell: zsh {0}
       run: |
         echo "🧪 Running test suite..."
         
-        # Copy test runner to config directory
-        cp run-tests.sh ~/.config/zsh/
-        chmod +x ~/.config/zsh/run-tests.sh
-        
-        # Run tests with the new test runner
-        if ~/.config/zsh/run-tests.sh; then
+        # Run the comprehensive test suite
+        if ~/.config/zsh/test.sh all; then
           echo "✅ All tests passed"
         else
           echo "⚠️ Some tests failed, but continuing..."

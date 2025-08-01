@@ -2,7 +2,12 @@
 set -euo pipefail
 # =============================================================================
 # Simple ZSH Installer
+# Version: 1.0.0
 # =============================================================================
+
+# Version information
+VERSION="1.0.0"
+BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Simple logging
 log() { echo "ℹ️  $1"; }
@@ -33,6 +38,63 @@ check_zsh_version() {
         error "ZSH版本过低: $current_version (需要: $required_version+)"
         return 1
     fi
+}
+
+# Help function
+show_help() {
+    cat << EOF
+ZSH Configuration Installer v${VERSION}
+
+Usage: $0 [OPTIONS]
+
+OPTIONS:
+    -h, --help          Show this help message
+    -v, --version       Show version information
+    --skip-checks       Skip prerequisite checks
+    --force             Force installation even if issues found
+
+EXAMPLES:
+    $0                    # Normal installation
+    $0 --skip-checks      # Skip version and tool checks
+    $0 --force           # Force installation
+
+ENVIRONMENT VARIABLES:
+    ZSH_CONFIG_DIR       ZSH configuration directory (default: ~/.config/zsh)
+
+EOF
+}
+
+# Parse command line arguments
+parse_args() {
+    SKIP_CHECKS=false
+    FORCE_INSTALL=false
+    
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            -v|--version)
+                echo "ZSH Configuration Installer v${VERSION}"
+                echo "Build Date: ${BUILD_DATE}"
+                exit 0
+                ;;
+            --skip-checks)
+                SKIP_CHECKS=true
+                shift
+                ;;
+            --force)
+                FORCE_INSTALL=true
+                shift
+                ;;
+            *)
+                error "Unknown option: $1"
+                show_help
+                exit 1
+                ;;
+        esac
+    done
 }
 
 # Check optional tools
@@ -217,6 +279,8 @@ set_shell() {
 }
 
 # Parse arguments
+parse_args "$@"
+
 INTERACTIVE_MODE=0
 for arg in "$@"; do
     case "$arg" in

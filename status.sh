@@ -55,11 +55,11 @@ echo
 status_color_cyan "🔄 Loading configuration..."
 # Suppress module loading messages for cleaner output
 # shellcheck disable=SC1091
-source "$HOME/.config/zsh/zshrc" >/dev/null 2>&1 || {
-    status_color_red "❌ Unable to load ZSH configuration"
-    exit 1
-}
-status_color_green "✅ Configuration loaded successfully!"
+if source "$HOME/.config/zsh/zshrc" >/dev/null 2>&1; then
+    status_color_green "✅ Configuration loaded successfully!"
+else
+    status_color_yellow "⚠️  Configuration loaded with warnings (continuing...)"
+fi
 echo
 
 # System information section

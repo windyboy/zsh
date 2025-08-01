@@ -10,10 +10,16 @@ success() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ $1"; }
 warning() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️  $1"; }
 error() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ $1"; }
 
+# Version information
+VERSION="1.0.0"
+BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
 # Configuration
 ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 ZINIT_DIR="$HOME/.local/share/zsh/zinit/zinit.git"
 BACKUP_DIR="$HOME/.config/zsh/backup/$(date +%Y%m%d_%H%M%S)"
+
+
 
 # Create backup directory
 create_backup() {
@@ -255,6 +261,7 @@ for arg in "$@"; do
             FORCE_UPDATE=1
             ;;
         --help|-h)
+            echo "ZSH Configuration Update Script v${VERSION}"
             echo "Usage: $0 [OPTIONS]"
             echo
             echo "Options:"
@@ -262,11 +269,17 @@ for arg in "$@"; do
             echo "  -s, --skip-backup    Skip creating backup"
             echo "  -f, --force          Force update even if already up to date"
             echo "  -h, --help           Show this help message"
+            echo "  -v, --version        Show version information"
             echo
             echo "Examples:"
             echo "  $0                   # Normal update"
             echo "  $0 --interactive     # Interactive update"
             echo "  $0 --skip-backup     # Update without backup"
+            exit 0
+            ;;
+        --version|-v)
+            echo "ZSH Configuration Update Script v${VERSION}"
+            echo "Build Date: ${BUILD_DATE}"
             exit 0
             ;;
     esac
