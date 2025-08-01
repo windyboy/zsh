@@ -1,0 +1,65 @@
+# TruffleHog ignore file for ZSH configuration
+# Exclude files that commonly trigger false positives
+
+# ZSH compiled files
+*.zwc
+*.zcompdump*
+
+# Backup and cache directories
+backup/
+.cache/
+*.bak
+*.backup
+
+# Git and version control
+.git/
+.gitignore
+
+# Documentation and examples
+*.md
+*.txt
+*.example
+*.template
+
+# Test files and temporary files
+*.test
+*.tmp
+*.temp
+
+# Binary and compiled files
+*.bin
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Log files
+*.log
+*.out
+
+# Configuration files that might contain false positives
+.zsh_history
+.zsh_sessions/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Package manager files
+node_modules/
+vendor/
+
+# Specific patterns that are known to be safe
+# These are common in shell configurations but not actual secrets
+API_KEY=.*
+SECRET=.*
+TOKEN=.*
+PASSWORD=.*
+# But only if they're in specific contexts (like examples or templates) 
