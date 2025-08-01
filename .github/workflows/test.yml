@@ -268,14 +268,14 @@ jobs:
       with:
         severity: warning
         shell: bash
-        ignore_paths: |
-          themes/**
-          modules/**
-          completions/**
-          env/**
+        ignore_paths: >-
+          themes/*
+          modules/*
+          completions/*
+          env/*
           zshrc
           zshenv
-          **/*.zsh
+          *.zsh
         
     - name: Check for secrets
       uses: trufflesecurity/trufflehog@main
