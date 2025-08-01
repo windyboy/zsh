@@ -267,12 +267,12 @@ jobs:
       uses: ludeeus/action-shellcheck@master
       with:
         severity: warning
-        shell: bash
-        ignore_paths: >-
-          themes/*
-          modules/*
-          completions/*
-          env/*
+        ignore_paths: |
+          themes/
+          modules/
+          completions/
+          env/
+        ignore_names: |
           zshrc
           zshenv
           *.zsh
