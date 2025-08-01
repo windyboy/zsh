@@ -21,6 +21,7 @@ jobs:
       uses: actions/checkout@v4
       
     - name: Setup ZSH
+      shell: bash
       run: |
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt-get update
@@ -32,6 +33,7 @@ jobs:
         echo "ZSH_VERSION=$(zsh --version | head -1)" >> $GITHUB_ENV
         
     - name: Install dependencies
+      shell: zsh {0}
       run: |
         # Install basic tools
         if [[ "$RUNNER_OS" == "Linux" ]]; then
@@ -48,19 +50,19 @@ jobs:
         fi
         
     - name: Setup ZSH configuration
+      shell: zsh {0}
       run: |
         # Create necessary directories
         mkdir -p ~/.config/zsh ~/.cache/zsh ~/.local/share/zsh
         
         # Copy configuration files
         cp -r . ~/.config/zsh/
-        
-        # Set environment variables
-        echo 'export ZSH_CONFIG_DIR="$HOME/.config/zsh"' >> ~/.zshenv
-        echo 'export ZSH_CACHE_DIR="$HOME/.cache/zsh"' >> ~/.zshenv
-        echo 'export ZSH_DATA_DIR="$HOME/.local/share/zsh"' >> ~/.zshenv
+
+        # Use repository zshenv as ~/.zshenv
+        cp ~/.config/zsh/zshenv ~/.zshenv
         
     - name: Run syntax validation
+      shell: zsh {0}
       run: |
         echo "🔍 Validating ZSH syntax..."
         
@@ -79,6 +81,7 @@ jobs:
         echo "✅ All syntax validation passed"
         
     - name: Run configuration tests
+      shell: zsh {0}
       run: |
         echo "🧪 Running configuration tests..."
         
@@ -92,6 +95,7 @@ jobs:
         echo "✅ Configuration tests passed"
         
     - name: Run performance tests
+      shell: zsh {0}
       run: |
         echo "⚡ Running performance tests..."
         
@@ -104,6 +108,7 @@ jobs:
         echo "✅ Performance tests passed"
         
     - name: Run plugin tests
+      shell: zsh {0}
       run: |
         echo "🔌 Running plugin tests..."
         
@@ -116,6 +121,7 @@ jobs:
         echo "✅ Plugin tests passed"
         
     - name: Run security tests
+      shell: zsh {0}
       run: |
         echo "🛡️ Running security tests..."
         
@@ -128,6 +134,7 @@ jobs:
         echo "✅ Security tests passed"
         
     - name: Run status check
+      shell: zsh {0}
       run: |
         echo "📊 Running status check..."
         
@@ -140,6 +147,7 @@ jobs:
         echo "✅ Status check passed"
         
     - name: Run project health check
+      shell: zsh {0}
       run: |
         echo "🔍 Running project health check..."
         
@@ -149,6 +157,7 @@ jobs:
         echo "✅ Project health check passed"
         
     - name: Test plugin installation
+      shell: zsh {0}
       run: |
         echo "🔌 Testing plugin installation..."
         
@@ -159,6 +168,7 @@ jobs:
         echo "✅ Plugin installation test passed"
         
     - name: Validate documentation
+      shell: zsh {0}
       run: |
         echo "📚 Validating documentation..."
         
@@ -174,6 +184,7 @@ jobs:
         echo "✅ Documentation validation passed"
         
     - name: Check file permissions
+      shell: zsh {0}
       run: |
         echo "🔐 Checking file permissions..."
         
@@ -189,6 +200,7 @@ jobs:
         echo "✅ File permissions check passed"
         
     - name: Performance benchmark
+      shell: zsh {0}
       run: |
         echo "📈 Running performance benchmark..."
         
@@ -210,6 +222,7 @@ jobs:
         fi
         
     - name: Generate test report
+      shell: zsh {0}
       run: |
         echo "📊 Generating test report..."
         
@@ -256,11 +269,13 @@ jobs:
         severity: warning
         shell: bash
         ignore_paths: >-
-          themes/
-          modules/
-          completions/
+          themes/*
+          modules/*
+          completions/*
+          env/*
           zshrc
-          local.zsh
+          zshenv
+          *.zsh
         
     - name: Check for secrets
       uses: trufflesecurity/trufflehog@main
