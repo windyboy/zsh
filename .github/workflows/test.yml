@@ -347,11 +347,11 @@ jobs:
       with:
         severity: warning
         ignore_paths: |
-          themes/
-          modules/
-          completions/
-          env/
-          backup/
+          themes
+          modules
+          completions
+          env
+          backup
         ignore_names: |
           zshrc
           zshenv

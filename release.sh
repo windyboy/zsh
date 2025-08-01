@@ -23,8 +23,6 @@ error() { echo -e "${RED}❌ $1${NC}"; }
 info() { echo -e "${CYAN}📋 $1${NC}"; }
 
 # Configuration
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$SCRIPT_DIR"
 CURRENT_VERSION="5.0.0"
 RELEASE_DATE=$(date +%Y-%m-%d)
 
@@ -256,7 +254,8 @@ EOF
 # Create git tag
 create_git_tag() {
     local new_version="$1"
-    local tag_message="Release v$new_version - $(date +%Y-%m-%d)"
+    local tag_message
+    tag_message="Release v$new_version - $(date +%Y-%m-%d)"
     
     log "Creating git tag v$new_version..."
     
@@ -397,7 +396,8 @@ main() {
     echo
     
     # Parse arguments
-    local new_version=$(parse_arguments "$@")
+    local new_version
+    new_version=$(parse_arguments "$@")
     
     # Validate version format
     if [[ ! "$new_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then

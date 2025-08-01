@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 # =============================================================================
 # 环境变量迁移脚本 - Environment Variables Migration Script
 # 说明: 帮助用户从旧的环境变量配置迁移到新的配置系统

@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 # =============================================================================
 # 环境变量初始化脚本 - Environment Variables Initialization Script
 # 说明: 帮助用户创建环境变量配置文件

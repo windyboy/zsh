@@ -81,11 +81,11 @@ parse_args() {
                 exit 0
                 ;;
             --skip-checks)
-                SKIP_CHECKS=true
+                export SKIP_CHECKS=true
                 shift
                 ;;
             --force)
-                FORCE_INSTALL=true
+                export FORCE_INSTALL=true
                 shift
                 ;;
             *)

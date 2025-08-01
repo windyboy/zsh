@@ -127,7 +127,8 @@ load_config_for_testing() {
         
         for location in "${alt_locations[@]}"; do
             if [[ -f "$location" ]]; then
-                export ZSH_CONFIG_DIR="$(dirname "$location")"
+                ZSH_CONFIG_DIR="$(dirname "$location")"
+                export ZSH_CONFIG_DIR
                 test_color_green "✅ Found configuration at $location"
                 break
             fi
@@ -178,8 +179,9 @@ run_unit_tests() {
             test_assert "Modules directory exists" "true" "Modules directory not found"
             
             # Count module files
-            local module_count
-            module_count=$(find "$ZSH_CONFIG_DIR/modules" -name "*.zsh" 2>/dev/null | wc -l)
+                    local module_count
+        module_count=0
+        module_count=$(find "$ZSH_CONFIG_DIR/modules" -name "*.zsh" 2>/dev/null | wc -l)
             if [[ $module_count -gt 0 ]]; then
                 test_assert "Module files found" "true" "No module files found"
             else

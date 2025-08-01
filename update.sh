@@ -66,8 +66,10 @@ update_zinit() {
     fi
     
     # Get current and latest versions
-    local current_commit=$(git rev-parse HEAD)
-    local latest_commit=$(git rev-parse origin/master)
+    local current_commit
+    local latest_commit
+    current_commit=$(git rev-parse HEAD)
+    latest_commit=$(git rev-parse origin/master)
     
     if [[ "$current_commit" == "$latest_commit" ]]; then
         success "Zinit is already up to date"
@@ -94,12 +96,15 @@ update_oh_my_posh() {
         return 0
     fi
     
-    local current_version=$(oh-my-posh version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
+    local current_version
+    current_version=$(oh-my-posh version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
     log "Current oh-my-posh version: $current_version"
     
     # Detect OS and architecture
-    local os=""
-    local arch=""
+    local os
+    local arch
+    os=""
+    arch=""
     
     case "$(uname -s)" in
         Darwin*) os="darwin" ;;
@@ -120,8 +125,10 @@ update_oh_my_posh() {
     fi
     
     # Download latest version
-    local download_url="https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-${os}-${arch}"
-    local temp_file="/tmp/oh-my-posh-latest"
+    local download_url
+    local temp_file
+    download_url="https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-${os}-${arch}"
+    temp_file="/tmp/oh-my-posh-latest"
     
     log "Downloading latest oh-my-posh..."
     if ! curl -L -o "$temp_file" "$download_url"; then
@@ -135,7 +142,8 @@ update_oh_my_posh() {
         return 1
     fi
     
-    local install_path=""
+    local install_path
+    install_path=""
     if [[ "$os" == "darwin" ]]; then
         install_path="/usr/local/bin/oh-my-posh"
     else
@@ -147,7 +155,8 @@ update_oh_my_posh() {
         return 1
     fi
     
-    local new_version=$(oh-my-posh version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
+    local new_version
+    new_version=$(oh-my-posh version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
     success "oh-my-posh updated: $current_version → $new_version"
 }
 
@@ -211,7 +220,8 @@ cleanup_old_backups() {
     fi
     
     # Keep only last 5 backups
-    local old_backups=$(find "$backup_root" -maxdepth 1 -type d -name "*_*" | sort -r | tail -n +6)
+    local old_backups
+    old_backups=$(find "$backup_root" -maxdepth 1 -type d -name "*_*" | sort -r | tail -n +6)
     
     if [[ -n "$old_backups" ]]; then
         echo "$old_backups" | while read -r backup; do
@@ -247,7 +257,6 @@ show_summary() {
 # Parse command line arguments
 INTERACTIVE_MODE=0
 SKIP_BACKUP=0
-FORCE_UPDATE=0
 
 for arg in "$@"; do
     case "$arg" in
@@ -258,7 +267,8 @@ for arg in "$@"; do
             SKIP_BACKUP=1
             ;;
         --force|-f)
-            FORCE_UPDATE=1
+            # Force update functionality - currently not implemented
+            warning "Force update option is not yet implemented"
             ;;
         --help|-h)
             echo "ZSH Configuration Update Script v${VERSION}"
