@@ -54,8 +54,10 @@ simple_source "$ZSH_CONFIG_DIR/zshenv" "environment variables"
 
 # Load core modules (order cannot be changed)
 local loaded_modules=0
-local total_modules=10
-for mod in core security navigation path plugins completion aliases keybindings utils colors; do
+local module_list=(core security navigation path plugins completion aliases keybindings utils colors)
+local total_modules=${#module_list[@]}
+
+for mod in "${module_list[@]}"; do
     local modfile="$ZSH_CONFIG_DIR/modules/${mod}.zsh"
     if simple_source "$modfile" "$mod module"; then
         ((loaded_modules++))
