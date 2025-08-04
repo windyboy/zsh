@@ -52,7 +52,11 @@ export PAGER="${PAGER:-less}"
 ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 
 if [[ -f "$ZSH_CONFIG_DIR/env/local/environment.env" ]]; then
-    source "$ZSH_CONFIG_DIR/env/local/environment.env"
+    if source "$ZSH_CONFIG_DIR/env/local/environment.env" 2>/dev/null; then
+        : # Successfully loaded
+    else
+        echo "⚠️  Warning: Failed to load environment.env file" >&2
+    fi
 elif [[ -f "$ZSH_CONFIG_DIR/env/templates/environment.env.template" ]]; then
     echo "⚠️  提示: 未找到用户环境配置文件"
     echo "💡 如需自定义开发工具配置，请运行: $ZSH_CONFIG_DIR/env/init-env.sh"
@@ -63,7 +67,11 @@ fi
 # 说明: 保持与旧配置文件的兼容性
 # =============================================================================
 if [[ -f "$ZSH_CONFIG_DIR/env/local.zsh" ]]; then
-    source "$ZSH_CONFIG_DIR/env/local.zsh"
+    if source "$ZSH_CONFIG_DIR/env/local.zsh" 2>/dev/null; then
+        : # Successfully loaded
+    else
+        echo "⚠️  Warning: Failed to load local.zsh file" >&2
+    fi
 fi
 
 # =============================================================================
@@ -71,9 +79,9 @@ fi
 # 说明: 验证关键环境变量是否正确设置
 # =============================================================================
 # 简化验证：只检查关键变量是否存在
-[[ -z "$ZSH_CONFIG_DIR" ]] && echo "⚠️  警告: ZSH_CONFIG_DIR 未设置"
-[[ -z "$ZSH_CACHE_DIR" ]] && echo "⚠️  警告: ZSH_CACHE_DIR 未设置"
-[[ -z "$ZSH_DATA_DIR" ]] && echo "⚠️  警告: ZSH_DATA_DIR 未设置"
+# [[ -z "$ZSH_CONFIG_DIR" ]] && echo "⚠️  警告: ZSH_CONFIG_DIR 未设置"
+# [[ -z "$ZSH_CACHE_DIR" ]] && echo "⚠️  警告: ZSH_CACHE_DIR 未设置"
+# [[ -z "$ZSH_DATA_DIR" ]] && echo "⚠️  警告: ZSH_DATA_DIR 未设置"
 
 # =============================================================================
 # 文件结束标记

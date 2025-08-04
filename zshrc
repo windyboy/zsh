@@ -19,12 +19,29 @@ simple_source() {
     local description="${2:-$file}"
     
     if [[ -f "$file" ]]; then
-        if source "$file" 2>/dev/null; then
-            echo "✅ Loaded: $description" >&2
-            return 0
+        # Special handling for theme configuration to allow Oh My Posh output
+        if [[ "$description" == "theme configuration" ]]; then
+            if source "$file"; then
+                echo "✅ Loaded: $description" >&2
+                return 0
+            else
+                echo "⚠️  Warning: Failed to load $description" >&2
+                return 1
+            fi
         else
-            echo "⚠️  Warning: Failed to load $description" >&2
-            return 1
+            # For other files, capture stderr to see what's happening
+            local stderr_output
+            stderr_output=$(source "$file" 2>&1)
+            local exit_code=$?
+            
+            if [[ $exit_code -eq 0 ]]; then
+                echo "✅ Loaded: $description" >&2
+                return 0
+            else
+                echo "⚠️  Warning: Failed to load $description (exit code: $exit_code)" >&2
+                [[ -n "$stderr_output" ]] && echo "Error output: $stderr_output" >&2
+                return 1
+            fi
         fi
     else
         echo "⚠️  Warning: File not found: $description" >&2
@@ -37,8 +54,8 @@ simple_source "$ZSH_CONFIG_DIR/zshenv" "environment variables"
 
 # Load core modules (order cannot be changed)
 local loaded_modules=0
-local total_modules=8
-for mod in core security navigation path plugins completion aliases keybindings utils; do
+local total_modules=10
+for mod in core security navigation path plugins completion aliases keybindings utils colors; do
     local modfile="$ZSH_CONFIG_DIR/modules/${mod}.zsh"
     if simple_source "$modfile" "$mod module"; then
         ((loaded_modules++))
