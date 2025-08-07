@@ -248,18 +248,28 @@ export ZSH_AUTOSUGGEST_COMPLETION_IGNORE="cd *"
 export FUNCNEST=100
 # Configure fzf-tab if available
 if command -v fzf >/dev/null 2>&1; then
-    # Load fzf shell integration
-    if [[ -f /usr/local/opt/fzf/shell/completion.zsh ]]; then
-        source /usr/local/opt/fzf/shell/completion.zsh
-    elif [[ -f /opt/homebrew/opt/fzf/shell/completion.zsh ]]; then
-        source /opt/homebrew/opt/fzf/shell/completion.zsh
-    fi
+    # Cross-platform fzf shell integration
+    local fzf_paths=(
+        "/usr/local/opt/fzf/shell"      # macOS Homebrew (Intel)
+        "/opt/homebrew/opt/fzf/shell"   # macOS Homebrew (Apple Silicon)
+        "/usr/share/fzf"                # Linux (Ubuntu/Debian)
+        "/usr/share/doc/fzf/examples"   # Linux (Arch)
+        "$HOME/.fzf/shell"              # Manual installation
+    )
     
-    if [[ -f /usr/local/opt/fzf/shell/key-bindings.zsh ]]; then
-        source /usr/local/opt/fzf/shell/key-bindings.zsh
-    elif [[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]]; then
-        source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
-    fi
+    for fzf_path in "${fzf_paths[@]}"; do
+        if [[ -f "$fzf_path/completion.zsh" ]]; then
+            source "$fzf_path/completion.zsh"
+            break
+        fi
+    done
+    
+    for fzf_path in "${fzf_paths[@]}"; do
+        if [[ -f "$fzf_path/key-bindings.zsh" ]]; then
+            source "$fzf_path/key-bindings.zsh"
+            break
+        fi
+    done
     
     # Set FZF default options for consistent behavior
     export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --margin=1,4"
@@ -281,26 +291,40 @@ if command -v fzf >/dev/null 2>&1; then
 
     # Custom fzf flags for fzf-tab
     # Note: fzf-tab does not follow FZF_DEFAULT_OPTS by default
-    # Adjust preview window size based on terminal
-    if [[ "$TERM_PROGRAM" == "vscode" ]]; then
-        # VS Code terminal - disable preview if terminal is too small, otherwise use minimal preview
-        if [[ "$LINES" -gt 20 ]]; then
-            zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:30%:wrap --color=fg:1,fg+:2 --bind=tab:accept
-        else
-            # Disable preview for very small terminals
-            zstyle ':fzf-tab:complete:*' fzf-flags --color=fg:1,fg+:2 --bind=tab:accept
-        fi
-    elif [[ "$TERM_PROGRAM" == "Apple_Terminal" ]]; then
-        # macOS Terminal - slightly narrower preview window for better fit
-        if [[ "$COLUMNS" -lt 120 ]]; then
-            zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:50%:wrap --color=fg:1,fg+:2 --bind=tab:accept
-        else
+    # Cross-platform terminal-aware preview window sizing
+    local term_program="${TERM_PROGRAM:-unknown}"
+    local term_size="$COLUMNSx$LINES"
+    
+    case "$term_program" in
+        "vscode")
+            # VS Code terminal - disable preview if terminal is too small
+            if [[ "$LINES" -gt 20 ]]; then
+                zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:30%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+            else
+                zstyle ':fzf-tab:complete:*' fzf-flags --color=fg:1,fg+:2 --bind=tab:accept
+            fi
+            ;;
+        "Apple_Terminal"|"iTerm.app")
+            # macOS terminals - adjust based on width
+            if [[ "$COLUMNS" -lt 120 ]]; then
+                zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:50%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+            else
+                zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+            fi
+            ;;
+        "gnome-terminal"|"konsole"|"xterm"|"rxvt"|"alacritty"|"kitty")
+            # Linux terminals - standard preview
             zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
-        fi
-    else
-        # Standard preview window for other terminals
-        zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
-    fi
+            ;;
+        *)
+            # Generic fallback - adaptive based on terminal size
+            if [[ "$COLUMNS" -lt 100 ]]; then
+                zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:40%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+            else
+                zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+            fi
+            ;;
+    esac
 
     # Switch group using ',' and '.'
     zstyle ':fzf-tab:*' switch-group ',' '.'
@@ -692,13 +716,26 @@ check_extract_deps() {
     command -v unxz >/dev/null 2>&1 || missing_deps+=("unxz")
     command -v unzip >/dev/null 2>&1 || missing_deps+=("unzip")
 
-    # Optional tools
+    # Optional tools (cross-platform)
     command -v unar >/dev/null 2>&1 || missing_deps+=("unar")
     command -v 7z >/dev/null 2>&1 || missing_deps+=("7z")
     command -v cabextract >/dev/null 2>&1 || missing_deps+=("cabextract")
     command -v ar >/dev/null 2>&1 || missing_deps+=("ar")
-    command -v dpkg >/dev/null 2>&1 || missing_deps+=("dpkg")
-    command -v rpm2cpio >/dev/null 2>&1 || missing_deps+=("rpm2cpio")
+    
+    # Platform-specific package tools
+    case "$(uname -s)" in
+        Linux)
+            # Linux package managers
+            command -v dpkg >/dev/null 2>&1 || missing_deps+=("dpkg")
+            command -v rpm2cpio >/dev/null 2>&1 || missing_deps+=("rpm2cpio")
+            ;;
+        Darwin)
+            # macOS - no package extraction needed
+            ;;
+        CYGWIN*|MINGW*|MSYS*)
+            # Windows - no package extraction needed
+            ;;
+    esac
 
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
         echo "⚠️  Missing extraction dependencies: ${missing_deps[*]}"
@@ -784,9 +821,38 @@ plugin_status() {
     fi
 }
 
+# -------------------- Cross-Platform Detection --------------------
+detect_platform() {
+    local os="$(uname -s)"
+    local arch="$(uname -m)"
+    local platform=""
+    
+    case "$os" in
+        Linux)
+            if [[ -f /etc/os-release ]]; then
+                source /etc/os-release
+                platform="${NAME:-Linux} ${VERSION_ID:-}"
+            else
+                platform="Linux"
+            fi
+            ;;
+        Darwin)
+            platform="macOS $(sw_vers -productVersion 2>/dev/null || echo 'Unknown')"
+            ;;
+        CYGWIN*|MINGW*|MSYS*)
+            platform="Windows (WSL/Cygwin)"
+            ;;
+        *)
+            platform="$os"
+            ;;
+    esac
+    
+    echo "$platform ($arch)"
+}
+
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED plugins"
-echo "INFO: Plugins module initialized"
+echo "INFO: Plugins module initialized on $(detect_platform)"
 
 # Disable fzf-tab preview (useful for troubleshooting)
 disable_fzf_preview() {
