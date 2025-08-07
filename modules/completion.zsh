@@ -28,23 +28,36 @@ autoload -Uz _files _directories _cd _ls _cp _mv _rm
 
 # -------------------- Basic Completion Styles --------------------
 zstyle ':completion:*' completer _complete _match _approximate
-# Menu setting will be overridden by fzf-tab if available
-if ! command -v fzf >/dev/null 2>&1; then
-    zstyle ':completion:*' menu yes select=2
-fi
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*' group-name ''
-zstyle ':completion:*' verbose yes
-zstyle ':completion:*' use-cache yes
-zstyle ':completion:*' cache-path "$ZSH_CACHE_DIR/completion"
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
-zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
-zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
 
-# Force menu to show
-zstyle ':completion:*' force-list always
-zstyle ':completion:*' auto-description 'specify: %d'
+# Check if fzf-tab is available to avoid conflicts
+if (( ${+functions[_fzf_tab_complete]} )) || (( ${+functions[_fzf-tab-apply]} )) || (( ${+functions[-ftb-complete]} )); then
+    # fzf-tab is loaded, use minimal completion styles to avoid conflicts
+    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+    zstyle ':completion:*' group-name ''
+    zstyle ':completion:*' verbose yes
+    zstyle ':completion:*' use-cache yes
+    zstyle ':completion:*' cache-path "$ZSH_CACHE_DIR/completion"
+    zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+    zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+    zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
+    zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
+else
+    # Standard completion without fzf-tab
+    zstyle ':completion:*' menu yes select=2
+    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+    zstyle ':completion:*' group-name ''
+    zstyle ':completion:*' verbose yes
+    zstyle ':completion:*' use-cache yes
+    zstyle ':completion:*' cache-path "$ZSH_CACHE_DIR/completion"
+    zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+    zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+    zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
+    zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
+    
+    # Force menu to show (only when not using fzf-tab)
+    zstyle ':completion:*' force-list always
+    zstyle ':completion:*' auto-description 'specify: %d'
+fi
 
 # -------------------- File/Directory Completion --------------------
 zstyle ':completion:*' file-patterns '%p(D-/):directories %p(-/):directories %p(^-/):files %p(-/):directories'
@@ -104,8 +117,8 @@ zstyle ':completion:*' insert-tab false
 
 # VS Code Terminal Specific Fixes
 if [[ "$TERM_PROGRAM" == "vscode" ]]; then
-    # Force menu completion to always show in VS Code (only if fzf-tab is not available)
-    if ! command -v fzf >/dev/null 2>&1; then
+    # Only apply VS Code specific fixes if fzf-tab is not available
+    if ! (( ${+functions[_fzf_tab_complete]} )) && ! (( ${+functions[_fzf-tab-apply]} )) && ! (( ${+functions[-ftb-complete]} )); then
         zstyle ':completion:*' menu yes select=1
         zstyle ':completion:*' force-list always
     fi

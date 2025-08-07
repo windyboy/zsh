@@ -1000,6 +1000,50 @@ if [[ -o interactive ]]; then
     fi
 fi
 
+# Final fzf-tab configuration (runs after completion module to ensure it's not overridden)
+ensure_fzf_tab_config() {
+    # Only configure if fzf-tab is loaded
+    if (( ${+functions[_fzf_tab_complete]} )) || (( ${+functions[_fzf-tab-apply]} )) || (( ${+functions[-ftb-complete]} )); then
+        # Force fzf-tab configuration to override any completion module settings
+        zstyle ':completion:*' menu no
+        zstyle ':fzf-tab:*' switch-group ',' '.'
+        zstyle ':fzf-tab:*' show-group full
+        zstyle ':fzf-tab:*' continuous-trigger 'space'
+        
+        # Set preview configurations
+        if [[ "$TERM_PROGRAM" == "vscode" && "$LINES" -le 20 ]]; then
+            zstyle ':fzf-tab:complete:*:*' fzf-preview ''
+        else
+            zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
+            zstyle ':fzf-tab:complete:*:*' fzf-preview '[[ -d "$realpath" ]] && ls -la "$realpath" 2>/dev/null || [[ -f "$realpath" ]] && (command -v bat >/dev/null 2>&1 && bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null) || echo "$realpath"'
+        fi
+        
+        # Set fzf flags based on terminal
+        local term_program="${TERM_PROGRAM:-unknown}"
+        case "$term_program" in
+            "tmux")
+                if [[ "$COLUMNS" -lt 100 ]]; then
+                    zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:40%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+                else
+                    zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:50%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+                fi
+                ;;
+            *)
+                if [[ "$COLUMNS" -lt 100 ]]; then
+                    zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:40%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+                else
+                    zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+                fi
+                ;;
+        esac
+    fi
+}
+
+# Run final configuration after all modules are loaded
+if [[ -o interactive ]]; then
+    precmd_functions+=(ensure_fzf_tab_config)
+fi
+
 # Disable fzf-tab preview (useful for troubleshooting)
 disable_fzf_preview() {
     echo "🔧 Disabling fzf-tab preview..."
