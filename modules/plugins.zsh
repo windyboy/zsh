@@ -218,6 +218,19 @@ export ZSH_AUTOSUGGEST_COMPLETION_IGNORE="cd *"
 export FUNCNEST=100
 # Configure fzf-tab if available
 if command -v fzf >/dev/null 2>&1; then
+    # Load fzf shell integration
+    if [[ -f /usr/local/opt/fzf/shell/completion.zsh ]]; then
+        source /usr/local/opt/fzf/shell/completion.zsh
+    elif [[ -f /opt/homebrew/opt/fzf/shell/completion.zsh ]]; then
+        source /opt/homebrew/opt/fzf/shell/completion.zsh
+    fi
+    
+    if [[ -f /usr/local/opt/fzf/shell/key-bindings.zsh ]]; then
+        source /usr/local/opt/fzf/shell/key-bindings.zsh
+    elif [[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]]; then
+        source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+    fi
+    
     # Set FZF default options for consistent behavior
     export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --margin=1,4"
 
