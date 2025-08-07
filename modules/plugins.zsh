@@ -291,7 +291,35 @@ export ZSH_AUTOSUGGEST_HISTORY_IGNORE="cd *"
 export ZSH_AUTOSUGGEST_COMPLETION_IGNORE="cd *"
 # Increase function nesting limit to prevent FUNCNEST errors
 export FUNCNEST=100
-# Configure fzf-tab if available
+# Configure fzf-tab (independent of fzf availability)
+# Essential fzf-tab configurations (based on official recommendations)
+# Disable sort when completing git checkout to preserve order
+zstyle ':completion:*:git-checkout:*' sort false
+
+# Set descriptions format to enable group support
+# Note: Don't use escape sequences here, fzf-tab will ignore them
+zstyle ':completion:*:descriptions' format '[%d]'
+
+# Set list-colors to enable filename colorizing
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+
+# Force zsh not to show completion menu, which allows fzf-tab to capture the unambiguous prefix
+# This overrides the menu yes setting from completion.zsh
+zstyle ':completion:*' menu no
+
+# Switch group using ',' and '.'
+zstyle ':fzf-tab:*' switch-group ',' '.'
+
+# Show group headers
+zstyle ':fzf-tab:*' show-group full
+
+# Continuous trigger for multi-selection
+zstyle ':fzf-tab:*' continuous-trigger 'space'
+
+# Accept line with ctrl-space (disabled to avoid conflicts with autosuggest)
+# zstyle ':fzf-tab:*' accept-line 'ctrl-space'
+
+# Configure fzf integration if available
 if command -v fzf >/dev/null 2>&1; then
     # Cross-platform fzf shell integration
     local fzf_paths=(
@@ -318,21 +346,6 @@ if command -v fzf >/dev/null 2>&1; then
     
     # Set FZF default options for consistent behavior
     export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --margin=1,4"
-
-    # Essential fzf-tab configurations (based on official recommendations)
-    # Disable sort when completing git checkout to preserve order
-    zstyle ':completion:*:git-checkout:*' sort false
-
-    # Set descriptions format to enable group support
-    # Note: Don't use escape sequences here, fzf-tab will ignore them
-    zstyle ':completion:*:descriptions' format '[%d]'
-
-    # Set list-colors to enable filename colorizing
-    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-
-    # Force zsh not to show completion menu, which allows fzf-tab to capture the unambiguous prefix
-    # This overrides the menu yes setting from completion.zsh
-    zstyle ':completion:*' menu no
 
     # Custom fzf flags for fzf-tab
     # Note: fzf-tab does not follow FZF_DEFAULT_OPTS by default
@@ -379,18 +392,6 @@ if command -v fzf >/dev/null 2>&1; then
             ;;
     esac
 
-    # Switch group using ',' and '.'
-    zstyle ':fzf-tab:*' switch-group ',' '.'
-
-    # Show group headers
-    zstyle ':fzf-tab:*' show-group full
-
-    # Continuous trigger for multi-selection
-    zstyle ':fzf-tab:*' continuous-trigger 'space'
-
-    # Accept line with ctrl-space (disabled to avoid conflicts with autosuggest)
-    # zstyle ':fzf-tab:*' accept-line 'ctrl-space'
-
     # Preview configurations (smart content detection)
     # Use simpler preview commands to avoid function call issues
     if [[ "$TERM_PROGRAM" == "vscode" && "$LINES" -le 20 ]]; then
@@ -403,7 +404,6 @@ if command -v fzf >/dev/null 2>&1; then
         # Preview for files (simple and safe)
         zstyle ':fzf-tab:complete:*:*' fzf-preview '[[ -d "$realpath" ]] && ls -la "$realpath" 2>/dev/null || [[ -f "$realpath" ]] && (command -v bat >/dev/null 2>&1 && bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null) || echo "$realpath"'
     fi
-
 fi
 
 # -------------------- Common Functions --------------------
