@@ -17,7 +17,8 @@ export ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit"
 
 # -------------------- Plugin Initialization --------------------
 plugin_init() {
-    [[ -n "$ZINIT" ]] && return
+    # Only initialize zinit if not already loaded
+    [[ -n "$ZINIT" ]] && return 0
     
     local ZINIT_BIN="${ZINIT_HOME}/zinit.git"
     
@@ -100,6 +101,12 @@ plugins_load() {
     fi
     
     [[ ! -o interactive ]] && return
+    
+    # Ensure zinit is fully loaded before proceeding
+    if [[ -z "$ZINIT" ]]; then
+        color_red "❌ zinit not loaded, skipping plugin loading"
+        return 1
+    fi
 
     # Load core plugins with enhanced error handling and auto-installation
     local loaded_plugins=0
@@ -183,8 +190,31 @@ plugins_update() {
     zinit self-update && zinit update --all
 }
 
-# Load plugins immediately on module load
+# Load plugins with proper initialization
 plugins_load
+
+# Enhanced fallback: check and load critical plugins if zinit failed
+ensure_critical_plugins() {
+    # Check if syntax highlighting is working
+    if ! (( ${+functions[_zsh_highlight]} )) && ! (( ${+functions[_zsh_highlight_highlighter_main_paint]} )); then
+        if [[ -f "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]]; then
+            source "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" 2>/dev/null && echo "✅ Manually loaded fast-syntax-highlighting plugin"
+        fi
+    fi
+    
+    # Check if autosuggestions is working
+    if ! (( ${+functions[_zsh_autosuggest_start]} )); then
+        if [[ -f "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+            source "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null && echo "✅ Manually loaded zsh-autosuggestions plugin"
+        fi
+    fi
+}
+
+# Run fallback check after a short delay to ensure zinit has time to load plugins
+if [[ -o interactive ]]; then
+    # Use precmd to run after zinit has had time to load plugins
+    precmd_functions+=(ensure_critical_plugins)
+fi
 
 # Configure history substring search (official recommendation)
 export HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1
