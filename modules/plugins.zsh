@@ -20,6 +20,9 @@ plugin_init() {
     # Only initialize zinit if not already loaded
     [[ -n "$ZINIT" ]] && return 0
     
+    # Set ZINIT_HOME if not already set
+    [[ -z "$ZINIT_HOME" ]] && export ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit"
+    
     local ZINIT_BIN="${ZINIT_HOME}/zinit.git"
     
     # Create directory if it doesn't exist
@@ -36,7 +39,7 @@ plugin_init() {
         fi
     fi
     
-    # Source zinit with error handling
+    # Source zinit with simple error handling
     if source "$ZINIT_BIN/zinit.zsh" 2>/dev/null; then
         ZINIT[MUTE_WARNINGS]=1 2>/dev/null || true
         ZINIT[OPTIMIZE_OUT_DISK_ACCESSES]=1 2>/dev/null || true
@@ -307,17 +310,10 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 # This overrides the menu yes setting from completion.zsh
 zstyle ':completion:*' menu no
 
-# Switch group using ',' and '.'
+# Basic fzf-tab configuration (will be enhanced by configure_fzf_tab function)
 zstyle ':fzf-tab:*' switch-group ',' '.'
-
-# Show group headers
 zstyle ':fzf-tab:*' show-group full
-
-# Continuous trigger for multi-selection
 zstyle ':fzf-tab:*' continuous-trigger 'space'
-
-# Accept line with ctrl-space (disabled to avoid conflicts with autosuggest)
-# zstyle ':fzf-tab:*' accept-line 'ctrl-space'
 
 # Configure fzf integration if available
 if command -v fzf >/dev/null 2>&1; then
@@ -392,18 +388,7 @@ if command -v fzf >/dev/null 2>&1; then
             ;;
     esac
 
-    # Preview configurations (smart content detection)
-    # Use simpler preview commands to avoid function call issues
-    if [[ "$TERM_PROGRAM" == "vscode" && "$LINES" -le 20 ]]; then
-        # Disable preview for small VS Code terminals
-        zstyle ':fzf-tab:complete:*:*' fzf-preview ''
-    else
-        # Enable preview for larger terminals
-        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
-        
-        # Preview for files (simple and safe)
-        zstyle ':fzf-tab:complete:*:*' fzf-preview '[[ -d "$realpath" ]] && ls -la "$realpath" 2>/dev/null || [[ -f "$realpath" ]] && (command -v bat >/dev/null 2>&1 && bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null) || echo "$realpath"'
-    fi
+    # Preview configurations will be set by configure_fzf_tab function when fzf-tab is loaded
 fi
 
 # -------------------- Common Functions --------------------
@@ -1000,15 +985,12 @@ if [[ -o interactive ]]; then
     fi
 fi
 
-# Final fzf-tab configuration (runs after completion module to ensure it's not overridden)
-ensure_fzf_tab_config() {
-    # Only configure if fzf-tab is loaded
+# Enhanced fzf-tab configuration function
+configure_fzf_tab() {
+    # Only configure if fzf-tab is actually loaded
     if (( ${+functions[_fzf_tab_complete]} )) || (( ${+functions[_fzf-tab-apply]} )) || (( ${+functions[-ftb-complete]} )); then
-        # Force fzf-tab configuration to override any completion module settings
+        # Ensure completion menu is disabled for fzf-tab
         zstyle ':completion:*' menu no
-        zstyle ':fzf-tab:*' switch-group ',' '.'
-        zstyle ':fzf-tab:*' show-group full
-        zstyle ':fzf-tab:*' continuous-trigger 'space'
         
         # Set preview configurations
         if [[ "$TERM_PROGRAM" == "vscode" && "$LINES" -le 20 ]]; then
@@ -1039,9 +1021,9 @@ ensure_fzf_tab_config() {
     fi
 }
 
-# Run final configuration after all modules are loaded
+# Configure fzf-tab when it becomes available
 if [[ -o interactive ]]; then
-    precmd_functions+=(ensure_fzf_tab_config)
+    precmd_functions+=(configure_fzf_tab)
 fi
 
 # Disable fzf-tab preview (useful for troubleshooting)
