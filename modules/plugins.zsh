@@ -210,10 +210,55 @@ ensure_critical_plugins() {
     fi
 }
 
+# Terminal-specific syntax highlighting configuration
+configure_syntax_highlighting() {
+    local term_program="${TERM_PROGRAM:-unknown}"
+    local term="${TERM:-unknown}"
+    
+    # Initialize FAST_HIGHLIGHT array if not already set
+    if [[ -z "${FAST_HIGHLIGHT[*]}" ]]; then
+        typeset -gA FAST_HIGHLIGHT
+    fi
+    
+    # Configure syntax highlighting for different terminals
+    case "$term_program" in
+        "tmux")
+            # tmux-specific configuration
+            FAST_HIGHLIGHT[use_bracket]=1
+            FAST_HIGHLIGHT[use_async]=1
+            # Ensure proper color support in tmux
+            if [[ -n "$TMUX" ]]; then
+                FAST_HIGHLIGHT[chroma-man]=1
+                FAST_HIGHLIGHT[chroma-git]=1
+            fi
+            ;;
+        "ghostty")
+            # Ghostty-specific configuration
+            FAST_HIGHLIGHT[use_bracket]=1
+            FAST_HIGHLIGHT[use_async]=1
+            FAST_HIGHLIGHT[chroma-man]=1
+            FAST_HIGHLIGHT[chroma-git]=1
+            ;;
+        *)
+            # Default configuration for other terminals
+            FAST_HIGHLIGHT[use_bracket]=1
+            FAST_HIGHLIGHT[use_async]=1
+            ;;
+    esac
+    
+    # Ensure proper color support
+    if [[ "$COLORTERM" == "truecolor" || "$COLORTERM" == "24bit" ]]; then
+        FAST_HIGHLIGHT[use_256]=1
+    fi
+}
+
 # Run fallback check after a short delay to ensure zinit has time to load plugins
 if [[ -o interactive ]]; then
     # Use precmd to run after zinit has had time to load plugins
     precmd_functions+=(ensure_critical_plugins)
+    
+    # Configure syntax highlighting for the current terminal
+    configure_syntax_highlighting
 fi
 
 # Configure history substring search (official recommendation)
@@ -304,6 +349,14 @@ if command -v fzf >/dev/null 2>&1; then
                 zstyle ':fzf-tab:complete:*' fzf-flags --color=fg:1,fg+:2 --bind=tab:accept
             fi
             ;;
+        "tmux")
+            # tmux - use conservative settings for compatibility
+            if [[ "$COLUMNS" -lt 100 ]]; then
+                zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:40%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+            else
+                zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:50%:wrap --color=fg:1,fg+:2 --bind=tab:accept
+            fi
+            ;;
         "Apple_Terminal"|"iTerm.app")
             # macOS terminals - adjust based on width
             if [[ "$COLUMNS" -lt 120 ]]; then
@@ -312,7 +365,7 @@ if command -v fzf >/dev/null 2>&1; then
                 zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
             fi
             ;;
-        "gnome-terminal"|"konsole"|"xterm"|"rxvt"|"alacritty"|"kitty")
+        "gnome-terminal"|"konsole"|"xterm"|"rxvt"|"alacritty"|"kitty"|"ghostty")
             # Linux terminals - standard preview
             zstyle ':fzf-tab:complete:*' fzf-flags --preview-window=right:60%:wrap --color=fg:1,fg+:2 --bind=tab:accept
             ;;
@@ -354,58 +407,102 @@ if command -v fzf >/dev/null 2>&1; then
 fi
 
 # -------------------- Common Functions --------------------
-# Test fzf-tab functionality
-test_fzf_tab() {
-    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: test_fzf_tab" && return 0
-    
-    echo "🧪 Testing fzf-tab functionality..."
-    echo "TERM_PROGRAM: $TERM_PROGRAM"
-    echo "TERM: $TERM"
-    echo "COLUMNS: $COLUMNS"
-    echo "LINES: $LINES"
-    echo ""
-    
-    # Check if fzf-tab is loaded (check for multiple possible function names)
-    if (( ${+functions[_fzf_tab_complete]} )) || (( ${+functions[_fzf-tab-apply]} )) || (( ${+functions[-ftb-complete]} )); then
-        echo "✅ fzf-tab function loaded"
-    else
-        echo "❌ fzf-tab function not loaded"
-        return 1
-    fi
-    
-    # Check fzf-tab configuration
-    echo ""
-    echo "🔧 fzf-tab configuration:"
-    zstyle -L | grep fzf-tab | head -5
-    
-    # Test basic fzf functionality
-    echo ""
-    echo "🎯 Testing fzf directly:"
-    if echo "test" | fzf --preview "echo 'Preview test'" --preview-window=right:40%:wrap >/dev/null 2>&1; then
-        echo "✅ fzf preview works"
-    else
-        echo "❌ fzf preview failed"
-    fi
-    
-    echo ""
-    echo "💡 Try typing 'ls ' and pressing TAB to test completion preview"
-    echo "💡 If preview doesn't work, try: zstyle ':fzf-tab:complete:*:*' fzf-preview ''"
-}
 
-# Test actual tab completion
-test_tab_completion() {
-    echo "🧪 Testing tab completion functionality..."
+
+# Comprehensive plugin status check
+plugin_status_complete() {
+    echo "🔌 Complete Plugin Status Report"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    # Platform information
+    echo "🌍 Platform: $(detect_platform)"
+    echo "🖥️  Terminal: $TERM_PROGRAM ($TERM)"
+    echo "🎨 Color Support: $COLORTERM"
     echo ""
-    echo "Try these commands to test tab completion:"
-    echo "1. Type 'ls ' and press TAB"
-    echo "2. Type 'cd ' and press TAB"
-    echo "3. Type 'cat ' and press TAB"
+    
+    # zinit status
+    if [[ -n "$ZINIT" ]]; then
+        echo "✅ zinit loaded successfully"
+        echo "   Home: $ZINIT_HOME"
+    else
+        echo "❌ zinit not loaded"
+    fi
     echo ""
-    echo "If you see errors, run: disable_fzf_preview"
-    echo "If you want to re-enable directory previews: enable_fzf_preview"
+    
+    # Core plugins status
+    echo "📦 Core Plugins Status:"
+    local plugins=(
+        "fast-syntax-highlighting:_zsh_highlight"
+        "zsh-autosuggestions:_zsh_autosuggest_start"
+        "zsh-completions:_git"
+        "zsh-history-substring-search:history-substring-search-up"
+        "zsh-extract:extract"
+        "z:z"
+        "fzf-tab:_fzf_tab_complete"
+    )
+    
+    for plugin in "${plugins[@]}"; do
+        local name="${plugin%%:*}"
+        local func="${plugin##*:}"
+        if (( ${+functions[$func]} )); then
+            echo "   ✅ $name"
+        else
+            echo "   ❌ $name"
+        fi
+    done
     echo ""
-    echo "Current fzf-tab configuration:"
-    zstyle -L | grep fzf-tab | head -3
+    
+    # Tool dependencies
+    echo "🛠️  Tool Dependencies:"
+    local tools=("fzf" "zoxide" "eza" "git")
+    for tool in "${tools[@]}"; do
+        if command -v "$tool" >/dev/null 2>&1; then
+            echo "   ✅ $tool"
+        else
+            echo "   ❌ $tool"
+        fi
+    done
+    echo ""
+    
+    # Configuration status
+    echo "⚙️  Configuration Status:"
+    if [[ -n "${FAST_HIGHLIGHT[use_bracket]}" ]]; then
+        echo "   ✅ Syntax highlighting configured"
+    else
+        echo "   ❌ Syntax highlighting not configured"
+    fi
+    
+    if [[ -n "$ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE" ]]; then
+        echo "   ✅ Autosuggestions configured"
+    else
+        echo "   ❌ Autosuggestions not configured"
+    fi
+    
+    if [[ -n "$FZF_DEFAULT_OPTS" ]]; then
+        echo "   ✅ FZF configured"
+    else
+        echo "   ❌ FZF not configured"
+    fi
+    echo ""
+    
+    # Performance indicators
+    echo "⚡ Performance Indicators:"
+    echo "   Function nesting limit: $FUNCNEST"
+    echo "   ZSH version: $ZSH_VERSION"
+    echo "   Interactive mode: $([[ -o interactive ]] && echo "Yes" || echo "No")"
+    echo ""
+    
+    # Recommendations
+    echo "💡 Recommendations:"
+    if [[ "$TERM_PROGRAM" == "tmux" ]]; then
+        echo "   • tmux detected - ensure 256-color support with: tmux -2"
+    fi
+    if [[ "$COLORTERM" == "truecolor" ]]; then
+        echo "   • True color support detected - optimal for syntax highlighting"
+    fi
+    if [[ -z "$ZINIT" ]]; then
+        echo "   • zinit not loaded - check installation and configuration"
+    fi
 }
 
 plugins() {
@@ -462,6 +559,36 @@ plugins() {
         local desc="${plugin##*:}"
         color_green "✅ $name - $desc"
     done
+}
+
+# Plugin troubleshooting and help
+plugin_help() {
+    echo "🔧 Plugin System Help & Troubleshooting"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo "📋 Available Commands:"
+    echo "   plugin_status_complete  - Complete status report"
+    echo "   plugins                - Quick plugin status"
+    echo "   check_plugins          - Detailed plugin health check"
+    echo "   check_plugin_conflicts - Check for conflicts"
+    echo "   resolve_plugin_conflicts - Get conflict resolution tips"
+    echo ""
+    echo "🔧 Troubleshooting Commands:"
+    echo "   disable_fzf_preview    - Disable fzf preview (if causing issues)"
+    echo "   enable_fzf_preview     - Re-enable fzf preview"
+    echo "   plugins_update         - Update all plugins"
+    echo ""
+    echo "💡 Common Issues & Solutions:"
+    echo "   • Syntax highlighting not working: Check plugin_status_complete"
+    echo "   • Tab completion issues: Check fzf-tab configuration"
+    echo "   • Plugin conflicts: Run check_plugin_conflicts"
+    echo "   • Performance issues: Check FUNCNEST limit"
+    echo ""
+    echo "🌍 Cross-Platform Support:"
+    echo "   • macOS: Full support with terminal-specific optimizations"
+    echo "   • Linux: Full support across major distributions"
+    echo "   • Windows: Support via WSL, Cygwin, MSYS2"
+    echo "   • Terminals: tmux, Ghostty, VS Code, iTerm, and more"
 }
 
 # -------------------- Plugin Conflict Detection Functions --------------------
@@ -853,6 +980,25 @@ detect_platform() {
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED plugins"
 echo "INFO: Plugins module initialized on $(detect_platform)"
+
+# Final verification: ensure critical plugins are working
+if [[ -o interactive ]]; then
+    # Verify syntax highlighting is working
+    if ! (( ${+functions[_zsh_highlight]} )) && ! (( ${+functions[_zsh_highlight_highlighter_main_paint]} )); then
+        echo "⚠️  Warning: Syntax highlighting not detected, attempting manual load..."
+        if [[ -f "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]]; then
+            source "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" 2>/dev/null && echo "✅ Syntax highlighting manually loaded"
+        fi
+    fi
+    
+    # Verify autosuggestions is working
+    if ! (( ${+functions[_zsh_autosuggest_start]} )); then
+        echo "⚠️  Warning: Autosuggestions not detected, attempting manual load..."
+        if [[ -f "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+            source "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null && echo "✅ Autosuggestions manually loaded"
+        fi
+    fi
+fi
 
 # Disable fzf-tab preview (useful for troubleshooting)
 disable_fzf_preview() {
