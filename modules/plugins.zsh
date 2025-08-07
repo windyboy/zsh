@@ -72,26 +72,52 @@ typeset -ga BUILTIN_SNIPPETS=(
     https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/history/history.plugin.zsh
 )
 
-# Enhanced plugin installation and loading function
+# Enhanced plugin installation helpers
 plugin_install_if_missing() {
-    local plugin="$1"
-    local repo="$2"
-    local plugin_name="${plugin##*/}"
-    
+    local repo="$1"
+    local plugin_name="${repo##*/}"
+
     # Check if plugin is already installed
     if [[ -d "$ZINIT_HOME/plugins/${repo//\//---}" ]]; then
         return 0
     fi
-    
-    # Try to install the plugin
+
     color_yellow "📦 Installing plugin: $plugin_name"
-    if zinit ice wait"0" lucid 2>/dev/null && zinit light "$repo" 2>/dev/null; then
+    if zinit light "$repo" 2>/dev/null; then
         color_green "✅ Successfully installed: $plugin_name"
         return 0
-    else
-        color_red "❌ Failed to install: $plugin_name"
-        return 1
     fi
+
+    color_red "❌ Failed to install: $plugin_name"
+    return 1
+}
+
+try_load_plugin() {
+    zinit ice wait"0" lucid 2>/dev/null && zinit light "$1" 2>/dev/null
+}
+
+load_plugin() {
+    local repo="$1"
+    local plugin_name="${repo##*/}"
+    local warn_only="${2:-0}"
+
+    if try_load_plugin "$repo"; then
+        color_green "✅ Loaded: $plugin_name"
+        return 0
+    fi
+
+    color_yellow "⚠️  Plugin not found, attempting installation: $plugin_name"
+    if plugin_install_if_missing "$repo" && try_load_plugin "$repo"; then
+        color_green "✅ Loaded after installation: $plugin_name"
+        return 0
+    fi
+
+    if [[ "$warn_only" -eq 1 ]]; then
+        color_yellow "⚠️  Failed to load: $plugin_name"
+    else
+        color_red "❌ Failed to load: $plugin_name"
+    fi
+    return 1
 }
 
 plugins_load() {
@@ -115,30 +141,12 @@ plugins_load() {
     local loaded_plugins=0
     local total_plugins=${#ZINIT_PLUGINS[@]}
     local failed_plugins=()
-    
+
     for p in "${ZINIT_PLUGINS[@]}"; do
-        local plugin_name="${p##*/}"
-        
-        # Try to load the plugin
-        if zinit ice wait"0" lucid 2>/dev/null && zinit light "$p" 2>/dev/null; then
+        if load_plugin "$p"; then
             ((loaded_plugins++))
-            color_green "✅ Loaded: $plugin_name"
         else
-            # If loading fails, try to install it
-            color_yellow "⚠️  Plugin not found, attempting installation: $plugin_name"
-            if plugin_install_if_missing "$plugin_name" "$p"; then
-                # Try loading again after installation
-                if zinit ice wait"0" lucid 2>/dev/null && zinit light "$p" 2>/dev/null; then
-                    ((loaded_plugins++))
-                    color_green "✅ Loaded after installation: $plugin_name"
-                else
-                    failed_plugins+=("$plugin_name")
-                    color_red "❌ Failed to load after installation: $plugin_name"
-                fi
-            else
-                failed_plugins+=("$plugin_name")
-                color_red "❌ Failed to install: $plugin_name"
-            fi
+            failed_plugins+=("${p##*/}")
         fi
     done
 
@@ -157,13 +165,10 @@ plugins_load() {
     # Load optional plugins if enabled and dependencies are available
     if (( ZSH_ENABLE_OPTIONAL_PLUGINS )) && command -v fzf >/dev/null 2>&1; then
         for p in "${OPTIONAL_ZINIT_PLUGINS[@]}"; do
-            local plugin_name="${p##*/}"
-            if zinit ice wait"0" lucid 2>/dev/null && zinit light "$p" 2>/dev/null; then
+            if load_plugin "$p" 1; then
                 ((loaded_plugins++))
-                color_green "✅ Loaded optional: $plugin_name"
             else
-                color_yellow "⚠️  Failed to load optional plugin: $plugin_name"
-                failed_plugins+=("$plugin_name")
+                failed_plugins+=("${p##*/}")
             fi
         done
     fi
