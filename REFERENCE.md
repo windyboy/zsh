@@ -1,254 +1,254 @@
-# 完整参考手册
+# Complete Reference Manual
 
-## 🔧 系统管理
+## 🔧 System Management
 
 ```bash
-status          # 系统状态
-reload          # 重新加载配置
-validate        # 验证配置
-version         # 查看版本
+status          # System status
+reload          # Reload configuration
+validate        # Validate configuration
+version         # View version
 ```
 
-## 🧪 测试与验证
+## 🧪 Testing and Validation
 
-### 自动化测试
+### Automated Testing
 ```bash
-./test.sh              # 运行完整测试套件
-./test.sh unit         # 仅运行单元测试
-./test.sh integration  # 仅运行集成测试
-./test.sh performance  # 仅运行性能测试
-./test.sh plugins      # 仅运行插件冲突测试
-./test.sh security     # 仅运行安全测试
+./test.sh              # Run complete test suite
+./test.sh unit         # Run unit tests only
+./test.sh integration  # Run integration tests only
+./test.sh performance  # Run performance tests only
+./test.sh plugins      # Run plugin conflict tests only
+./test.sh security     # Run security tests only
 ```
 
-### 配置验证
+### Configuration Validation
 ```bash
-validate                # 基本配置验证
-validate --verbose      # 详细验证信息
-validate --fix          # 自动修复常见问题
-validate --report       # 生成详细验证报告
+validate                # Basic configuration validation
+validate --verbose      # Detailed validation information
+validate --fix          # Auto-fix common issues
+validate --report       # Generate detailed validation report
 ```
 
-## 📊 性能监控
+## 📊 Performance Monitoring
 
 ```bash
-perf                    # 显示基本性能指标
-perf --monitor          # 启动持续性能监控
-perf --profile          # 生成详细性能分析报告
-perf --optimize         # 显示优化建议
-perf --history          # 显示性能历史记录
+perf                    # Display basic performance metrics
+perf --monitor          # Start continuous performance monitoring
+perf --profile          # Generate detailed performance analysis report
+perf --optimize         # Display optimization suggestions
+perf --history          # Display performance history
 ```
 
-### 性能指标说明
-- **Functions**: 函数数量（推荐 <200）
-- **Aliases**: 别名数量（推荐 <100）
-- **Memory**: 内存使用量（推荐 <10MB）
-- **Startup**: 启动时间（推荐 <2s）
-- **Score**: 性能评分（0-100）
+### Performance Metrics
+- **Functions**: Number of functions (recommended <200)
+- **Aliases**: Number of aliases (recommended <100)
+- **Memory**: Memory usage (recommended <10MB)
+- **Startup**: Startup time (recommended <2s)
+- **Score**: Performance score (0-100)
 
-## 🛠️ 实用工具
+## 🛠️ Utility Tools
 
-### 文件操作
+### File Operations
 ```bash
-mkcd <目录>     # 创建目录并进入
-up [层数]       # 向上跳转目录
-trash <文件>    # 安全删除文件
-extract <文件>  # 智能解压文件 (支持多种格式)
+mkcd <directory>     # Create directory and enter
+up [levels]          # Navigate up directories
+trash <file>         # Safely delete files
+extract <file>       # Smart file extraction (supports multiple formats)
 ```
 
-### PATH管理
+### PATH Management
 ```bash
-show_path       # 显示当前PATH状态
-cleanup_path    # 清理无效和重复路径
-reload_path     # 重新加载PATH配置
-add_path <路径> # 添加路径到PATH
-remove_path <路径> # 从PATH移除路径
-path-status     # PATH状态别名
-path-clean      # PATH清理别名
-path-reload     # PATH重载别名
+show_path       # Display current PATH status
+cleanup_path    # Clean invalid and duplicate paths
+reload_path     # Reload PATH configuration
+add_path <path> # Add path to PATH
+remove_path <path> # Remove path from PATH
+path-status     # PATH status alias
+path-clean      # PATH cleanup alias
+path-reload     # PATH reload alias
 ```
 
-### 网络工具
+### Network Tools
 ```bash
-serve [端口] [目录] # 启动HTTP服务器
-myip            # 查看外网IP
+serve [port] [directory] # Start HTTP server
+myip            # View external IP
 ```
 
-### 开发工具
+### Development Tools
 ```bash
-g               # Git快捷操作
+g               # Git quick operations
 ni              # npm install
 py              # python3
 ```
 
-### 文件解压
+### File Extraction
 ```bash
-extract <文件>  # 智能解压，支持多种格式
-# 支持格式: tar.gz, tar.bz2, tar.xz, zip, rar, 7z, cab, iso 等
+extract <file>  # Smart extraction, supports multiple formats
+# Supported formats: tar.gz, tar.bz2, tar.xz, zip, rar, 7z, cab, iso, etc.
 ```
 
-## 🔌 插件管理
+## 🔌 Plugin Management
 
 ```bash
-plugins         # 插件状态
+plugins         # Plugin status
 ```
 
-## ⚙️ 配置管理
+## ⚙️ Configuration Management
 
 ```bash
-config <文件>   # 编辑配置文件
+config <file>   # Edit configuration file
 ```
 
-### 可编辑的配置文件
-- `zshrc` - 主配置文件
-- `core` - 核心模块
-- `plugins` - 插件模块
-- `completion` - 补全模块
-- `aliases` - 别名模块
-- `keybindings` - 按键绑定模块
-- `utils` - 工具模块
+### Editable Configuration Files
+- `zshrc` - Main configuration file
+- `core` - Core module
+- `plugins` - Plugin module
+- `completion` - Completion module
+- `aliases` - Alias module
+- `keybindings` - Key binding module
+- `utils` - Utility module
 
-## 🔧 环境变量
+## 🔧 Environment Variables
 
-### 核心变量
+### Core Variables
 ```bash
 export ZSH_CONFIG_DIR="$HOME/.config/zsh"
 export ZSH_CACHE_DIR="$HOME/.cache/zsh"
 export ZSH_DATA_DIR="$HOME/.local/share/zsh"
 ```
 
-### PATH管理变量
+### PATH Management Variables
 ```bash
-export PATH_MANAGEMENT_ENABLED=1    # 启用PATH管理
-export PATH_DEBUG=0                 # PATH调试模式
-export PATH_AUTO_CLEANUP=1          # 自动清理无效路径
+export PATH_MANAGEMENT_ENABLED=1    # Enable PATH management
+export PATH_DEBUG=0                 # PATH debug mode
+export PATH_AUTO_CLEANUP=1          # Auto-cleanup invalid paths
 ```
 
-### 调试变量
+### Debug Variables
 ```bash
-export ZSH_DEBUG=1    # 启用调试模式
-export ZSH_VERBOSE=1  # 启用详细输出
-export ZSH_QUIET=1    # 静默模式
+export ZSH_DEBUG=1    # Enable debug mode
+export ZSH_VERBOSE=1  # Enable verbose output
+export ZSH_QUIET=1    # Silent mode
 ```
 
-## 📁 重要文件
+## 📁 Important Files
 
-### 配置文件
-- `~/.config/zsh/zshrc` - 主配置
-- `~/.config/zsh/zshenv` - 环境变量
-- `~/.config/zsh/modules/` - 模块目录
+### Configuration Files
+- `~/.config/zsh/zshrc` - Main configuration
+- `~/.config/zsh/zshenv` - Environment variables
+- `~/.config/zsh/modules/` - Module directory
 
-### 缓存文件
-- `~/.cache/zsh/zcompdump` - 补全缓存
+### Cache Files
+- `~/.cache/zsh/zcompdump` - Completion cache
 
-### 数据文件
-- `~/.local/share/zsh/history` - 命令历史
+### Data Files
+- `~/.local/share/zsh/history` - Command history
 
-## 🚨 故障排除
+## 🚨 Troubleshooting
 
-### 启动慢
+### Slow Startup
 ```bash
-# 检查启动时间
+# Check startup time
 time zsh -c "source ~/.zshrc; exit"
 
-# 检查状态
+# Check status
 status
 ```
 
-**解决方案**:
-- 禁用重插件：编辑 `modules/plugins.zsh`
-- 优化补全缓存：`rm ~/.cache/zsh/zcompdump*`
-- 检查模块加载：`validate`
+**Solutions**:
+- Disable heavy plugins: Edit `modules/plugins.zsh`
+- Optimize completion cache: `rm ~/.cache/zsh/zcompdump*`
+- Check module loading: `validate`
 
-### 配置错误
+### Configuration Errors
 ```bash
-# 验证配置
+# Validate configuration
 validate
 status
 ```
 
-**解决方案**:
-- 检查文件权限：`ls -la ~/.config/zsh/`
-- 重新安装配置：备份后重新克隆仓库
-- 检查核心文件：验证 `zshrc` 和模块文件存在
+**Solutions**:
+- Check file permissions: `ls -la ~/.config/zsh/`
+- Reinstall configuration: Backup and re-clone repository
+- Check core files: Verify `zshrc` and module files exist
 
-### 插件问题
+### Plugin Issues
 ```bash
-# 检查插件状态
+# Check plugin status
 plugins
 
-# 重新加载插件
+# Reload plugins
 reload
 ```
 
-**解决方案**:
-- 重新加载插件：`reload`
-- 禁用问题插件：编辑 `modules/plugins.zsh`
+**Solutions**:
+- Reload plugins: `reload`
+- Disable problematic plugins: Edit `modules/plugins.zsh`
 
-### 命令执行慢
+### Slow Command Execution
 ```bash
-# 检查钩子性能
+# Check hook performance
 add-zsh-hook -L precmd
 
-# 测试命令执行
+# Test command execution
 time ls -la
 ```
 
-**解决方案**:
-- 减少钩子数量：检查 `precmd` 钩子
-- 优化PATH：`typeset -U path`
-- 检查插件性能：监控插件加载时间
+**Solutions**:
+- Reduce hook count: Check `precmd` hooks
+- Optimize PATH: `typeset -U path`
+- Check plugin performance: Monitor plugin loading time
 
-## 🔧 开发指南
+## 🔧 Development Guide
 
-### 开发环境
+### Development Environment
 ```bash
-# 启用调试模式
+# Enable debug mode
 export ZSH_DEBUG=1
 export ZSH_VERBOSE=1
 exec zsh
 ```
 
-### 模块开发
+### Module Development
 ```bash
-# 创建新模块
+# Create new module
 touch modules/new_module.zsh
 ```
 
-### 模块模板
+### Module Template
 ```bash
 #!/usr/bin/env zsh
 # =============================================================================
-# 新模块 - 描述
-# 版本: 4.2
+# New Module - Description
+# Version: 4.2
 # =============================================================================
 
-# 环境设置
+# Environment setup
 export NEW_MODULE_ENABLED="${NEW_MODULE_ENABLED:-1}"
 
-# 核心函数
+# Core functions
 new_module_function() {
-    # 函数实现
-    echo "新模块函数被调用"
+    # Function implementation
+    echo "New module function called"
 }
 ```
 
-## 📊 当前状态
+## 📊 Current Status
 
-### 模块统计
-- **总行数**: 604行
-- **模块数量**: 6个核心模块
-- **版本**: 4.2.3
+### Module Statistics
+- **Total Lines**: 604 lines
+- **Module Count**: 6 core modules
+- **Version**: 4.2.3
 
-### 核心模块
-- `core.zsh` (94行) - 核心环境设置
-- `aliases.zsh` (95行) - 别名和快捷命令
-- `plugins.zsh` (95行) - 插件管理
-- `completion.zsh` (119行) - 自动补全
-- `keybindings.zsh` (116行) - 按键绑定
-- `utils.zsh` (85行) - 实用工具
+### Core Modules
+- `core.zsh` (94 lines) - Core environment setup
+- `aliases.zsh` (95 lines) - Aliases and shortcuts
+- `plugins.zsh` (95 lines) - Plugin management
+- `completion.zsh` (119 lines) - Auto-completion
+- `keybindings.zsh` (116 lines) - Key bindings
+- `utils.zsh` (85 lines) - Utility tools
 
 ---
 
-**最后更新**: 2024-12-19  
-**状态**: 生产就绪 ✅ 
+**Last Updated**: 2024-12-19  
+**Status**: Production Ready ✅ 

@@ -1,180 +1,180 @@
-# 环境变量配置指南
+# Environment Variables Configuration Guide
 
-## 概述
+## Overview
 
-本项目采用简化的环境变量配置方式，核心环境变量在配置脚本中直接管理，只有用户特定的环境变量使用模板化配置。
+This project uses a simplified environment variable configuration approach. Core environment variables are managed directly in configuration scripts, while only user-specific environment variables use template-based configuration.
 
-## 文件结构
+## File Structure
 
 ```
 env/
-├── templates/                    # 环境变量模板文件
-│   └── environment.env.template # 用户环境配置模板
-├── local/                       # 用户实际配置文件（从模板复制）
-│   └── environment.env          # 用户实际环境配置
-├── init-env.sh                  # 初始化脚本
-├── migrate-env.sh               # 迁移脚本
-├── README.md                    # 本说明文件
-└── .gitignore                   # Git忽略文件
+├── templates/                    # Environment variable template files
+│   └── environment.env.template # User environment configuration template
+├── local/                       # User actual configuration files (copied from templates)
+│   └── environment.env          # User actual environment configuration
+├── init-env.sh                  # Initialization script
+├── migrate-env.sh               # Migration script
+├── README.md                    # This documentation file
+└── .gitignore                   # Git ignore file
 ```
 
-## 配置分类
+## Configuration Categories
 
-### 1. 核心环境变量（在zshenv中直接设置）
-- XDG基础目录配置
-- ZSH路径配置
-- 历史记录设置
-- 终端配置
-- 基础工具配置
+### 1. Core Environment Variables (set directly in zshenv)
+- XDG base directory configuration
+- ZSH path configuration
+- History settings
+- Terminal configuration
+- Basic tool configuration
 
-### 2. 插件环境变量（在modules/plugins.zsh中管理）
-- ZSH自动建议配置
-- 其他插件相关配置
-- `ZSH_ENABLE_PLUGINS`：是否加载所有插件（1/0）
-- `ZSH_ENABLE_OPTIONAL_PLUGINS`：是否加载可选插件（如fzf-tab）
+### 2. Plugin Environment Variables (managed in modules/plugins.zsh)
+- ZSH autosuggestion configuration
+- Other plugin-related configurations
+- `ZSH_ENABLE_PLUGINS`: Whether to load all plugins (1/0)
+- `ZSH_ENABLE_OPTIONAL_PLUGINS`: Whether to load optional plugins (like fzf-tab)
 
-### 3. 主题环境变量（在themes/prompt.zsh中管理）
-- Oh My Posh配置
-- 其他主题相关配置
+### 3. Theme Environment Variables (managed in themes/prompt.zsh)
+- Oh My Posh configuration
+- Other theme-related configurations
 
-### 4. 用户环境变量（模板化管理）
-- 开发工具安装路径
-- 包管理器镜像配置
-- 个人自定义配置
+### 4. User Environment Variables (template-managed)
+- Development tool installation paths
+- Package manager mirror configurations
+- Personal custom configurations
 
-## 使用方法
+## Usage
 
-### 1. 初始化配置
+### 1. Initialize Configuration
 
-首次使用时，需要从模板创建实际配置文件：
+When using for the first time, you need to create actual configuration files from templates:
 
 ```bash
-# 进入环境配置目录
+# Navigate to environment configuration directory
 cd ~/.config/zsh/env
 
-# 运行初始化脚本
+# Run initialization script
 ./init-env.sh
 ```
 
-### 2. 自定义配置
+### 2. Customize Configuration
 
-编辑本地配置文件，根据你的实际环境修改相应的值：
+Edit the local configuration file and modify the corresponding values according to your actual environment:
 
 ```bash
-# 编辑用户环境配置
+# Edit user environment configuration
 ${EDITOR:-code} local/environment.env
 ```
 
-### 3. 启用配置
+### 3. Enable Configuration
 
-配置文件会自动加载，无需额外操作。系统会按以下顺序加载：
+Configuration files are loaded automatically without additional operations. The system loads in the following order:
 
-1. `zshenv` - 核心环境变量
-2. `env/local/environment.env` - 用户环境配置（如果存在）
-3. `modules/` - 功能模块（包含插件和主题配置）
+1. `zshenv` - Core environment variables
+2. `env/local/environment.env` - User environment configuration (if exists)
+3. `modules/` - Feature modules (including plugin and theme configurations)
 
-**重要提示：** 如果存在旧的 `env/development.zsh` 文件，系统会优先加载它而不是 `environment.env`。建议使用迁移脚本处理旧配置。
+**Important Note:** If an old `env/development.zsh` file exists, the system will prioritize loading it instead of `environment.env`. It's recommended to use the migration script to handle old configurations.
 
-## 配置说明
+## Configuration Description
 
-### environment.env - 用户环境配置
-包含各种开发工具的环境变量，如Go、Rust、Flutter、Android SDK等。
+### environment.env - User Environment Configuration
+Contains environment variables for various development tools such as Go, Rust, Flutter, Android SDK, etc.
 
-主要配置项：
-- **开发工具路径**: GOPATH、GOROOT、ANDROID_HOME等
-- **包管理器镜像**: Homebrew、Flutter、Rust等镜像源
-- **自定义配置**: 个人工作目录、项目路径等
+Main configuration items:
+- **Development Tool Paths**: GOPATH, GOROOT, ANDROID_HOME, etc.
+- **Package Manager Mirrors**: Homebrew, Flutter, Rust mirror sources, etc.
+- **Custom Configurations**: Personal workspace directories, project paths, etc.
 
-## 注意事项
+## Important Notes
 
-1. **模板文件不要修改** - 模板文件用于版本控制，不要直接修改
-2. **本地文件可以修改** - `local/` 目录下的文件可以自由修改
-3. **备份重要配置** - 建议定期备份 `local/` 目录
-4. **注释说明** - 每个环境变量都有详细注释，请仔细阅读
-5. **旧配置文件** - 如果存在 `env/development.zsh` 或 `env/local.zsh`，建议迁移到新系统
+1. **Do not modify template files** - Template files are for version control, do not modify them directly
+2. **Local files can be modified** - Files in the `local/` directory can be freely modified
+3. **Backup important configurations** - It's recommended to regularly backup the `local/` directory
+4. **Comment descriptions** - Each environment variable has detailed comments, please read carefully
+5. **Old configuration files** - If `env/development.zsh` or `env/local.zsh` exists, it's recommended to migrate to the new system
 
-## 故障排除
+## Troubleshooting
 
-### 配置不生效
+### Configuration Not Taking Effect
 
-**问题现象：** 编辑 `environment.env` 后重新加载配置，但更改没有生效。
+**Problem:** After editing `environment.env` and reloading configuration, changes don't take effect.
 
-**可能原因：**
-1. 存在旧的 `env/development.zsh` 文件，系统优先加载它
-2. 配置文件语法错误
-3. 文件权限问题
+**Possible Causes:**
+1. Old `env/development.zsh` file exists, system prioritizes loading it
+2. Configuration file syntax error
+3. File permission issues
 
-**解决方案：**
+**Solutions:**
 ```bash
-# 1. 检查是否存在旧配置文件
+# 1. Check if old configuration file exists
 ls -la ~/.config/zsh/env/development.zsh
 
-# 2. 如果存在，使用迁移脚本处理
+# 2. If exists, use migration script to handle
 cd ~/.config/zsh/env
 ./migrate-env.sh
 
-# 3. 或者手动删除旧文件（已备份）
+# 3. Or manually delete old file (already backed up)
 rm ~/.config/zsh/env/development.zsh
 
-# 4. 重新加载配置
+# 4. Reload configuration
 source ~/.config/zsh/zshrc
 
-# 5. 验证环境变量
+# 5. Verify environment variables
 echo "GOPATH: $GOPATH"
 echo "ANDROID_HOME: $ANDROID_HOME"
 ```
 
-### 环境变量冲突
+### Environment Variable Conflicts
 ```bash
-# 查看当前环境变量
+# View current environment variables
 env | grep -E "(GOPATH|ANDROID_HOME|BUN_INSTALL)"
 
-# 检查配置文件语法
+# Check configuration file syntax
 zsh -n ~/.config/zsh/env/local/environment.env
 ```
 
-### 语法错误
+### Syntax Errors
 ```bash
-# 检查zshenv语法
+# Check zshenv syntax
 zsh -n ~/.config/zsh/zshenv
 
-# 检查模块文件语法
+# Check module file syntax
 zsh -n ~/.config/zsh/modules/plugins.zsh
 zsh -n ~/.config/zsh/themes/prompt.zsh
 ```
 
-## 迁移指南
+## Migration Guide
 
-### 从旧配置迁移
+### Migrate from Old Configuration
 
-如果你之前使用 `env/development.zsh` 或 `env/local.zsh`：
+If you previously used `env/development.zsh` or `env/local.zsh`:
 
 ```bash
-# 1. 运行迁移脚本
+# 1. Run migration script
 cd ~/.config/zsh/env
 ./migrate-env.sh
 
-# 2. 检查迁移结果
+# 2. Check migration results
 cat local/environment.env
 
-# 3. 根据需要调整配置
+# 3. Adjust configuration as needed
 ${EDITOR:-code} local/environment.env
 
-# 4. 测试配置
+# 4. Test configuration
 source ~/.config/zsh/zshenv
 ```
 
-## 更新模板
+## Update Templates
 
-当模板文件更新时，可以手动合并更改：
+When template files are updated, you can manually merge changes:
 
 ```bash
-# 查看模板更新
+# View template updates
 diff templates/environment.env.template local/environment.env
 
-# 手动合并更改到本地配置
+# Manually merge changes to local configuration
 ```
 
-## 贡献
+## Contributing
 
-欢迎提交Issue和Pull Request来改进模板文件！ 
+Welcome to submit Issues and Pull Requests to improve template files! 

@@ -3,7 +3,7 @@
 # Aliases and Functions Module - Optimized for High-Frequency Use
 # =============================================================================
 
-# -------------------- 目录/文件操作 --------------------
+# -------------------- Directory/File Operations --------------------
 alias ..='cd ..'
 alias ...='cd ../..'
 up() {
@@ -12,7 +12,7 @@ up() {
     cd "$path"
 }
 
-# -------------------- ls/eza 相关 --------------------
+# -------------------- ls/eza Related --------------------
 if command -v eza >/dev/null 2>&1; then
     alias ls='eza --color=always --group-directories-first'
     alias ll='eza -la --color=always --group-directories-first --icons'
@@ -23,7 +23,7 @@ else
     alias la='ls -A --color=auto'
 fi
 
-# -------------------- Git 相关 --------------------
+# -------------------- Git Related --------------------
 alias g='git'
 alias ga='git add'
 alias gc='git commit -v'
@@ -38,7 +38,7 @@ gcm() {
     git commit -m "$*"
 }
 
-# -------------------- 开发工具 --------------------
+# -------------------- Development Tools --------------------
 if command -v npm >/dev/null 2>&1; then
     alias ni='npm install'
 fi
@@ -46,13 +46,13 @@ if command -v python3 >/dev/null 2>&1; then
     alias py='python3'
 fi
 
-# -------------------- 配置/导航 --------------------
+# -------------------- Configuration/Navigation --------------------
 alias zshrc='${EDITOR:-code} ~/.config/zsh/zshrc'
 
-# -------------------- 时间/日期 --------------------
+# -------------------- Time/Date --------------------
 alias now='date +"%T"'
 
-# -------------------- 其他高频 --------------------
+# -------------------- Other High-Frequency --------------------
 trash() {
     [[ $# -eq 0 ]] && echo "Usage: trash <file1> [file2] ..." && return 1
     local trash_dir="$HOME/.local/share/Trash/files"

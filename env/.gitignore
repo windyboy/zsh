@@ -1,22 +1,22 @@
-# 环境变量本地配置文件
-# 这些文件包含个人化的配置，不应该提交到版本控制
+# Local environment variable configuration files
+# These files contain personalized configurations and should not be committed to version control
 local/
 backup/
 
-# 临时文件
+# Temporary files
 *.tmp
 *.bak
 *.swp
 *.swo
 
-# 编辑器配置文件
+# Editor configuration files
 .vscode/
 .idea/
 *.sublime-*
 
-# 系统文件
+# System files
 .DS_Store
 Thumbs.db
 
-# 日志文件
+# Log files
 *.log 

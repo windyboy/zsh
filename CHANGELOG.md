@@ -206,23 +206,23 @@
 
 ### 🔌 Plugin Enhancement - zsh-extract Integration
 
-#### ✨ 新增
-- **zsh-extract 插件** - 智能文件解压工具
-  - 支持多种压缩格式: tar.gz, tar.bz2, tar.xz, zip, rar, 7z, cab, iso 等
-  - 自动格式检测和智能解压
-  - 完善的错误处理和依赖检查
-  - 与现有配置完全集成
+#### ✨ New Features
+- **zsh-extract Plugin** - Smart file extraction tool
+  - Supports multiple compression formats: tar.gz, tar.bz2, tar.xz, zip, rar, 7z, cab, iso, etc.
+  - Automatic format detection and smart extraction
+  - Comprehensive error handling and dependency checking
+  - Fully integrated with existing configuration
 
-#### 🔧 增强
-- **解压工具支持** - 集成 unar, 7z, cabextract 等工具
-- **插件状态监控** - 在 status.sh 中显示插件状态
-- **依赖检查功能** - 自动检查解压工具可用性
-- **配置文档更新** - 更新 README 和 REFERENCE 文档
+#### 🔧 Enhancements
+- **Extraction Tool Support** - Integrated unar, 7z, cabextract and other tools
+- **Plugin Status Monitoring** - Display plugin status in status.sh
+- **Dependency Check Function** - Automatic extraction tool availability checking
+- **Configuration Documentation Updates** - Updated README and REFERENCE documentation
 
-#### 📊 优化效果
-- **解压格式支持**: 从基础格式扩展到 10+ 种格式
-- **用户体验**: 统一的 extract 命令，智能格式识别
-- **错误处理**: 完善的依赖检查和错误提示
+#### 📊 Optimization Results
+- **Extraction Format Support**: Extended from basic formats to 10+ formats
+- **User Experience**: Unified extract command with smart format recognition
+- **Error Handling**: Comprehensive dependency checking and error prompts
 
 ---
 
@@ -230,135 +230,135 @@
 
 ### 🎯 Phase 2 Optimization Complete - Consistency and User Experience Enhancement
 
-#### ✨ 新增
-- **统一命令接口** - 所有命令采用一致的命名规范
-- **彩色输出** - 统一的成功/错误/信息输出格式
-- **使用帮助** - 所有命令内置使用说明
-- **版本管理** - 新增version命令查看配置版本
+#### ✨ New Features
+- **Unified Command Interface** - All commands follow consistent naming conventions
+- **Colored Output** - Unified success/error/information output format
+- **Usage Help** - All commands have built-in usage instructions
+- **Version Management** - Added version command to view configuration version
 
-#### 🔧 增强
-- **命令一致性** - 统一所有模块的命令命名风格
-- **输出格式** - 标准化的彩色输出和消息格式
-- **错误处理** - 改进的错误提示和恢复机制
-- **文档完善** - 每个函数都有清晰的注释和使用说明
+#### 🔧 Enhancements
+- **Command Consistency** - Unified command naming style across all modules
+- **Output Format** - Standardized colored output and message format
+- **Error Handling** - Improved error prompts and recovery mechanisms
+- **Documentation Completion** - Each function has clear comments and usage instructions
 
-#### 🗑️ 删除
-- **重复函数** - 移除extract等重复定义的函数
-- **复杂逻辑** - 简化函数实现，提高可读性
-- **冗余代码** - 清理不必要的检查和验证
+#### 🗑️ Removed
+- **Duplicate Functions** - Removed duplicate function definitions like extract
+- **Complex Logic** - Simplified function implementations for better readability
+- **Redundant Code** - Cleaned up unnecessary checks and validations
 
-#### 📊 优化效果
-- **代码行数**: 604行（精简73%）
-- **模块数量**: 6个核心模块
-- **命令一致性**: 100%统一命名规范
-- **用户体验**: 显著提升的命令交互体验
+#### 📊 Optimization Results
+- **Code Lines**: 604 lines (73% reduction)
+- **Module Count**: 6 core modules
+- **Command Consistency**: 100% unified naming convention
+- **User Experience**: Significantly improved command interaction experience
 
-#### 🎯 个人使用优化
-- **开箱即用** - 更简洁的配置，更容易上手
-- **按需定制** - 清晰的模块结构，便于个性化
-- **问题定位** - 简化的调试工具，快速定位问题
+#### 🎯 Personal Usage Optimization
+- **Ready to Use** - Simpler configuration, easier to get started
+- **Customizable** - Clear module structure for personalization
+- **Problem Location** - Simplified debugging tools for quick issue identification
 
 ---
 
 ## [4.1.0] - 2024-12-19
 
-### 🎯 精简优化 - 个人使用体验提升
+### 🎯 Streamlined Optimization - Personal Usage Experience Enhancement
 
-#### ✨ 新增
-- **简化架构** - 大幅精简代码，提升可维护性
-- **核心功能聚焦** - 保留最常用功能，删除边缘化特性
-- **性能优化** - 简化性能检查，减少模块依赖
+#### ✨ New Features
+- **Simplified Architecture** - Significantly streamlined code, improved maintainability
+- **Core Function Focus** - Retain most commonly used features, remove marginal features
+- **Performance Optimization** - Simplified performance checking, reduced module dependencies
 
-#### 🔧 增强
-- **core.zsh** - 从302行精简到150行，保留核心环境设置
-- **aliases.zsh** - 从471行精简到150行，聚焦最常用别名
-- **plugins.zsh** - 从220行精简到120行，简化插件管理
-- **性能检查** - 集成简单性能检查到core模块
+#### 🔧 Enhancements
+- **core.zsh** - Streamlined from 302 lines to 150 lines, retained core environment setup
+- **aliases.zsh** - Streamlined from 471 lines to 150 lines, focused on most commonly used aliases
+- **plugins.zsh** - Streamlined from 220 lines to 120 lines, simplified plugin management
+- **Performance Checking** - Integrated simple performance checking into core module
 
-#### 🗑️ 删除
-- **复杂工具检测** - 删除has_tool函数，使用简单command -v
-- **边缘化别名** - 删除不常用的开发工具别名
-- **冗余函数** - 删除dirsize、newproject等复杂函数
-- **复杂配置** - 简化插件和补全配置
+#### 🗑️ Removed
+- **Complex Tool Detection** - Removed has_tool function, use simple command -v
+- **Marginal Aliases** - Removed less commonly used development tool aliases
+- **Redundant Functions** - Removed complex functions like dirsize, newproject
+- **Complex Configuration** - Simplified plugin and completion configuration
 
-#### 📊 优化效果
-- **代码行数减少55%** - 从2204行精简到约1000行
-- **启动性能提升** - 减少模块加载时间
-- **维护性提升** - 简化配置逻辑，降低学习成本
-- **功能保留度** - 核心功能100%保留，开发工具90%保留
+#### 📊 Optimization Results
+- **55% Code Reduction** - Streamlined from 2204 lines to approximately 1000 lines
+- **Startup Performance Improvement** - Reduced module loading time
+- **Maintainability Improvement** - Simplified configuration logic, reduced learning cost
+- **Feature Retention** - 100% core functionality retained, 90% development tools retained
 
-#### 🎯 个人使用优化
-- **开箱即用** - 更简洁的配置，更容易上手
-- **按需定制** - 清晰的模块结构，便于个性化
-- **问题定位** - 简化的调试工具，快速定位问题
+#### 🎯 Personal Usage Optimization
+- **Ready to Use** - Simpler configuration, easier to get started
+- **Customizable** - Clear module structure for personalization
+- **Problem Location** - Simplified debugging tools for quick issue identification
 
 ---
 
 ## [4.0.0] - 2024-12-19
 
-### 🚀 重大发布 - 性能与架构卓越
+### 🚀 Major Release - Performance and Architecture Excellence
 
-#### ✨ 新增
-- **96%启动时间提升** - 从9.7秒优化到0.36秒
-- **43%命令执行速度** - 从0.056秒提升到0.032秒
-- **50%钩子开销减少** - 从4个减少到2个precmd钩子
-- **内存优化** - 内存占用减少50%（60MB → 30MB）
-- **函数数量优化** - 精简50%（600个 → 300个函数）
+#### ✨ New Features
+- **96% Startup Time Improvement** - Optimized from 9.7 seconds to 0.36 seconds
+- **43% Command Execution Speed** - Improved from 0.056 seconds to 0.032 seconds
+- **50% Hook Overhead Reduction** - Reduced from 4 to 2 precmd hooks
+- **Memory Optimization** - 50% reduction in memory usage (60MB → 30MB)
+- **Function Count Optimization** - 50% streamlining (600 → 300 functions)
 
-#### 🔧 增强
-- **XDG合规** - 完全符合XDG基础目录规范
-- **安全框架** - 增强的安全审计和验证
-- **错误处理** - 改进的错误恢复和调试
-- **主题管理** - Oh My Posh集成和主题切换
+#### 🔧 Enhancements
+- **XDG Compliance** - Fully compliant with XDG Base Directory specification
+- **Security Framework** - Enhanced security auditing and validation
+- **Error Handling** - Improved error recovery and debugging
+- **Theme Management** - Oh My Posh integration and theme switching
 
-#### 🐛 修复
-- 修复模块加载顺序问题
-- 解决补全缓存损坏
-- 修复安全验证误报
-- 纠正按键绑定冲突
+#### 🐛 Fixes
+- Fixed module loading order issues
+- Resolved completion cache corruption
+- Fixed security validation false positives
+- Corrected key binding conflicts
 
-#### 🔄 破坏性变更
-- **模块加载** - 增强的模块加载系统
-- **命令接口** - 更新的命令名称和接口
-- **配置** - 修改的配置文件结构
+#### 🔄 Breaking Changes
+- **Module Loading** - Enhanced module loading system
+- **Command Interface** - Updated command names and interfaces
+- **Configuration** - Modified configuration file structure
 
-#### 📦 依赖
-- **ZSH**: 需要ZSH 5.8或更高版本
-- **Git**: 插件管理必需
-- **基本Unix工具**: curl, wget等
-- **Oh My Posh**: 主题系统可选
+#### 📦 Dependencies
+- **ZSH**: Requires ZSH 5.8 or higher
+- **Git**: Required for plugin management
+- **Basic Unix Tools**: curl, wget, etc.
+- **Oh My Posh**: Optional theme system
 
 ---
 
 ## [3.0.0] - 2024-11-15
 
-### 增强插件系统
-- 使用Zinit增强插件管理
-- 改进补全系统
-- 更好的错误处理
-- 性能优化
+### Enhanced Plugin System
+- Use Zinit for enhanced plugin management
+- Improved completion system
+- Better error handling
+- Performance optimization
 
 ---
 
 ## [2.1.0] - 2024-10-20
 
-### 重大重构
-- 模块化架构
-- 性能监控
-- 安全特性
-- 插件管理
+### Major Refactoring
+- Modular architecture
+- Performance monitoring
+- Security features
+- Plugin management
 
 ---
 
 ## [2.0.0] - 2024-09-01
 
-### 初始发布
-- 基本ZSH配置
-- 基本插件
-- 自定义提示
-- 基本别名和函数
+### Initial Release
+- Basic ZSH configuration
+- Basic plugins
+- Custom prompts
+- Basic aliases and functions
 
 ---
 
-**最后更新**: 2025-07-25  
-**状态**: 生产就绪 ✅ 
+**Last Updated**: 2025-07-25  
+**Status**: Production Ready ✅ 

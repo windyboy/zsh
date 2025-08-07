@@ -22,7 +22,7 @@ check_zsh_version() {
     current_version=$(zsh --version | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
     
     if [[ -z "$current_version" ]]; then
-        error "无法获取ZSH版本信息"
+        error "Unable to get ZSH version information"
         return 1
     fi
     
@@ -32,10 +32,10 @@ check_zsh_version() {
     
     if (( current[0] > required[0] )) || \
        (( current[0] == required[0] && current[1] >= required[1] )); then
-        success "ZSH版本检查通过: $current_version (需要: $required_version+)"
+        success "ZSH version check passed: $current_version (required: $required_version+)"
         return 0
     else
-        error "ZSH版本过低: $current_version (需要: $required_version+)"
+        error "ZSH version too low: $current_version (required: $required_version+)"
         return 1
     fi
 }
@@ -99,7 +99,7 @@ parse_args() {
 
 # Check optional tools
 check_optional_tools() {
-    log "检查可选工具..."
+    log "Checking optional tools..."
     
     local optional_tools=(
         "fzf:Fuzzy Finder"
@@ -122,19 +122,19 @@ check_optional_tools() {
             success "✅ $tool - $desc"
         else
             missing_tools+=("$tool")
-            warning "⚠️  $tool - $desc (未安装)"
+            warning "⚠️  $tool - $desc (not installed)"
         fi
     done
     
     echo
     if [[ ${#found_tools[@]} -gt 0 ]]; then
-        success "已安装工具: ${found_tools[*]}"
+        success "Installed tools: ${found_tools[*]}"
     fi
     
     if [[ ${#missing_tools[@]} -gt 0 ]]; then
-        warning "未安装工具: ${missing_tools[*]}"
-        echo "💡 这些工具是可选的，但建议安装以获得更好的体验"
-        echo "📖 查看README.md了解安装方法"
+        warning "Missing tools: ${missing_tools[*]}"
+        echo "💡 These tools are optional but recommended for better experience"
+        echo "📖 See README.md for installation instructions"
     fi
 }
 
@@ -154,20 +154,20 @@ check_prereq() {
     
     if ! command -v zsh >/dev/null 2>&1; then
         error "ZSH not found. Please install zsh first."
-        echo "📖 查看README.md了解安装方法"
+        echo "📖 See README.md for installation instructions"
         exit 1
     fi
     success "ZSH found: $(which zsh)"
     
     if ! check_zsh_version; then
         error "ZSH version check failed."
-        echo "📖 查看README.md了解版本要求"
+        echo "📖 See README.md for version requirements"
         exit 1
     fi
     
     if ! command -v git >/dev/null 2>&1; then
         error "Git not found. Please install git first."
-        echo "📖 查看README.md了解安装方法"
+        echo "📖 See README.md for installation instructions"
         exit 1
     fi
     success "Git found: $(which git)"

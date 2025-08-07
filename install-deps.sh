@@ -21,14 +21,14 @@ check_dependencies() {
     done
     
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
-        error "缺少必要依赖: ${missing_deps[*]}"
+        error "Missing required dependencies: ${missing_deps[*]}"
         return 1
     fi
 }
 
 # Verify installation
 verify_installation() {
-    log "验证安装结果..."
+    log "Verifying installation results..."
     local tools=("zsh" "git" "fzf" "zoxide" "eza" "oh-my-posh")
     
     for tool in "${tools[@]}"; do
@@ -68,7 +68,7 @@ detect_package_manager() {
 
 # Install eza binary
 install_eza() {
-    log "安装eza..."
+    log "Installing eza..."
     
     # Detect OS and architecture
     local os=""
@@ -77,47 +77,47 @@ install_eza() {
     case "$(uname -s)" in
         Darwin*)    os="apple-darwin";;
         Linux*)     os="unknown-linux-gnu";;
-        *)          warning "不支持的操作系统: $(uname -s)，跳过eza安装"; return 1;;
+        *)          warning "Unsupported operating system: $(uname -s), skipping eza installation"; return 1;;
     esac
     
     case "$(uname -m)" in
         x86_64)         arch="x86_64";;
         arm64|aarch64)  arch="aarch64";;
         armv7l)         arch="armv7";;
-        *)              warning "不支持的架构: $(uname -m)，跳过eza安装"; return 1;;
+        *)              warning "Unsupported architecture: $(uname -m), skipping eza installation"; return 1;;
     esac
     
-    # 正确的下载URL格式
+    # Correct download URL format
     local eza_url="https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os}.tar.gz"
     local temp_dir
     temp_dir=$(mktemp -d)
     
-    log "下载eza: $eza_url"
+    log "Downloading eza: $eza_url"
     if curl -L -o "$temp_dir/eza.tar.gz" "$eza_url" 2>/dev/null; then
         cd "$temp_dir" || return 1
         if tar -xzf eza.tar.gz 2>/dev/null && [[ -f "eza" ]]; then
-            # 尝试多种安装路径
+            # Try multiple installation paths
             if sudo mv eza /usr/local/bin/ 2>/dev/null; then
-                success "eza安装到 /usr/local/bin/"
+                success "eza installed to /usr/local/bin/"
             elif mkdir -p ~/.local/bin && mv eza ~/.local/bin/ 2>/dev/null; then
-                # 确保 ~/.local/bin 在 PATH 中
+                # Ensure ~/.local/bin is in PATH
                 for rc_file in ~/.bashrc ~/.zshrc; do
                     if [[ -f "$rc_file" ]] && ! grep -q "export PATH=\"\$HOME/.local/bin:\$PATH\"" "$rc_file"; then
                         echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$rc_file"
                     fi
                 done
-                success "eza安装到 ~/.local/bin/"
-                warning "请重启终端或运行 'source ~/.bashrc' 来更新PATH"
+                success "eza installed to ~/.local/bin/"
+                warning "Please restart terminal or run 'source ~/.bashrc' to update PATH"
             else
-                error "eza安装失败：无法移动到目标目录"
+                error "eza installation failed: cannot move to target directory"
                 return 1
             fi
         else
-            error "eza解压失败或二进制文件未找到"
+            error "eza extraction failed or binary file not found"
             return 1
         fi
     else
-        error "下载eza失败: $eza_url"
+        error "Failed to download eza: $eza_url"
         return 1
     fi
     
@@ -126,15 +126,15 @@ install_eza() {
 
 # Install oh-my-posh and themes
 install_oh_my_posh() {
-    log "安装oh-my-posh..."
+    log "Installing oh-my-posh..."
     local arch="amd64"
     [[ "$(uname -m)" == "aarch64" ]] && arch="arm64"
     
     if sudo wget "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-${arch}" -O /usr/local/bin/oh-my-posh && sudo chmod +x /usr/local/bin/oh-my-posh; then
-        success "oh-my-posh安装成功"
+        success "oh-my-posh installed successfully"
         
         # Install all themes from GitHub
-        log "从GitHub下载所有Oh My Posh主题..."
+        log "Downloading all Oh My Posh themes from GitHub..."
         local themes_dir="$HOME/.poshthemes"
         mkdir -p "$themes_dir"
         
@@ -145,7 +145,7 @@ install_oh_my_posh() {
         
         # Clone the oh-my-posh repository to get all themes
         if git clone --depth 1 https://github.com/JanDeDobbeleer/oh-my-posh.git; then
-            log "GitHub仓库克隆成功"
+            log "GitHub repository cloned successfully"
             
             # Copy all theme files
             if [[ -d "oh-my-posh/themes" ]]; then
@@ -156,7 +156,7 @@ install_oh_my_posh() {
                         theme_name=$(basename "$theme_file")
                         cp "$theme_file" "$themes_dir/"
                         ((theme_count++))
-                        log "主题 ${theme_name} 复制成功"
+                        log "Theme ${theme_name} copied successfully"
                     fi
                 done
                 
@@ -167,26 +167,26 @@ install_oh_my_posh() {
                         theme_name=$(basename "$theme_file")
                         cp "$theme_file" "$themes_dir/"
                         ((theme_count++))
-                        log "主题 ${theme_name} 复制成功"
+                        log "Theme ${theme_name} copied successfully"
                     fi
                 done
                 
-                success "主题安装完成，共安装 ${theme_count} 个主题"
-                echo "💡 主题位置: $themes_dir"
-                echo "💡 使用主题: oh-my-posh init zsh --config $themes_dir/agnoster.omp.json"
-                echo "💡 预览主题: oh-my-posh print primary --config $themes_dir/agnoster.omp.json"
+                success "Theme installation completed, installed ${theme_count} themes"
+                echo "💡 Theme location: $themes_dir"
+                echo "💡 Use theme: oh-my-posh init zsh --config $themes_dir/agnoster.omp.json"
+                echo "💡 Preview theme: oh-my-posh print primary --config $themes_dir/agnoster.omp.json"
             else
-                warning "主题目录未找到"
+                warning "Theme directory not found"
             fi
         else
-            warning "GitHub仓库克隆失败，尝试下载常用主题..."
+            warning "GitHub repository clone failed, trying to download popular themes..."
             # Fallback to downloading popular themes
             local themes=("agnoster" "powerlevel10k_modern" "paradox" "atomic" "agnosterplus" "jandedobbeleer")
             for theme in "${themes[@]}"; do
                 if wget -q "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -O "$themes_dir/${theme}.omp.json"; then
-                    log "主题 ${theme} 下载成功"
+                    log "Theme ${theme} downloaded successfully"
                 else
-                    warning "主题 ${theme} 下载失败"
+                    warning "Theme ${theme} download failed"
                 fi
             done
         fi
@@ -195,35 +195,35 @@ install_oh_my_posh() {
         cd - > /dev/null
         rm -rf "$temp_dir"
     else
-        warning "oh-my-posh安装失败"
+        warning "oh-my-posh installation failed"
     fi
 }
 
 # Install on macOS
 install_macos() {
-    log "检测到macOS系统，使用Homebrew安装..."
+    log "Detected macOS system, using Homebrew for installation..."
     
     if ! command -v brew >/dev/null 2>&1; then
-        error "Homebrew未安装，请先安装Homebrew"
-        echo "安装命令: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+        error "Homebrew not installed, please install Homebrew first"
+        echo "Installation command: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
         return 1
     fi
     
-    # 必需工具
-    log "安装必需工具..."
+    # Required tools
+    log "Installing required tools..."
     brew install zsh git
     
-    # 推荐工具
-    log "安装推荐工具..."
+    # Recommended tools
+    log "Installing recommended tools..."
     brew install fzf zoxide eza curl
     
-    # 安装oh-my-posh
-    log "安装oh-my-posh..."
+    # Install oh-my-posh
+    log "Installing oh-my-posh..."
     if brew install oh-my-posh; then
-        success "oh-my-posh安装成功"
+        success "oh-my-posh installed successfully"
         
         # Install all themes from GitHub
-        log "从GitHub下载所有Oh My Posh主题..."
+        log "Downloading all Oh My Posh themes from GitHub..."
         local themes_dir="$HOME/.poshthemes"
         mkdir -p "$themes_dir"
         
@@ -234,7 +234,7 @@ install_macos() {
         
         # Clone the oh-my-posh repository to get all themes
         if git clone --depth 1 https://github.com/JanDeDobbeleer/oh-my-posh.git; then
-            log "GitHub仓库克隆成功"
+            log "GitHub repository cloned successfully"
             
             # Copy all theme files
             if [[ -d "oh-my-posh/themes" ]]; then
@@ -245,7 +245,7 @@ install_macos() {
                         theme_name=$(basename "$theme_file")
                         cp "$theme_file" "$themes_dir/"
                         ((theme_count++))
-                        log "主题 ${theme_name} 复制成功"
+                        log "Theme ${theme_name} copied successfully"
                     fi
                 done
                 
@@ -256,26 +256,26 @@ install_macos() {
                         theme_name=$(basename "$theme_file")
                         cp "$theme_file" "$themes_dir/"
                         ((theme_count++))
-                        log "主题 ${theme_name} 复制成功"
+                        log "Theme ${theme_name} copied successfully"
                     fi
                 done
                 
-                success "主题安装完成，共安装 ${theme_count} 个主题"
-                echo "💡 主题位置: $themes_dir"
-                echo "💡 使用主题: oh-my-posh init zsh --config $themes_dir/agnoster.omp.json"
-                echo "💡 预览主题: oh-my-posh print primary --config $themes_dir/agnoster.omp.json"
+                success "Theme installation completed, installed ${theme_count} themes"
+                echo "💡 Theme location: $themes_dir"
+                echo "💡 Use theme: oh-my-posh init zsh --config $themes_dir/agnoster.omp.json"
+                echo "💡 Preview theme: oh-my-posh print primary --config $themes_dir/agnoster.omp.json"
             else
-                warning "主题目录未找到"
+                warning "Theme directory not found"
             fi
         else
-            warning "GitHub仓库克隆失败，尝试下载常用主题..."
+            warning "GitHub repository clone failed, trying to download popular themes..."
             # Fallback to downloading popular themes
             local themes=("agnoster" "powerlevel10k_modern" "paradox" "atomic" "agnosterplus" "jandedobbeleer")
             for theme in "${themes[@]}"; do
                 if curl -s "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -o "$themes_dir/${theme}.omp.json"; then
-                    log "主题 ${theme} 下载成功"
+                    log "Theme ${theme} downloaded successfully"
                 else
-                    warning "主题 ${theme} 下载失败"
+                    warning "Theme ${theme} download failed"
                 fi
             done
         fi
@@ -284,46 +284,46 @@ install_macos() {
         cd - > /dev/null
         rm -rf "$temp_dir"
     else
-        warning "oh-my-posh安装失败"
+        warning "oh-my-posh installation failed"
     fi
     
-    success "macOS依赖安装完成"
+    success "macOS dependencies installation completed"
 }
 
 # Install on Ubuntu/Debian
 install_ubuntu() {
-    log "检测到Ubuntu/Debian系统，使用apt安装..."
+    log "Detected Ubuntu/Debian system, using apt for installation..."
     
-    # 更新包列表
-    log "更新包列表..."
+    # Update package list
+    log "Updating package list..."
     if ! sudo apt update; then
-        error "更新包列表失败"
+        error "Failed to update package list"
         return 1
     fi
     
-    # 必需工具
-    log "安装必需工具..."
+    # Required tools
+    log "Installing required tools..."
     sudo apt install -y zsh git curl wget unzip
     
-    # 推荐工具
-    log "安装推荐工具..."
+    # Recommended tools
+    log "Installing recommended tools..."
     sudo apt install -y fzf
     
-    # 安装zoxide
-    log "安装zoxide..."
+    # Install zoxide
+    log "Installing zoxide..."
     if curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash; then
-        success "zoxide安装成功"
+        success "zoxide installed successfully"
     else
-        warning "zoxide安装失败"
+        warning "zoxide installation failed"
     fi
     
-    # 安装eza
+    # Install eza
     install_eza
     
-    # 安装oh-my-posh和主题
+    # Install oh-my-posh and themes
     install_oh_my_posh
     
-    success "Ubuntu/Debian依赖安装完成"
+    success "Ubuntu/Debian dependencies installation completed"
 }
 
 # Install on CentOS/RHEL/Fedora
@@ -332,49 +332,49 @@ install_centos() {
     pkg_manager=$(detect_package_manager)
     
     if [[ "$pkg_manager" == "dnf" ]]; then
-        log "检测到Fedora系统，使用dnf安装..."
+        log "Detected Fedora system, using dnf for installation..."
         sudo dnf install -y zsh git fzf curl wget unzip
     elif [[ "$pkg_manager" == "yum" ]]; then
-        log "检测到CentOS/RHEL系统，使用yum安装..."
+        log "Detected CentOS/RHEL system, using yum for installation..."
         sudo yum install -y zsh git fzf curl wget unzip
     else
-        error "无法检测包管理器"
+        error "Unable to detect package manager"
         return 1
     fi
     
-    # 安装zoxide
-    log "安装zoxide..."
+    # Install zoxide
+    log "Installing zoxide..."
     if curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash; then
-        success "zoxide安装成功"
+        success "zoxide installed successfully"
     else
-        warning "zoxide安装失败"
+        warning "zoxide installation failed"
     fi
     
-    # 安装eza
+    # Install eza
     install_eza
     
-    # 安装oh-my-posh和主题
+    # Install oh-my-posh and themes
     install_oh_my_posh
     
-    success "CentOS/RHEL/Fedora依赖安装完成"
+    success "CentOS/RHEL/Fedora dependencies installation completed"
 }
 
 # Install on Windows
 install_windows() {
-    log "检测到Windows系统..."
-    warning "Windows用户建议使用WSL (Windows Subsystem for Linux)"
-    echo "在WSL中按照Ubuntu/Debian的步骤安装"
-    echo "或者手动安装各个工具"
+    log "Detected Windows system..."
+    warning "Windows users are recommended to use WSL (Windows Subsystem for Linux)"
+    echo "Follow Ubuntu/Debian steps in WSL"
+    echo "Or manually install each tool"
     return 1
 }
 
 # Main installation
 main() {
-    log "开始安装ZSH配置依赖..."
+    log "Starting ZSH configuration dependencies installation..."
     
-    # 检查基础依赖
+    # Check basic dependencies
     if ! check_dependencies; then
-        error "缺少必要依赖，请先安装基础工具"
+        error "Missing required dependencies, please install basic tools first"
         return 1
     fi
     
@@ -393,8 +393,8 @@ main() {
             elif [[ "$pkg_manager" == "dnf" || "$pkg_manager" == "yum" ]]; then
                 install_centos
             else
-                error "不支持的Linux发行版"
-                echo "请手动安装依赖工具"
+                error "Unsupported Linux distribution"
+                echo "Please manually install dependency tools"
                 return 1
             fi
             ;;
@@ -402,17 +402,17 @@ main() {
             install_windows
             ;;
         *)
-            error "不支持的操作系统: $os"
+            error "Unsupported operating system: $os"
             return 1
             ;;
     esac
     
-    # 验证安装结果
+    # Verify installation results
     verify_installation
     
     echo
-    success "依赖安装完成！"
-    log "下一步：运行 ./install.sh 安装ZSH配置"
+    success "Dependencies installation completed!"
+    log "Next step: Run ./install.sh to install ZSH configuration"
 }
 
 main "$@" 

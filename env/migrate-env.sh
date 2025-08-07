@@ -1,32 +1,31 @@
 #!/usr/bin/env bash
 # =============================================================================
-# 环境变量迁移脚本 - Environment Variables Migration Script
-# 说明: 帮助用户从旧的环境变量配置迁移到新的配置系统
-# 使用方法: ./migrate-env.sh
+# Environment Variables Migration Script
+# Description: Help users migrate from old environment variable configuration to new configuration system
+# Usage: ./migrate-env.sh
 # =============================================================================
 
-# 颜色输出函数
+# Color output functions
 color_red()   { echo -e "\033[31m$1\033[0m"; }
 color_green() { echo -e "\033[32m$1\033[0m"; }
 color_yellow() { echo -e "\033[33m$1\033[0m"; }
 color_blue()  { echo -e "\033[34m$1\033[0m"; }
 color_cyan()  { echo -e "\033[36m$1\033[0m"; }
 
-# 获取脚本所在目录
+# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ZSH_CONFIG_DIR="$(dirname "$SCRIPT_DIR")"
 
 echo "$(color_cyan "=============================================================================")"
-echo "$(color_cyan "环境变量配置迁移工具")"
 echo "$(color_cyan "Environment Variables Configuration Migration Tool")"
 echo "$(color_cyan "=============================================================================")"
 echo
 
-# 检查是否需要迁移
-echo "$(color_yellow "检查现有配置...")"
+# Check if migration is needed
+echo "$(color_yellow "Checking existing configuration...")"
 echo
 
-# 检查旧配置文件
+# Check old configuration files
 old_files=()
 if [[ -f "$ZSH_CONFIG_DIR/env/development.zsh" ]]; then
     old_files+=("development.zsh")
@@ -37,67 +36,67 @@ if [[ -f "$ZSH_CONFIG_DIR/env/local.zsh" ]]; then
 fi
 
 if [[ ${#old_files[@]} -eq 0 ]]; then
-    color_green "✅ 没有发现需要迁移的旧配置文件"
+    color_green "✅ No old configuration files found that need migration"
     echo
-    echo "建议运行初始化脚本创建新的配置:"
+    echo "Recommend running initialization script to create new configuration:"
     echo "  $SCRIPT_DIR/init-env.sh"
     exit 0
 fi
 
-echo "$(color_yellow "发现以下旧配置文件:")"
+echo "$(color_yellow "Found the following old configuration files:")"
 for file in "${old_files[@]}"; do
     echo "  • $file"
 done
 echo
 
-# 确认迁移
-echo "$(color_blue "迁移说明:")"
-echo "• 旧配置文件将被备份到 backup/ 目录"
-echo "• 新的环境配置文件将被创建"
-echo "• 你可以手动将旧配置中的自定义设置复制到新配置中"
+# Confirm migration
+echo "$(color_blue "Migration Instructions:")"
+echo "• Old configuration files will be backed up to backup/ directory"
+echo "• New environment configuration files will be created"
+echo "• You can manually copy custom settings from old configuration to new configuration"
 echo
 
-read -k 1 "REPLY?是否继续迁移? (y/N): "
+read -k 1 "REPLY?Continue with migration? (y/N): "
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "$(color_yellow "迁移已取消")"
+    echo "$(color_yellow "Migration cancelled")"
     exit 0
 fi
 
 echo
-echo "$(color_yellow "开始迁移...")"
+echo "$(color_yellow "Starting migration...")"
 echo
 
-# 创建备份目录
+# Create backup directory
 backup_dir="$SCRIPT_DIR/backup/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$backup_dir"
-color_green "创建备份目录: $backup_dir"
+color_green "Created backup directory: $backup_dir"
 
-# 迁移 development.zsh
+# Migrate development.zsh
 if [[ -f "$ZSH_CONFIG_DIR/env/development.zsh" ]]; then
     echo
-    echo "$(color_blue "迁移 development.zsh...")"
+    echo "$(color_blue "Migrating development.zsh...")"
     
-    # 备份旧文件
+    # Backup old file
     cp "$ZSH_CONFIG_DIR/env/development.zsh" "$backup_dir/"
-    color_green "  备份: $ZSH_CONFIG_DIR/env/development.zsh -> $backup_dir/development.zsh"
+    color_green "  Backup: $ZSH_CONFIG_DIR/env/development.zsh -> $backup_dir/development.zsh"
     
-    # 创建新的本地配置文件
+    # Create new local configuration file
     if [[ ! -f "$SCRIPT_DIR/local/environment.env" ]]; then
         cp "$SCRIPT_DIR/templates/environment.env.template" "$SCRIPT_DIR/local/environment.env"
-        color_green "  创建: $SCRIPT_DIR/local/environment.env"
+        color_green "  Created: $SCRIPT_DIR/local/environment.env"
         
-        # 提取环境变量并添加到新配置
+        # Extract environment variables and add to new configuration
         echo
-        echo "$(color_yellow "  提取环境变量...")"
+        echo "$(color_yellow "  Extracting environment variables...")"
         
-        # 读取旧文件中的export语句
+        # Read export statements from old file
         while IFS= read -r line; do
             if [[ $line =~ ^export[[:space:]]+([^=]+)= ]]; then
                 var_name="${BASH_REMATCH[1]}"
-                echo "  发现变量: $var_name"
+                echo "  Found variable: $var_name"
                 
-                # 在新配置文件中查找并取消注释对应的变量
+                # Find and uncomment corresponding variables in new configuration file
                 case $var_name in
                     BUN_INSTALL|DENO_INSTALL|PNPM_HOME)
                         sed -i.bak "s/^# export $var_name=/export $var_name=/" "$SCRIPT_DIR/local/environment.env"
@@ -124,83 +123,83 @@ if [[ -f "$ZSH_CONFIG_DIR/env/development.zsh" ]]; then
             fi
         done < "$ZSH_CONFIG_DIR/env/development.zsh"
         
-        # 清理备份文件
+        # Clean up backup files
         rm -f "$SCRIPT_DIR/local/environment.env.bak"
         
-        color_green "  环境变量提取完成"
+        color_green "  Environment variables extraction completed"
     else
-        color_yellow "  跳过: 本地配置文件已存在"
+        color_yellow "  Skipped: Local configuration file already exists"
     fi
 fi
 
-# 迁移 local.zsh
+# Migrate local.zsh
 if [[ -f "$ZSH_CONFIG_DIR/env/local.zsh" ]]; then
     echo
-    echo "$(color_blue "迁移 local.zsh...")"
+    echo "$(color_blue "Migrating local.zsh...")"
     
-    # 备份旧文件
+    # Backup old file
     cp "$ZSH_CONFIG_DIR/env/local.zsh" "$backup_dir/"
-    color_green "  备份: $ZSH_CONFIG_DIR/env/local.zsh -> $backup_dir/local.zsh"
+    color_green "  Backup: $ZSH_CONFIG_DIR/env/local.zsh -> $backup_dir/local.zsh"
     
-    # 创建自定义配置区域
+    # Create custom configuration section
     echo
-    echo "$(color_yellow "  创建自定义配置区域...")"
+    echo "$(color_yellow "  Creating custom configuration section...")"
     
-    # 在environment.env中添加自定义配置
+    # Add custom configuration to environment.env
     if [[ -f "$SCRIPT_DIR/local/environment.env" ]]; then
         echo "" >> "$SCRIPT_DIR/local/environment.env"
         echo "# =============================================================================" >> "$SCRIPT_DIR/local/environment.env"
-        echo "# 从 local.zsh 迁移的自定义配置" >> "$SCRIPT_DIR/local/environment.env"
+        echo "# Custom configuration migrated from local.zsh" >> "$SCRIPT_DIR/local/environment.env"
         echo "# =============================================================================" >> "$SCRIPT_DIR/local/environment.env"
         echo "" >> "$SCRIPT_DIR/local/environment.env"
         
-        # 提取export语句并添加到environment.env
+        # Extract export statements and add to environment.env
         while IFS= read -r line; do
             if [[ $line =~ ^export[[:space:]]+([^=]+)= ]]; then
                 echo "$line" >> "$SCRIPT_DIR/local/environment.env"
                 var_name="${BASH_REMATCH[1]}"
-                echo "  添加变量: $var_name"
+                echo "  Added variable: $var_name"
             fi
         done < "$ZSH_CONFIG_DIR/env/local.zsh"
         
-        color_green "  自定义配置已添加到 environment.env"
+        color_green "  Custom configuration added to environment.env"
     else
-        color_yellow "  跳过: environment.env 不存在，请先运行 init-env.sh"
+        color_yellow "  Skipped: environment.env does not exist, please run init-env.sh first"
     fi
 fi
 
-# 迁移完成
+# Migration completed
 echo
 echo "$(color_cyan "=============================================================================")"
-echo "$(color_cyan "迁移完成")"
+echo "$(color_cyan "Migration Completed")"
 echo "$(color_cyan "=============================================================================")"
 echo
 
-echo "迁移统计:"
-echo "  备份文件: $backup_dir/"
-echo "  迁移文件: ${#old_files[@]} 个"
+echo "Migration Statistics:"
+echo "  Backup files: $backup_dir/"
+echo "  Migrated files: ${#old_files[@]} files"
 echo
 
-echo "$(color_green "下一步操作:")"
-echo "1. 检查新创建的配置文件:"
+echo "$(color_green "Next Steps:")"
+echo "1. Check the newly created configuration file:"
 echo "   ${EDITOR:-code} $SCRIPT_DIR/local/environment.env"
 
 echo
-echo "2. 根据你的实际环境调整配置值"
+echo "2. Adjust configuration values according to your actual environment"
 
 echo
-echo "3. 重新加载ZSH配置:"
+echo "3. Reload ZSH configuration:"
 echo "   source ~/.config/zsh/zshrc"
 
 echo
-echo "4. 验证配置是否正确:"
+echo "4. Verify configuration is correct:"
 echo "   env | grep -E '(GOPATH|ANDROID_HOME|BUN_INSTALL)'"
 
 echo
-echo "$(color_blue "注意事项:")"
-echo "• 旧配置文件已备份到: $backup_dir/"
-echo "• 建议检查新配置文件中的路径和设置"
-echo "• 如有问题，可以恢复备份文件"
+echo "$(color_blue "Important Notes:")"
+echo "• Old configuration files have been backed up to: $backup_dir/"
+echo "• It's recommended to check paths and settings in the new configuration file"
+echo "• If there are issues, you can restore from backup files"
 
 echo
-echo "$(color_green "迁移完成！")"
+echo "$(color_green "Migration completed!")"
