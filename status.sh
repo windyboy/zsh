@@ -219,7 +219,62 @@ printf "  %s %s\n" "🎨" "$(status_color_cyan "Zinit Plugins:")"
 for plugin in "${zinit_plugins[@]}"; do
     local name="${plugin%%:*}"
     local desc="${plugin##*:}"
-    if [[ -n "$ZINIT" ]] && [[ -d "$ZINIT_HOME/plugins" ]]; then
+    
+    # Check if plugin is actually loaded by looking for plugin-specific functions or files
+    local plugin_loaded=false
+    
+    case "$name" in
+        "fast-syntax-highlighting")
+            # Check for syntax highlighting functions or if the plugin file exists
+            if (( ${+functions[_zsh_highlight]} )) || (( ${+functions[_zsh_highlight_highlighter_main_paint]} )) || \
+               [[ -f "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]]; then
+                plugin_loaded=true
+            fi
+            ;;
+        "zsh-autosuggestions")
+            # Check for autosuggestions functions or if the plugin file exists
+            if (( ${+functions[_zsh_autosuggest_start]} )) || (( ${+functions[_zsh_autosuggest_suggest]} )) || \
+               [[ -f "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+                plugin_loaded=true
+            fi
+            ;;
+        "zsh-completions")
+            # Check if plugin directory exists and has content
+            if [[ -d "$ZINIT_HOME/plugins/zsh-users---zsh-completions" ]] && \
+               [[ -n "$(ls -A "$ZINIT_HOME/plugins/zsh-users---zsh-completions" 2>/dev/null)" ]]; then
+                plugin_loaded=true
+            fi
+            ;;
+        "fzf-tab")
+            # Check for fzf-tab functions or if the plugin file exists
+            if (( ${+functions[_fzf_tab_complete]} )) || (( ${+functions[_fzf-tab-apply]} )) || (( ${+functions[-ftb-complete]} )) || \
+               [[ -f "$ZINIT_HOME/plugins/Aloxaf---fzf-tab/fzf-tab.plugin.zsh" ]]; then
+                plugin_loaded=true
+            fi
+            ;;
+        "z")
+            # Check for z function or if the plugin file exists
+            if (( ${+functions[_z]} )) || (( ${+functions[z]} )) || \
+               [[ -f "$ZINIT_HOME/plugins/rupa---z/z.sh" ]]; then
+                plugin_loaded=true
+            fi
+            ;;
+        "zsh-extract")
+            # Check for extract function or if the plugin file exists
+            if (( ${+functions[extract]} )) || (( ${+functions[x]} )) || \
+               [[ -f "$ZINIT_HOME/plugins/le0me55i---zsh-extract/extract.plugin.zsh" ]]; then
+                plugin_loaded=true
+            fi
+            ;;
+        *)
+            # Fallback: check if plugin directory exists
+            if [[ -d "$ZINIT_HOME/plugins" ]]; then
+                plugin_loaded=true
+            fi
+            ;;
+    esac
+    
+    if [[ "$plugin_loaded" == "true" ]]; then
         printf "    %s %-25s %s\n" "✅" "$name" "$(status_color_green "$desc")"
         ((active_plugins++))
     else

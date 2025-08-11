@@ -20,7 +20,7 @@ plugin_init() {
     # Only initialize zinit if not already loaded
     [[ -n "$ZINIT" ]] && return 0
     
-    # Set ZINIT_HOME if not already set
+    # Ensure ZINIT_HOME is set (should already be set globally)
     [[ -z "$ZINIT_HOME" ]] && export ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit"
     
     local ZINIT_BIN="${ZINIT_HOME}/zinit.git"
@@ -122,6 +122,10 @@ load_plugin() {
 
 plugins_load() {
     (( ZSH_ENABLE_PLUGINS )) || { color_yellow "Plugins disabled via ZSH_ENABLE_PLUGINS=0"; return; }
+
+    # Debug: Show ZINIT_HOME status
+    color_cyan "🔍 Debug: ZINIT_HOME=$ZINIT_HOME"
+    color_cyan "🔍 Debug: ZINIT=$ZINIT"
 
     # Initialize zinit with error handling
     if ! plugin_init; then
@@ -970,6 +974,9 @@ detect_platform() {
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED plugins"
 echo "INFO: Plugins module initialized on $(detect_platform)"
+
+# Note: plugins_load() is called automatically when the module is sourced
+# No need to call it again here to avoid conflicts
 
 # Final verification: ensure critical plugins are working
 if [[ -o interactive ]]; then
