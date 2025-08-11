@@ -42,7 +42,7 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     # eval "$(oh-my-posh init zsh --config ~/.poshthemes/jandedobbeleer.omp.json)" # Author's theme
     # eval "$(oh-my-posh init zsh --config ~/.poshthemes/m365princess.omp.json)"   # Princess theme
     # eval "$(oh-my-posh init zsh --config ~/.poshthemes/paradox.omp.json)"       # Paradox theme
-    # eval "$(oh-my-posh init zsh --config ~/.poshthemes/robbyrussell.omp.json)"  # Oh My Zsh style
+    # eval "$(oh-my-posh init zsh --config ~/.poshthemes/robbyrussell.omp.json)"  # Robby Russell classic style
     # eval "$(oh-my-posh init zsh --config ~/.poshthemes/star.omp.json)"          # Star theme
     # eval "$(oh-my-posh init zsh --config ~/.poshthemes/tokyonight.omp.json)"    # Tokyo Night
 else

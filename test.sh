@@ -305,7 +305,7 @@ run_plugin_tests() {
     test_section "Plugin Tests"
     
     # Test if plugin manager is available
-    local plugin_managers=("zinit" "zplug" "antigen" "oh-my-zsh")
+    local plugin_managers=("zinit" "zplug" "antigen")
     local found_manager=""
     
     for manager in "${plugin_managers[@]}"; do
@@ -329,6 +329,13 @@ run_plugin_tests() {
             test_skip "Plugin directory exists: $(basename "$dir")" "Plugin directory not found"
         fi
     done
+
+    # Test if Oh My Posh is available
+    if command -v oh-my-posh >/dev/null 2>&1; then
+        test_assert "oh-my-posh is available" "true" "oh-my-posh not available"
+    else
+        test_skip "oh-my-posh is available" "oh-my-posh not installed"
+    fi
 }
 
 # Conflict Tests
