@@ -22,6 +22,12 @@ export ZSH_DATA_DIR="${XDG_DATA_HOME}/zsh"
 export ZDOTDIR="${ZSH_CONFIG_DIR}"
 
 # =============================================================================
+# Plugin Manager Configuration
+# Description: Set ZINIT_HOME for plugin management
+# =============================================================================
+export ZINIT_HOME="${XDG_DATA_HOME}/zinit"
+
+# =============================================================================
 # History Configuration
 # Description: Configure ZSH command history behavior and storage
 # =============================================================================
