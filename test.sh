@@ -308,6 +308,7 @@ run_plugin_tests() {
     local plugin_managers=("zinit" "zplug" "antigen")
     local found_manager=""
     
+    # First check if zinit is available in PATH
     for manager in "${plugin_managers[@]}"; do
         if command -v "$manager" >/dev/null 2>&1; then
             found_manager="$manager"
@@ -316,17 +317,45 @@ run_plugin_tests() {
         fi
     done
     
+    # If no manager found in PATH, check for zinit in common locations
+    if [[ -z "$found_manager" ]]; then
+        local zinit_paths=(
+            "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
+            "$HOME/.zinit/bin/zinit.zsh"
+            "/usr/local/share/zinit/zinit.git/zinit.zsh"
+        )
+        
+        for zinit_path in "${zinit_paths[@]}"; do
+            if [[ -f "$zinit_path" ]]; then
+                found_manager="zinit"
+                test_assert "zinit is available (found at $zinit_path)" "true" "zinit not available"
+                break
+            fi
+        done
+    fi
+    
     if [[ -z "$found_manager" ]]; then
         test_skip "Plugin manager available" "No plugin manager found"
     fi
     
     # Test plugin directories
-    local plugin_dirs=("$ZSH_CONFIG_DIR/plugins" "$ZSH_CONFIG_DIR/custom")
-    for dir in "${plugin_dirs[@]}"; do
+    local plugin_dirs=()
+    
+    # Add zinit plugins directory if zinit is found
+    if [[ -n "$found_manager" && "$found_manager" == "zinit" && -n "$ZINIT_HOME" ]]; then
+        plugin_dirs+=("$ZINIT_HOME/plugins:zinit plugins")
+    fi
+    
+    # Add custom directory (always check this)
+    plugin_dirs+=("$ZSH_CONFIG_DIR/custom:custom")
+    
+    for dir_info in "${plugin_dirs[@]}"; do
+        local dir="${dir_info%%:*}"
+        local dir_name="${dir_info##*:}"
         if [[ -d "$dir" ]]; then
-            test_assert "Plugin directory exists: $(basename "$dir")" "true" "Plugin directory not found"
+            test_assert "Plugin directory exists: $dir_name" "true" "Plugin directory not found"
         else
-            test_skip "Plugin directory exists: $(basename "$dir")" "Plugin directory not found"
+            test_skip "Plugin directory exists: $dir_name" "Plugin directory not found"
         fi
     done
 
@@ -335,6 +364,20 @@ run_plugin_tests() {
         test_assert "oh-my-posh is available" "true" "oh-my-posh not available"
     else
         test_skip "oh-my-posh is available" "oh-my-posh not installed"
+    fi
+    
+    # Test ZINIT_HOME if zinit is found
+    if [[ "$found_manager" == "zinit" ]]; then
+        if [[ -n "$ZINIT_HOME" ]]; then
+            test_assert "ZINIT_HOME is set" "true" "ZINIT_HOME not set"
+            if [[ -d "$ZINIT_HOME" ]]; then
+                test_assert "ZINIT_HOME directory exists" "true" "ZINIT_HOME directory not found"
+            else
+                test_skip "ZINIT_HOME directory exists" "ZINIT_HOME directory not found"
+            fi
+        else
+            test_skip "ZINIT_HOME is set" "ZINIT_HOME not set"
+        fi
     fi
 }
 
