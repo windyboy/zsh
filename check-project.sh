@@ -39,10 +39,10 @@ run_test() {
     local description="${3:-}"
     local critical="${4:-false}"
     
-    ((TOTAL_TESTS++))
+    ((++TOTAL_TESTS))
     
     if eval "$test_command" >/dev/null 2>&1; then
-        ((PASSED_TESTS++))
+        ((++PASSED_TESTS))
         success "$test_name"
         if [[ -n "$description" ]]; then
             echo "    $description"
@@ -50,14 +50,14 @@ run_test() {
         return 0
     else
         if [[ "$critical" == "true" ]]; then
-            ((FAILED_TESTS++))
+            ((++FAILED_TESTS))
             error "$test_name"
             if [[ -n "$description" ]]; then
                 echo "    $description"
             fi
             return 1
         else
-            ((WARNINGS++))
+            ((++WARNINGS))
             warning "$test_name"
             if [[ -n "$description" ]]; then
                 echo "    $description"
@@ -73,17 +73,17 @@ run_warning_test() {
     local test_command="$2"
     local description="${3:-}"
     
-    ((TOTAL_TESTS++))
+    ((++TOTAL_TESTS))
     
     if eval "$test_command" >/dev/null 2>&1; then
-        ((PASSED_TESTS++))
+        ((++PASSED_TESTS))
         success "$test_name"
         if [[ -n "$description" ]]; then
             echo "    $description"
         fi
         return 0
     else
-        ((WARNINGS++))
+        ((++WARNINGS))
         warning "$test_name"
         if [[ -n "$description" ]]; then
             echo "    $description"
@@ -354,4 +354,4 @@ case "${1:-}" in
 esac
 
 # Run main function
-main "$@" 
+main "$@"
