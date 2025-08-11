@@ -142,7 +142,6 @@ check_script_permissions() {
         "quick-install.sh"
         "install-deps.sh"
         "install-themes.sh"
-        "optimize.sh"
     )
     
     for script in "${scripts[@]}"; do
@@ -168,7 +167,6 @@ check_syntax() {
             "quick-install.sh"
             "install-deps.sh"
             "install-themes.sh"
-            "optimize.sh"
         )
         
         for script in "${scripts[@]}"; do

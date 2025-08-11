@@ -331,7 +331,6 @@ config test       # Run test suite
 
 # Direct script access (alternative)
 ./status.sh       # Check current status
-./optimize.sh     # Optimize configuration
 ./backup/         # Backup configuration
 ./backup/restore.sh # Restore configuration
 ```
@@ -543,9 +542,6 @@ zsh --version
 
 # Check for slow plugins
 ./test.sh performance
-
-# Optimize configuration
-./optimize.sh
 ```
 
 #### Plugin Conflicts
