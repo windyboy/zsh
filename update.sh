@@ -3,6 +3,7 @@
 # ZSH Configuration Update Script
 # Version: 1.0 - Automatic Update System
 # =============================================================================
+# shellcheck disable=SC2015,SC2162
 
 # Enhanced logging with timestamps
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] ℹ️  $1"; }

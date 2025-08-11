@@ -3,6 +3,7 @@
 # Quick ZSH Installation Script
 # One-command installation for ZSH configuration
 # =============================================================================
+# shellcheck disable=SC1091
 
 set -euo pipefail
 
@@ -25,6 +26,7 @@ INSTALL_DIR="${ZSH_INSTALL_DIR:-$HOME/.config/zsh}"
 
 # Load configuration if available
 if [[ -f "$HOME/.zsh-install.conf" ]]; then
+    # shellcheck disable=SC1091
     source "$HOME/.zsh-install.conf"
 fi
 

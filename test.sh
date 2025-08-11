@@ -3,6 +3,7 @@
 # ZSH Configuration Test Suite
 # Version: 5.1 - Enhanced CI-Ready Testing Framework
 # =============================================================================
+# shellcheck disable=SC1091
 
 # Re-exec with zsh if available
 if [[ -z "${ZSH_VERSION:-}" ]]; then

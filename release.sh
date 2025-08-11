@@ -3,6 +3,7 @@
 # Release Script for ZSH Configuration
 # Automated version tagging and release process
 # =============================================================================
+# shellcheck disable=SC2162
 
 set -euo pipefail
 

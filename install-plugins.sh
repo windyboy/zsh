@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Plugin Installation Automation Script
+# shellcheck disable=SC1091
 
 set -euo pipefail
 
@@ -20,6 +21,7 @@ ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit"
 
 # Load plugin configuration if available
 if [[ -f "$ZSH_CONFIG_DIR/plugins.conf" ]]; then
+    # shellcheck disable=SC1091
     source "$ZSH_CONFIG_DIR/plugins.conf"
 else
     # Default plugin definitions
