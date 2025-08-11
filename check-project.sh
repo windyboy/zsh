@@ -3,6 +3,7 @@
 # Project Status Check Script
 # Comprehensive project validation and health check
 # =============================================================================
+# shellcheck disable=SC2086,SC1090,SC1091
 
 set -euo pipefail
 
@@ -27,6 +28,7 @@ PROJECT_ROOT="$SCRIPT_DIR"
 
 # Load configuration if available
 if [[ -f "$PROJECT_ROOT/.check-project.conf" ]]; then
+    # shellcheck disable=SC1090
     source "$PROJECT_ROOT/.check-project.conf"
 fi
 
@@ -390,6 +392,7 @@ case "${1:-}" in
         ;;
     "--config")
         if [[ -f "$2" ]]; then
+            # shellcheck disable=SC1090
             source "$2"
         else
             error "Config file not found: $2"
