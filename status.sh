@@ -153,12 +153,20 @@ else
     printf "    %s %s\n" "✅" "$(status_color_green "ZSH_CONFIG_DIR: $ZSH_CONFIG_DIR")"
 fi
 
-# Check if modules are loaded
-if [[ -z "$ZSH_MODULES_LOADED" ]]; then
-    printf "    %s %s\n" "❌" "$(status_color_red "No modules loaded")"
-    ((validation_errors++))
-else
+# Check if modules are loaded by looking for module-specific indicators
+local modules_loaded=false
+if [[ -n "$ZSH_MODULES_LOADED" ]]; then
+    modules_loaded=true
     printf "    %s %s\n" "✅" "$(status_color_green "Modules loaded: $ZSH_MODULES_LOADED")"
+else
+    # Fallback: check if key module functions exist
+    if (( ${+functions[color_green]} )) || (( ${+functions[color_red]} )); then
+        modules_loaded=true
+        printf "    %s %s\n" "✅" "$(status_color_green "Modules loaded (detected via functions)")"
+    else
+        printf "    %s %s\n" "❌" "$(status_color_red "No modules loaded")"
+        ((validation_errors++))
+    fi
 fi
 
 # Check if zinit is available
