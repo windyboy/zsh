@@ -52,28 +52,29 @@ alias sz='source ~/.zshenv'
 # =============================================================================
 
 # Add your personal aliases here
-alias ll='ls -lah'
-alias la='ls -A'
-alias l='ls -CF'
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias grep='grep --color=auto'
-alias mkdir='mkdir -p'
-alias df='df -h'
-alias du='du -h'
-alias free='free -h'
-alias top='htop'  # If you have htop installed
+# NOTE: These aliases are commented out to avoid conflicts with the aliases module
+# alias ll='ls -lah'          # Conflicts with aliases module
+# alias la='ls -A'            # Conflicts with aliases module
+# alias l='ls -CF'            # Conflicts with aliases module
+# alias ..='cd ..'            # Conflicts with aliases module
+# alias ...='cd ../..'        # Conflicts with aliases module
+# alias ....='cd ../../..'    # Conflicts with aliases module
+# alias grep='grep --color=auto'
+# alias mkdir='mkdir -p'
+# alias df='df -h'
+# alias du='du -h'
+# alias free='free -h'
+# alias top='htop'  # If you have htop installed
 
-# Git aliases
-alias gs='git status'
-alias ga='git add'
-alias gc='git commit'
-alias gp='git push'
-alias gl='git pull'
-alias gd='git diff'
-alias gco='git checkout'
-alias gb='git branch'
+# Git aliases - COMMENTED OUT to avoid conflicts with aliases module
+# alias gs='git status'       # Conflicts with aliases module
+# alias ga='git add'          # Conflicts with aliases module
+# alias gc='git commit'       # Conflicts with aliases module
+# alias gp='git push'         # Conflicts with aliases module
+# alias gl='git pull'         # Conflicts with aliases module
+# alias gd='git diff'         # Conflicts with aliases module
+# alias gco='git checkout'    # Conflicts with aliases module
+# alias gb='git branch'       # Conflicts with aliases module
 
 # Add your personal functions here
 # Extract various archive formats
