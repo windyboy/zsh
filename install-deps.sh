@@ -124,6 +124,66 @@ install_eza() {
     rm -rf "$temp_dir"
 }
 
+# Common theme installation function
+install_themes_from_github() {
+    local themes_dir="$1"
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    cd "$temp_dir"
+    
+    # Clone the oh-my-posh repository to get all themes
+    if git clone --depth 1 https://github.com/JanDeDobbeleer/oh-my-posh.git; then
+        log "GitHub repository cloned successfully"
+        
+        # Copy all theme files
+        if [[ -d "oh-my-posh/themes" ]]; then
+            local theme_count=0
+            for theme_file in oh-my-posh/themes/*.omp.json; do
+                if [[ -f "$theme_file" ]]; then
+                    local theme_name
+                    theme_name=$(basename "$theme_file")
+                    cp "$theme_file" "$themes_dir/"
+                    ((theme_count++))
+                    log "Theme ${theme_name} copied successfully"
+                fi
+            done
+            
+            # Also copy YAML themes if they exist
+            for theme_file in oh-my-posh/themes/*.omp.yaml; do
+                if [[ -f "$theme_file" ]]; then
+                    local theme_name
+                    theme_name=$(basename "$theme_file")
+                    cp "$theme_file" "$themes_dir/"
+                    ((theme_count++))
+                    log "Theme ${theme_name} copied successfully"
+                fi
+            done
+            
+            success "Theme installation completed, installed ${theme_count} themes"
+            echo "💡 Theme location: $themes_dir"
+            echo "💡 Use theme: oh-my-posh init zsh --config $themes_dir/agnoster.omp.json"
+            echo "💡 Preview theme: oh-my-posh print primary --config $themes_dir/agnoster.omp.json"
+        else
+            warning "Theme directory not found"
+        fi
+    else
+        warning "GitHub repository clone failed, trying to download popular themes..."
+        # Fallback to downloading popular themes
+        local themes=("agnoster" "powerlevel10k_modern" "paradox" "atomic" "agnosterplus" "jandedobbeleer")
+        for theme in "${themes[@]}"; do
+            if wget -q "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -O "$themes_dir/${theme}.omp.json"; then
+                log "Theme ${theme} downloaded successfully"
+            else
+                warning "Theme ${theme} download failed"
+            fi
+        done
+    fi
+    
+    # Clean up
+    cd - > /dev/null
+    rm -rf "$temp_dir"
+}
+
 # Install oh-my-posh and themes
 install_oh_my_posh() {
     log "Installing oh-my-posh..."
@@ -138,62 +198,7 @@ install_oh_my_posh() {
         local themes_dir="$HOME/.poshthemes"
         mkdir -p "$themes_dir"
         
-        # Create temporary directory for cloning
-        local temp_dir
-        temp_dir=$(mktemp -d)
-        cd "$temp_dir"
-        
-        # Clone the oh-my-posh repository to get all themes
-        if git clone --depth 1 https://github.com/JanDeDobbeleer/oh-my-posh.git; then
-            log "GitHub repository cloned successfully"
-            
-            # Copy all theme files
-            if [[ -d "oh-my-posh/themes" ]]; then
-                local theme_count=0
-                for theme_file in oh-my-posh/themes/*.omp.json; do
-                    if [[ -f "$theme_file" ]]; then
-                        local theme_name
-                        theme_name=$(basename "$theme_file")
-                        cp "$theme_file" "$themes_dir/"
-                        ((theme_count++))
-                        log "Theme ${theme_name} copied successfully"
-                    fi
-                done
-                
-                # Also copy YAML themes if they exist
-                for theme_file in oh-my-posh/themes/*.omp.yaml; do
-                    if [[ -f "$theme_file" ]]; then
-                        local theme_name
-                        theme_name=$(basename "$theme_file")
-                        cp "$theme_file" "$themes_dir/"
-                        ((theme_count++))
-                        log "Theme ${theme_name} copied successfully"
-                    fi
-                done
-                
-                success "Theme installation completed, installed ${theme_count} themes"
-                echo "💡 Theme location: $themes_dir"
-                echo "💡 Use theme: oh-my-posh init zsh --config $themes_dir/agnoster.omp.json"
-                echo "💡 Preview theme: oh-my-posh print primary --config $themes_dir/agnoster.omp.json"
-            else
-                warning "Theme directory not found"
-            fi
-        else
-            warning "GitHub repository clone failed, trying to download popular themes..."
-            # Fallback to downloading popular themes
-            local themes=("agnoster" "powerlevel10k_modern" "paradox" "atomic" "agnosterplus" "jandedobbeleer")
-            for theme in "${themes[@]}"; do
-                if wget -q "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -O "$themes_dir/${theme}.omp.json"; then
-                    log "Theme ${theme} downloaded successfully"
-                else
-                    warning "Theme ${theme} download failed"
-                fi
-            done
-        fi
-        
-        # Clean up
-        cd - > /dev/null
-        rm -rf "$temp_dir"
+        install_themes_from_github "$themes_dir"
     else
         warning "oh-my-posh installation failed"
     fi
@@ -227,62 +232,7 @@ install_macos() {
         local themes_dir="$HOME/.poshthemes"
         mkdir -p "$themes_dir"
         
-        # Create temporary directory for cloning
-        local temp_dir
-        temp_dir=$(mktemp -d)
-        cd "$temp_dir"
-        
-        # Clone the oh-my-posh repository to get all themes
-        if git clone --depth 1 https://github.com/JanDeDobbeleer/oh-my-posh.git; then
-            log "GitHub repository cloned successfully"
-            
-            # Copy all theme files
-            if [[ -d "oh-my-posh/themes" ]]; then
-                local theme_count=0
-                for theme_file in oh-my-posh/themes/*.omp.json; do
-                    if [[ -f "$theme_file" ]]; then
-                        local theme_name
-                        theme_name=$(basename "$theme_file")
-                        cp "$theme_file" "$themes_dir/"
-                        ((theme_count++))
-                        log "Theme ${theme_name} copied successfully"
-                    fi
-                done
-                
-                # Also copy YAML themes if they exist
-                for theme_file in oh-my-posh/themes/*.omp.yaml; do
-                    if [[ -f "$theme_file" ]]; then
-                        local theme_name
-                        theme_name=$(basename "$theme_file")
-                        cp "$theme_file" "$themes_dir/"
-                        ((theme_count++))
-                        log "Theme ${theme_name} copied successfully"
-                    fi
-                done
-                
-                success "Theme installation completed, installed ${theme_count} themes"
-                echo "💡 Theme location: $themes_dir"
-                echo "💡 Use theme: oh-my-posh init zsh --config $themes_dir/agnoster.omp.json"
-                echo "💡 Preview theme: oh-my-posh print primary --config $themes_dir/agnoster.omp.json"
-            else
-                warning "Theme directory not found"
-            fi
-        else
-            warning "GitHub repository clone failed, trying to download popular themes..."
-            # Fallback to downloading popular themes
-            local themes=("agnoster" "powerlevel10k_modern" "paradox" "atomic" "agnosterplus" "jandedobbeleer")
-            for theme in "${themes[@]}"; do
-                if curl -s "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -o "$themes_dir/${theme}.omp.json"; then
-                    log "Theme ${theme} downloaded successfully"
-                else
-                    warning "Theme ${theme} download failed"
-                fi
-            done
-        fi
-        
-        # Clean up
-        cd - > /dev/null
-        rm -rf "$temp_dir"
+        install_themes_from_github "$themes_dir"
     else
         warning "oh-my-posh installation failed"
     fi

@@ -1,0 +1,31 @@
+# Plugin Configuration File
+# Copy this file to plugins.conf and customize as needed
+
+# Plugin definitions - format: ["plugin_name"]="owner/repo"
+declare -A PLUGINS=(
+    # Essential plugins
+    ["fast-syntax-highlighting"]="zdharma-continuum/fast-syntax-highlighting"
+    ["zsh-autosuggestions"]="zsh-users/zsh-autosuggestions"
+    ["zsh-completions"]="zsh-users/zsh-completions"
+    
+    # Navigation plugins
+    ["zsh-history-substring-search"]="zsh-users/zsh-history-substring-search"
+    ["z"]="rupa/z"
+    
+    # Utility plugins
+    ["zsh-extract"]="le0me55i/zsh-extract"
+    ["fzf-tab"]="Aloxaf/fzf-tab"
+    
+    # Additional plugins (uncomment to enable)
+    # ["zsh-syntax-highlighting"]="zsh-users/zsh-syntax-highlighting"
+    # ["zsh-autocomplete"]="marlonrichert/zsh-autocomplete"
+    # ["zsh-nvm"]="lukechilds/zsh-nvm"
+    # ["zsh-docker"]="akarzim/zsh-docker-aliases"
+)
+
+# Plugin manager configuration
+PLUGIN_MANAGER="zinit"  # Options: zinit, zplug, antigen
+
+# Installation options
+AUTO_UPDATE_PLUGINS=true
+PLUGIN_CACHE_DIR="$HOME/.cache/zsh/plugins"

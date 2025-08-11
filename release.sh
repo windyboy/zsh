@@ -11,7 +11,6 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-# PURPLE='\033[0;35m'  # Unused variable
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
@@ -23,8 +22,16 @@ error() { echo -e "${RED}❌ $1${NC}"; }
 info() { echo -e "${CYAN}📋 $1${NC}"; }
 
 # Configuration
-CURRENT_VERSION="5.0.0"
+CURRENT_VERSION="${ZSH_VERSION:-5.0.0}"
 RELEASE_DATE=$(date +%Y-%m-%d)
+
+# Load version from git if available
+if command -v git >/dev/null 2>&1 && [[ -d ".git" ]]; then
+    GIT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//')
+    if [[ -n "$GIT_VERSION" ]]; then
+        CURRENT_VERSION="$GIT_VERSION"
+    fi
+fi
 
 # Check if running in git repository
 check_git_repo() {

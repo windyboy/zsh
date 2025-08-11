@@ -1,0 +1,29 @@
+# Check Project Configuration File
+# Copy this file to .check-project.conf and customize as needed
+
+# Core checks
+CHECK_CRITICAL_FILES=true
+CHECK_OPTIONAL_FILES=true
+
+# Validation options
+SKIP_SYNTAX_CHECK=false
+SKIP_SECURITY_CHECK=false
+
+# Custom file patterns to exclude from security checks
+SECURITY_EXCLUDE_PATTERNS=(
+    ".git/*"
+    "completions/*"
+    ".github/*"
+    "*.md"
+    "*.txt"
+    "*.example"
+)
+
+# Custom test thresholds
+MAX_FUNCTION_COUNT=200
+MAX_ALIAS_COUNT=100
+MAX_FILE_SIZE_MB=1
+
+# Performance thresholds
+STARTUP_TIME_THRESHOLD=2.0
+MEMORY_USAGE_THRESHOLD=10

@@ -20,8 +20,13 @@ warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 error() { echo -e "${RED}❌ $1${NC}"; }
 
 # Configuration
-REPO_URL="https://github.com/yourusername/zsh-config.git"
-INSTALL_DIR="$HOME/.config/zsh"
+REPO_URL="${ZSH_REPO_URL:-https://github.com/yourusername/zsh-config.git}"
+INSTALL_DIR="${ZSH_INSTALL_DIR:-$HOME/.config/zsh}"
+
+# Load configuration if available
+if [[ -f "$HOME/.zsh-install.conf" ]]; then
+    source "$HOME/.zsh-install.conf"
+fi
 
 # Check if running as root
 if [[ $EUID -eq 0 ]]; then
@@ -106,7 +111,9 @@ setup_repository() {
         if git clone "$REPO_URL" "$INSTALL_DIR" >/dev/null 2>&1; then
             success "Repository cloned"
         else
-            error "Failed to clone repository"
+            error "Failed to clone repository: $REPO_URL"
+            echo "💡 Check your internet connection and repository URL"
+            echo "💡 You can set a custom URL with: export ZSH_REPO_URL='your-repo-url'"
             exit 1
         fi
     fi

@@ -11,7 +11,6 @@ RED="\033[0;31m"
 GREEN="\033[0;32m"
 YELLOW="\033[1;33m"
 BLUE="\033[0;34m"
-# PURPLE="\033[0;35m"  # Unused variable
 CYAN="\033[0;36m"
 NC="\033[0m" # No Color
 
@@ -25,6 +24,17 @@ info() { echo -e "${CYAN}📋 $1${NC}"; }
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR"
+
+# Load configuration if available
+if [[ -f "$PROJECT_ROOT/.check-project.conf" ]]; then
+    source "$PROJECT_ROOT/.check-project.conf"
+fi
+
+# Default configuration
+: "${CHECK_CRITICAL_FILES:=true}"
+: "${CHECK_OPTIONAL_FILES:=true}"
+: "${SKIP_SYNTAX_CHECK:=false}"
+: "${SKIP_SECURITY_CHECK:=false}"
 
 # Test counters
 TOTAL_TESTS=0
@@ -158,6 +168,11 @@ check_syntax() {
     log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
     # Check if shellcheck is available
+    if [[ "$SKIP_SYNTAX_CHECK" == "true" ]]; then
+        log "Skipping syntax validation (--skip-syntax specified)"
+        return 0
+    fi
+    
     if command -v shellcheck >/dev/null 2>&1; then
         local scripts=(
             "install.sh"
@@ -200,6 +215,9 @@ check_configuration() {
     # Check for common issues
     run_test "No hardcoded paths in zshrc" "! grep -q '/home/' \"$PROJECT_ROOT/zshrc\"" "Path portability"
     run_test "No hardcoded paths in zshenv" "! grep -q '/home/' \"$PROJECT_ROOT/zshenv\"" "Path portability"
+    
+    # Check for hardcoded usernames
+    run_test "No hardcoded usernames" "! grep -q '/home/[a-zA-Z0-9_-]\+' \"$PROJECT_ROOT/zshrc\" \"$PROJECT_ROOT/zshenv\"" "Username portability"
     
     # Check for required variables
     run_test "ZDOTDIR is set in zshenv" "grep -q 'ZDOTDIR' \"$PROJECT_ROOT/zshenv\"" "Configuration directory"
@@ -259,6 +277,11 @@ check_security() {
     log "🔒 Security Check"
     log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
+    if [[ "$SKIP_SECURITY_CHECK" == "true" ]]; then
+        log "Skipping security checks (--skip-security specified)"
+        return 0
+    fi
+    
     # Check for potential security issues
     run_test "No hardcoded secrets" "! grep -rE '(password|secret|token)' \"$PROJECT_ROOT\" --exclude-dir=.git --exclude-dir=completions --exclude-dir=.github --exclude=check-project.sh --exclude=*.md" "Secret detection"
     run_test "No dangerous eval usage" "! grep -r 'eval ' \"$PROJECT_ROOT\" --exclude-dir=.git --exclude=*.md | grep -v 'eval \"\$(oh-my-posh'" "Eval usage"
@@ -266,6 +289,9 @@ check_security() {
     
     # Check file permissions
     run_test "Scripts have secure permissions" "find \"$PROJECT_ROOT\" -name \"*.sh\" -exec test -x {} \;" "File permissions"
+    
+    # Check for world-writable files
+    run_test "No world-writable files" "! find \"$PROJECT_ROOT\" -type f -perm -002 -not -path './.git/*'" "World-writable files"
 }
 
 # Performance tests
@@ -342,12 +368,34 @@ case "${1:-}" in
         echo "Project health check script for ZSH configuration"
         echo
         echo "Options:"
-        echo "  -h, --help    Show this help message"
+        echo "  -h, --help              Show this help message"
+        echo "  --skip-syntax           Skip syntax validation"
+        echo "  --skip-security         Skip security checks"
+        echo "  --config FILE           Use custom config file"
         echo
         echo "Examples:"
-        echo "  $0            # Run full health check"
-        echo "  $0 --help     # Show help"
+        echo "  $0                      # Run full health check"
+        echo "  $0 --skip-syntax        # Skip syntax validation"
+        echo "  $0 --config custom.conf # Use custom config"
+        echo "  $0 --help               # Show help"
         exit 0
+        ;;
+    "--skip-syntax")
+        SKIP_SYNTAX_CHECK=true
+        shift
+        ;;
+    "--skip-security")
+        SKIP_SECURITY_CHECK=true
+        shift
+        ;;
+    "--config")
+        if [[ -f "$2" ]]; then
+            source "$2"
+        else
+            error "Config file not found: $2"
+            exit 1
+        fi
+        shift 2
         ;;
 esac
 

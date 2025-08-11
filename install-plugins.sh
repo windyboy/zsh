@@ -18,16 +18,21 @@ error() { echo -e "${RED}❌ $1${NC}"; }
 ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit"
 
-# Plugin definitions
-declare -A PLUGINS=(
-    ["fast-syntax-highlighting"]="zdharma-continuum/fast-syntax-highlighting"
-    ["zsh-autosuggestions"]="zsh-users/zsh-autosuggestions"
-    ["zsh-completions"]="zsh-users/zsh-completions"
-    ["zsh-history-substring-search"]="zsh-users/zsh-history-substring-search"
-    ["zsh-extract"]="le0me55i/zsh-extract"
-    ["z"]="rupa/z"
-    ["fzf-tab"]="Aloxaf/fzf-tab"
-)
+# Load plugin configuration if available
+if [[ -f "$ZSH_CONFIG_DIR/plugins.conf" ]]; then
+    source "$ZSH_CONFIG_DIR/plugins.conf"
+else
+    # Default plugin definitions
+    declare -A PLUGINS=(
+        ["fast-syntax-highlighting"]="zdharma-continuum/fast-syntax-highlighting"
+        ["zsh-autosuggestions"]="zsh-users/zsh-autosuggestions"
+        ["zsh-completions"]="zsh-users/zsh-completions"
+        ["zsh-history-substring-search"]="zsh-users/zsh-history-substring-search"
+        ["zsh-extract"]="le0me55i/zsh-extract"
+        ["z"]="rupa/z"
+        ["fzf-tab"]="Aloxaf/fzf-tab"
+    )
+fi
 
 install_zinit() {
     log "Installing zinit plugin manager..."
@@ -119,9 +124,17 @@ main() {
         "health")
             health_check
             ;;
+        "list")
+            echo "Available plugins:"
+            for plugin_name in "${!PLUGINS[@]}"; do
+                echo "  - $plugin_name: ${PLUGINS[$plugin_name]}"
+            done
+            ;;
         "help"|"-h"|"--help")
             echo "Usage: $0 [command]"
-            echo "Commands: install, health, help"
+            echo "Commands: install, health, list, help"
+            echo
+            echo "Plugin configuration: $ZSH_CONFIG_DIR/plugins.conf"
             ;;
         *)
             error "Unknown command: ${1:-}"

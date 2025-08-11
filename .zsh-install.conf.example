@@ -1,0 +1,31 @@
+# ZSH Installation Configuration File
+# Copy this file to ~/.zsh-install.conf and customize as needed
+
+# Repository configuration
+ZSH_REPO_URL="https://github.com/yourusername/zsh-config.git"
+ZSH_INSTALL_DIR="$HOME/.config/zsh"
+
+# Installation options
+INSTALL_PLUGINS=true
+INSTALL_THEMES=true
+INSTALL_DEPENDENCIES=true
+
+# Plugin manager preference
+PREFERRED_PLUGIN_MANAGER="zinit"  # Options: zinit, zplug, antigen
+
+# Theme preferences
+DEFAULT_THEME="agnoster"
+THEME_ENGINE="oh-my-posh"  # Options: oh-my-posh, powerlevel10k, starship
+
+# Customization options
+CUSTOM_ALIASES=true
+CUSTOM_FUNCTIONS=true
+CUSTOM_KEYBINDINGS=true
+
+# Backup options
+CREATE_BACKUP=true
+BACKUP_LOCATION="$HOME/.zsh-backup"
+
+# Post-install actions
+SET_DEFAULT_SHELL=true
+RESTART_TERMINAL=true

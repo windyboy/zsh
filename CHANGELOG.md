@@ -1,5 +1,58 @@
 # Changelog
 
+## [5.2.0] - 2025-08-11
+
+### 🚀 Script Quality Upgrade & Enhanced Configuration Management
+
+#### ✨ New Features
+- **Script Quality Upgrade** - Comprehensive improvements to all scripts for better maintainability and user experience
+- **Configuration File Support** - Added external configuration files for all major scripts
+- **Enhanced Error Handling** - Improved error recovery and user feedback throughout the system
+- **Unified Configuration Interface** - Single `config` command for all configuration management
+- **Automatic Plugin Installation** - Plugins are automatically installed when loading fails
+
+#### 🔧 Enhanced
+- **check-project.sh** - Added configuration file support, enhanced CLI options, improved security checks
+- **install-deps.sh** - Eliminated code duplication, extracted common functions, better error handling
+- **install-plugins.sh** - Externalized plugin configuration, added plugin listing, configuration file support
+- **quick-install.sh** - Configurable repository URLs, configuration file support, better error handling
+- **release.sh** - Automatic version detection from git, removed unused variables, better version management
+- **Plugin Management** - Added `plugin_install_if_missing()` function with automatic installation
+- **Configuration Commands** - Enhanced `config()` function with categorized options:
+  - Configuration Files: `config zshrc`, `config core`, `config plugins`, etc.
+  - Environment Configuration: `config env`, `config env-init`, `config env-migrate`
+  - System Management: `config status`, `config reload`, `config validate`, `config test`
+- **Error Handling** - Added `safe_source()` and `simple_source()` functions for better error recovery
+- **Module Loading** - Enhanced loading feedback with success/failure tracking and status reporting
+
+#### 🎯 User Experience
+- **Simplified Setup** - Automatic plugin installation reduces manual setup
+- **Unified Interface** - Single command for all configuration needs
+- **Better Feedback** - Detailed status messages and error reporting
+- **Guided Configuration** - Easy environment setup with `config env-init`
+- **Customizable Scripts** - Configuration files for personalized script behavior
+
+#### 📊 Technical Improvements
+- **Code Quality**: Eliminated unused variables, reduced duplication, improved maintainability
+- **Configuration Management**: External configuration files for all major scripts
+- **Error Recovery**: Graceful fallbacks and detailed error messages for better debugging
+- **Module Loading**: Real-time feedback and status tracking for better monitoring
+- **Plugin Installation**: Automatic installation with retry logic and detailed reporting
+- **Configuration Management**: Unified interface reduces complexity and improves usability
+
+#### 🚀 Performance
+- **No Performance Impact** - All improvements maintain existing performance levels
+- **Enhanced Reliability** - Better error handling improves system stability
+- **Improved Maintainability** - Unified interface reduces configuration complexity
+- **Better Code Organization** - Modular structure and shared functions improve maintainability
+
+#### 📁 New Configuration Files
+- **`plugins.conf.example`** - Plugin configuration template with customization options
+- **`.check-project.conf.example`** - Project health check configuration template
+- **`.zsh-install.conf.example`** - Installation configuration template with advanced options
+
+---
+
 ## [5.1.0] - 2025-08-01
 
 ### 🔧 Enhanced Plugin Installation & Unified Configuration Interface
