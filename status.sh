@@ -154,14 +154,11 @@ else
 fi
 
 # Check if modules are loaded by looking for module-specific indicators
-local modules_loaded=false
 if [[ -n "$ZSH_MODULES_LOADED" ]]; then
-    modules_loaded=true
     printf "    %s %s\n" "✅" "$(status_color_green "Modules loaded: $ZSH_MODULES_LOADED")"
 else
     # Fallback: check if key module functions exist
     if (( ${+functions[color_green]} )) || (( ${+functions[color_red]} )); then
-        modules_loaded=true
         printf "    %s %s\n" "✅" "$(status_color_green "Modules loaded (detected via functions)")"
     else
         printf "    %s %s\n" "❌" "$(status_color_red "No modules loaded")"
