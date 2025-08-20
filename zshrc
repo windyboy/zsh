@@ -25,7 +25,6 @@ simple_source() {
                 echo "✅ Loaded: $description" >&2
                 return 0
             else
-                echo "⚠️  Warning: Failed to load $description" >&2
                 return 1
             fi
         else
@@ -34,12 +33,10 @@ simple_source() {
                 echo "✅ Loaded: $description" >&2
                 return 0
             else
-                echo "⚠️  Warning: Failed to load $description" >&2
                 return 1
             fi
         fi
     else
-        echo "⚠️  Warning: File not found: $description" >&2
         return 1
     fi
 }
@@ -74,9 +71,7 @@ simple_source "$ZSH_CONFIG_DIR/local.zsh" "local configuration"
 
 # Enhanced loading summary
 if [[ $loaded_modules -eq $total_modules ]]; then
-    echo "✅ All modules loaded successfully ($loaded_modules/$total_modules)" >&2
-else
-    echo "⚠️  Partially loaded: $loaded_modules/$total_modules modules" >&2
+    echo "✅ ZSH config loaded ($loaded_modules/$total_modules modules)" >&2
 fi
 
 # Load NVM configuration

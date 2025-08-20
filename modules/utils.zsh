@@ -306,4 +306,3 @@ fzf_widgets() {
 
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED utils"
-echo "INFO: Utils module initialized"

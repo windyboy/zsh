@@ -3,14 +3,9 @@
 # Oh My Posh Theme Configuration
 # =============================================================================
 
-echo "🎨 Loading Oh My Posh theme configuration..."
-
 # Check if Oh My Posh is available
 if command -v oh-my-posh >/dev/null 2>&1; then
-    echo "🔍 Oh My Posh found, initializing..."
     # Initialize Oh My Posh with optimized configuration
-    # You can change the theme by modifying this line
-    # Using a simpler theme for better performance
     local theme_file="$HOME/.poshthemes/powerlevel10k_rainbow.omp.json"
     
     # Oh My Posh Configuration
@@ -18,16 +13,12 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     export OMP_TRANSIENT=1
     
     if [[ -f "$theme_file" ]]; then
-        echo "🎨 Loading theme: $theme_file"
         if eval "$(oh-my-posh init zsh --config "$theme_file" --print)"; then
-            echo "✅ Oh My Posh theme loaded successfully"
+            :
         else
-            echo "⚠️  Failed to load Oh My Posh theme, falling back to default"
             eval "$(oh-my-posh init zsh --print)"
         fi
     else
-        echo "⚠️  Oh My Posh theme not found: $theme_file"
-        echo "💡 Install themes with: ./install-themes.sh --all"
         # Fallback to default theme
         eval "$(oh-my-posh init zsh --print)"
     fi

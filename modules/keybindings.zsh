@@ -156,4 +156,3 @@ test_bindings() {
 
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED keybindings"
-echo "INFO: Keybindings module initialized"

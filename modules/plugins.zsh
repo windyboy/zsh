@@ -101,10 +101,10 @@ load_plugin() {
     local plugin_name="${repo##*/}"
     local warn_only="${2:-0}"
 
-    if try_load_plugin "$repo"; then
-        color_green "✅ Loaded: $plugin_name"
-        return 0
-    fi
+        if try_load_plugin "$repo"; then
+            color_green "✅ Loaded: $plugin_name"
+            return 0
+        fi
 
     color_yellow "⚠️  Plugin not found, attempting installation: $plugin_name"
     if plugin_install_if_missing "$repo" && try_load_plugin "$repo"; then
@@ -124,8 +124,7 @@ plugins_load() {
     (( ZSH_ENABLE_PLUGINS )) || { color_yellow "Plugins disabled via ZSH_ENABLE_PLUGINS=0"; return; }
 
     # Debug: Show ZINIT_HOME status
-    color_cyan "🔍 Debug: ZINIT_HOME=$ZINIT_HOME"
-    color_cyan "🔍 Debug: ZINIT=$ZINIT"
+            :
 
     # Initialize zinit with error handling
     if ! plugin_init; then
@@ -178,20 +177,12 @@ plugins_load() {
     fi
     
     # Enhanced loading status report
-    echo
-    color_cyan "📊 Plugin Loading Summary:"
     color_green "✅ Successfully loaded: $loaded_plugins plugins"
-    if [[ ${#failed_plugins[@]} -gt 0 ]]; then
-        color_red "❌ Failed to load: ${#failed_plugins[@]} plugins"
-        color_yellow "   Failed plugins: ${failed_plugins[*]}"
-        echo
-        color_yellow "💡 Tip: Run 'plugins_update' to update plugins or check network connection"
-    fi
     
     # Fallback: manually load fzf-tab if not loaded by zinit
     if ! (( ${+functions[_fzf_tab_complete]} )) && ! (( ${+functions[_fzf-tab-apply]} )) && ! (( ${+functions[-ftb-complete]} )); then
         if [[ -f "$ZINIT_HOME/plugins/Aloxaf---fzf-tab/fzf-tab.plugin.zsh" ]]; then
-            source "$ZINIT_HOME/plugins/Aloxaf---fzf-tab/fzf-tab.plugin.zsh" 2>/dev/null && echo "✅ Manually loaded fzf-tab plugin"
+            source "$ZINIT_HOME/plugins/Aloxaf---fzf-tab/fzf-tab.plugin.zsh" 2>/dev/null
         fi
     fi
 }
@@ -210,14 +201,14 @@ ensure_critical_plugins() {
     # Check if syntax highlighting is working
     if ! (( ${+functions[_zsh_highlight]} )) && ! (( ${+functions[_zsh_highlight_highlighter_main_paint]} )); then
         if [[ -f "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]]; then
-            source "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" 2>/dev/null && echo "✅ Manually loaded fast-syntax-highlighting plugin"
+            source "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" 2>/dev/null
         fi
     fi
     
     # Check if autosuggestions is working
     if ! (( ${+functions[_zsh_autosuggest_start]} )); then
         if [[ -f "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-            source "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null && echo "✅ Manually loaded zsh-autosuggestions plugin"
+            source "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null
         fi
     fi
 }
@@ -973,7 +964,6 @@ detect_platform() {
 
 # Mark module as loaded
 export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED plugins"
-echo "INFO: Plugins module initialized on $(detect_platform)"
 
 # Note: plugins_load() is called automatically when the module is sourced
 # No need to call it again here to avoid conflicts
@@ -982,17 +972,15 @@ echo "INFO: Plugins module initialized on $(detect_platform)"
 if [[ -o interactive ]]; then
     # Verify syntax highlighting is working
     if ! (( ${+functions[_zsh_highlight]} )) && ! (( ${+functions[_zsh_highlight_highlighter_main_paint]} )); then
-        echo "⚠️  Warning: Syntax highlighting not detected, attempting manual load..."
         if [[ -f "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]]; then
-            source "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" 2>/dev/null && echo "✅ Syntax highlighting manually loaded"
+            source "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" 2>/dev/null
         fi
     fi
     
     # Verify autosuggestions is working
     if ! (( ${+functions[_zsh_autosuggest_start]} )); then
-        echo "⚠️  Warning: Autosuggestions not detected, attempting manual load..."
         if [[ -f "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-            source "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null && echo "✅ Autosuggestions manually loaded"
+            source "$ZINIT_HOME/plugins/zdharma-continuum---zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null
         fi
     fi
 fi
