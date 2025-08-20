@@ -29,17 +29,12 @@ simple_source() {
                 return 1
             fi
         else
-            # For other files, capture stderr to see what's happening
-            local stderr_output
-            stderr_output=$(source "$file" 2>&1)
-            local exit_code=$?
-            
-            if [[ $exit_code -eq 0 ]]; then
+            # For other files, source directly and capture any errors
+            if source "$file" 2>/dev/null; then
                 echo "✅ Loaded: $description" >&2
                 return 0
             else
-                echo "⚠️  Warning: Failed to load $description (exit code: $exit_code)" >&2
-                [[ -n "$stderr_output" ]] && echo "Error output: $stderr_output" >&2
+                echo "⚠️  Warning: Failed to load $description" >&2
                 return 1
             fi
         fi
@@ -54,7 +49,7 @@ simple_source "$ZSH_CONFIG_DIR/zshenv" "environment variables"
 
 # Load core modules (order cannot be changed)
 local loaded_modules=0
-local module_list=(core security navigation path plugins completion aliases keybindings utils colors)
+local module_list=(colors core security navigation path plugins completion aliases keybindings utils)
 local total_modules=${#module_list[@]}
 
 for mod in "${module_list[@]}"; do
@@ -82,4 +77,9 @@ if [[ $loaded_modules -eq $total_modules ]]; then
     echo "✅ All modules loaded successfully ($loaded_modules/$total_modules)" >&2
 else
     echo "⚠️  Partially loaded: $loaded_modules/$total_modules modules" >&2
-fi 
+fi
+
+# Load NVM configuration
+export NVM_DIR="$HOME/.config/nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

@@ -4,8 +4,8 @@
 # Description: Core functionality, validation, and performance monitoring
 # =============================================================================
 
-# Color output tools
-source "$ZSH_CONFIG_DIR/modules/colors.zsh"
+# Color output tools - colors module should be loaded before core
+# source "$ZSH_CONFIG_DIR/modules/colors.zsh"  # Moved to zshrc loading order
 
 # Module specific wrappers
 core_color_red()   { color_red "$@"; }
