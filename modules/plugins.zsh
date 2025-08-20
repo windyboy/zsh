@@ -158,7 +158,7 @@ plugins_load() {
         local snippet_name="${snip##*/}"
         if zinit snippet "$snip" 2>/dev/null; then
             ((loaded_plugins++))
-            color_green "✅ Loaded snippet: $snippet_name"
+            color_green "✅ Loaded: $snippet_name snippet"
         else
             color_yellow "⚠️  Failed to load snippet: $snippet_name"
             failed_plugins+=("$snippet_name")
@@ -177,7 +177,7 @@ plugins_load() {
     fi
     
     # Enhanced loading status report
-    color_green "✅ Successfully loaded: $loaded_plugins plugins"
+    color_green "✅ Loaded: $loaded_plugins plugins total"
     
     # Fallback: manually load fzf-tab if not loaded by zinit
     if ! (( ${+functions[_fzf_tab_complete]} )) && ! (( ${+functions[_fzf-tab-apply]} )) && ! (( ${+functions[-ftb-complete]} )); then

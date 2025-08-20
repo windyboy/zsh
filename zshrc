@@ -70,9 +70,7 @@ fi
 simple_source "$ZSH_CONFIG_DIR/local.zsh" "local configuration"
 
 # Enhanced loading summary
-if [[ $loaded_modules -eq $total_modules ]]; then
-    echo "✅ ZSH config loaded ($loaded_modules/$total_modules modules)" >&2
-fi
+echo "✅ ZSH config loaded ($loaded_modules/$total_modules modules + extras)" >&2
 
 # Load NVM configuration
 export NVM_DIR="$HOME/.config/nvm"

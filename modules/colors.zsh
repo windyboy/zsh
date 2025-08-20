@@ -49,5 +49,4 @@ info() { color_blue "ℹ️  $1"; }
 # Check if colors module is already loaded
 if [[ -z "$ZSH_COLORS_LOADED" ]]; then
     export ZSH_COLORS_LOADED=1
-    echo "INFO: Colors module initialized"
 fi 
