@@ -3,25 +3,68 @@
 # Oh My Posh Theme Configuration
 # =============================================================================
 
+# Function to clean up prompt and remove extra spaces
+_clean_prompt() {
+    # Remove trailing spaces from PROMPT and RPROMPT
+    PROMPT="${PROMPT%[[:space:]]}"
+    RPROMPT="${RPROMPT%[[:space:]]}"
+    
+    # Remove any double spaces
+    PROMPT="${PROMPT//  / }"
+    RPROMPT="${RPROMPT//  / }"
+    
+    # Remove trailing % characters (Oh My Posh artifact)
+    PROMPT="${PROMPT%%%}"
+    RPROMPT="${RPROMPT%%%}"
+    
+    # Ensure proper newline handling
+    if [[ "$PROMPT" =~ %$ ]]; then
+        PROMPT="${PROMPT%%%}"
+    fi
+}
+
 # Check if Oh My Posh is available
 if command -v oh-my-posh >/dev/null 2>&1; then
     # Initialize Oh My Posh with optimized configuration
-    local theme_file="$HOME/.poshthemes/powerlevel10k_rainbow.omp.json"
+    # Try multiple themes in order of preference
+    local preferred_themes=(
+        "powerlevel10k.omp.json"
+        "1_shell.omp.json"
+        "agnoster.omp.json"
+        "jandedobbeleer.omp.json"
+        "atomic.omp.json"
+        "dracula.omp.json"
+        "gruvbox.omp.json"
+    )
+    
+    local theme_file=""
+    local themes_dir="$HOME/.poshthemes"
+    
+    # Find the first available theme
+    for theme in "${preferred_themes[@]}"; do
+        if [[ -f "$themes_dir/$theme" ]]; then
+            theme_file="$themes_dir/$theme"
+            break
+        fi
+    done
     
     # Oh My Posh Configuration
     export OMP_DEBUG=0
     export OMP_TRANSIENT=1
     
-    if [[ -f "$theme_file" ]]; then
-        if eval "$(oh-my-posh init zsh --config "$theme_file" --print)"; then
-            :
-        else
-            eval "$(oh-my-posh init zsh --print)"
-        fi
+    if [[ -n "$theme_file" ]]; then
+        # Initialize with the found theme
+        eval "$(oh-my-posh init zsh --config "$theme_file")"
     else
         # Fallback to default theme
-        eval "$(oh-my-posh init zsh --print)"
+        eval "$(oh-my-posh init zsh)"
     fi
+    
+    # Add a hook to clean up prompt on every command
+    add-zsh-hook precmd _clean_prompt
+    
+    # Also clean up after Oh My Posh sets the prompt
+    add-zsh-hook preexec _clean_prompt
     
     # Popular official themes you can use:
     # eval "$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)"      # Classic powerline
