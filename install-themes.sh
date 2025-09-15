@@ -3,11 +3,7 @@
 # Oh My Posh Theme Installation Script
 # Download all available themes from GitHub
 
-<<<<<<< HEAD
 set -euo pipefail
-=======
-# set -e  # Removed to allow better error handling
->>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
 
 # Color definitions
 RED='\033[0;31m'
@@ -138,23 +134,13 @@ install_specific_themes() {
     local fail_count=0
     
     for theme in "${themes[@]}"; do
-<<<<<<< HEAD
         # Try to download JSON format
-        if curl -s "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -o "$themes_dir/${theme}.omp.json"; then
+        if curl -sS "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -o "$themes_dir/${theme}.omp.json"; then
             log "Theme ${theme}.omp.json downloaded successfully"
             ((success_count++))
         # Try to download YAML format
-        elif curl -s "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.yaml" -o "$themes_dir/${theme}.omp.yaml"; then
-            log "Theme ${theme}.omp.yaml downloaded successfully"
-=======
-        # 尝试下载JSON格式
-        if curl -sS "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -o "$themes_dir/${theme}.omp.json"; then
-            log "主题 ${theme}.omp.json 下载成功"
-            ((success_count++))
-        # 尝试下载YAML格式
         elif curl -sS "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.yaml" -o "$themes_dir/${theme}.omp.yaml"; then
-            log "主题 ${theme}.omp.yaml 下载成功"
->>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
+            log "Theme ${theme}.omp.yaml downloaded successfully"
             ((success_count++))
         else
             warning "Failed to download theme ${theme}"

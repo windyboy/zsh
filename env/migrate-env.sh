@@ -93,13 +93,8 @@ if [[ -f "$ZSH_CONFIG_DIR/env/development.zsh" ]]; then
         # Read export statements from old file
         while IFS= read -r line; do
             if [[ $line =~ ^export[[:space:]]+([^=]+)= ]]; then
-<<<<<<< HEAD
-                var_name="${BASH_REMATCH[1]}"
-                echo "  Found variable: $var_name"
-=======
                 var_name="${MATCH[1]}"
-                echo "  发现变量: $var_name"
->>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
+                echo "  Found variable: $var_name"
                 
                 # Find and uncomment corresponding variables in new configuration file
                 case $var_name in
@@ -162,13 +157,8 @@ if [[ -f "$ZSH_CONFIG_DIR/env/local.zsh" ]]; then
         while IFS= read -r line; do
             if [[ $line =~ ^export[[:space:]]+([^=]+)= ]]; then
                 echo "$line" >> "$SCRIPT_DIR/local/environment.env"
-<<<<<<< HEAD
-                var_name="${BASH_REMATCH[1]}"
-                echo "  Added variable: $var_name"
-=======
                 var_name="${MATCH[1]}"
-                echo "  添加变量: $var_name"
->>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
+                echo "  Added variable: $var_name"
             fi
         done < "$ZSH_CONFIG_DIR/env/local.zsh"
         

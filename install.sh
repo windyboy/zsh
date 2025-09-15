@@ -215,22 +215,16 @@ setup_config() {
         warning "Backed up existing .zshenv"
     fi
     
-<<<<<<< HEAD
-    # Create symlinks
-    if ! ln -sf "$HOME/.config/zsh/zshrc" "$HOME/.zshrc"; then
+    # Create symlinks to actual files
+    if ! ln -sf "$ZSH_CONFIG_DIR/zshrc" "$HOME/.zshrc"; then
         error "Failed to create .zshrc symlink"
         return 1
     fi
     
-    if ! ln -sf "$HOME/.config/zsh/zshenv" "$HOME/.zshenv"; then
+    if ! ln -sf "$ZSH_CONFIG_DIR/zshenv" "$HOME/.zshenv"; then
         error "Failed to create .zshenv symlink"
         return 1
     fi
-=======
-    # Create symlinks to actual files
-    ln -sf "$ZSH_CONFIG_DIR/zshrc" "$HOME/.zshrc"
-    ln -sf "$ZSH_CONFIG_DIR/zshenv" "$HOME/.zshenv"
->>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
     
     # Set ZDOTDIR in shell profile if not already set
     if ! setup_zdotdir; then
