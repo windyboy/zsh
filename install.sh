@@ -2,11 +2,11 @@
 set -euo pipefail
 # =============================================================================
 # Simple ZSH Installer
-# Version: 1.0.0
+# Version: 5.3.0
 # =============================================================================
 
 # Version information
-VERSION="1.0.0"
+VERSION="5.3.0"
 BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Simple logging
@@ -52,11 +52,14 @@ OPTIONS:
     -v, --version       Show version information
     --skip-checks       Skip prerequisite checks
     --force             Force installation even if issues found
+    --install-deps      Install system dependencies first
 
 EXAMPLES:
-    $0                    # Normal installation
+    $0                    # Normal installation (includes essential themes)
+    $0 --install-deps    # Install dependencies first, then ZSH config
     $0 --skip-checks      # Skip version and tool checks
     $0 --force           # Force installation
+    $0 --interactive     # Interactive setup with theme selection
 
 ENVIRONMENT VARIABLES:
     ZSH_CONFIG_DIR       ZSH configuration directory (default: ~/.config/zsh)
@@ -68,6 +71,7 @@ EOF
 parse_args() {
     SKIP_CHECKS=false
     FORCE_INSTALL=false
+    INSTALL_DEPS=false
     
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -86,6 +90,10 @@ parse_args() {
                 ;;
             --force)
                 export FORCE_INSTALL=true
+                shift
+                ;;
+            --install-deps)
+                export INSTALL_DEPS=true
                 shift
                 ;;
             *)
@@ -191,6 +199,68 @@ install_zinit() {
         success "Zinit installed"
     else
         log "Zinit already installed"
+    fi
+}
+
+# Install essential themes
+install_essential_themes() {
+    log "Installing essential Oh My Posh themes..."
+    
+    # Check if themes directory exists and has themes
+    local themes_dir="$HOME/.poshthemes"
+    local theme_count=0
+    
+    if [[ -d "$themes_dir" ]]; then
+        theme_count=$(find "$themes_dir" -name "*.omp.json" -type f | wc -l)
+    fi
+    
+    # If no themes found, install some essential ones
+    if [[ $theme_count -eq 0 ]]; then
+        log "No themes found, installing essential themes..."
+        
+        # Create themes directory
+        mkdir -p "$themes_dir"
+        
+        # Install essential themes using install-themes.sh if available
+        if [[ -f "./install-themes.sh" ]]; then
+            if ./install-themes.sh 1_shell agnoster jandedobbeleer; then
+                success "Essential themes installed"
+            else
+                warning "Theme installation had issues, but continuing..."
+            fi
+        else
+            # Fallback: try to install themes manually
+            warning "install-themes.sh not found, skipping theme installation"
+            echo "💡 You can install themes later with: ./install-themes.sh --all"
+        fi
+    else
+        log "Found $theme_count existing themes"
+    fi
+}
+
+# Verify theme installation
+verify_theme_installation() {
+    local themes_dir="$HOME/.poshthemes"
+    local valid_themes=0
+    
+    if [[ -d "$themes_dir" ]]; then
+        # Count valid theme files (at least 100 bytes and valid JSON)
+        for theme_file in "$themes_dir"/*.omp.json; do
+            if [[ -f "$theme_file" ]] && [[ $(wc -c < "$theme_file") -ge 100 ]]; then
+                # Check if it's valid JSON
+                if python3 -m json.tool "$theme_file" >/dev/null 2>&1; then
+                    ((valid_themes++))
+                fi
+            fi
+        done
+    fi
+    
+    if [[ $valid_themes -eq 0 ]]; then
+        warning "No valid themes found! Your prompt will use the default Oh My Posh theme."
+        echo "💡 Install themes with: ./install-themes.sh --all"
+        echo "💡 Or install specific themes: ./install-themes.sh agnoster 1_shell"
+    else
+        success "Found $valid_themes valid theme(s) ready to use"
     fi
 }
 
@@ -335,6 +405,22 @@ EOF
 main() {
     log "Starting ZSH installation..."
     
+    # Install dependencies first if requested
+    if [[ "$INSTALL_DEPS" == "true" ]]; then
+        log "Installing system dependencies first..."
+        if [[ -f "./install-deps.sh" ]]; then
+            if ./install-deps.sh; then
+                success "Dependencies installed successfully"
+            else
+                error "Dependency installation failed"
+                exit 1
+            fi
+        else
+            error "install-deps.sh not found"
+            exit 1
+        fi
+    fi
+    
     if ! check_prereq; then
         error "Prerequisites check failed"
         exit 1
@@ -348,6 +434,10 @@ main() {
     if ! install_zinit; then
         error "Zinit installation failed"
         exit 1
+    fi
+    
+    if ! install_essential_themes; then
+        warning "Theme installation had issues, but continuing..."
     fi
     
     if ! setup_config; then
@@ -365,7 +455,17 @@ main() {
         fi
     fi
     
+    # Verify theme installation
+    verify_theme_installation
+    
     success "Installation completed!"
+    echo ""
+    echo "🎨 Theme Information:"
+    echo "   - Essential themes installed: 1_shell, agnoster, jandedobbeleer"
+    echo "   - Theme location: ~/.poshthemes/"
+    echo "   - Switch themes: posh_theme <theme_name>"
+    echo "   - Install more: ./install-themes.sh --all"
+    echo ""
     log "Next: restart terminal and run './status.sh'"
 }
 

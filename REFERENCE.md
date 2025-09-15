@@ -220,7 +220,7 @@ touch modules/new_module.zsh
 #!/usr/bin/env zsh
 # =============================================================================
 # New Module - Description
-# Version: 4.2
+# Version: 5.3.0
 # =============================================================================
 
 # Environment setup
@@ -238,7 +238,7 @@ new_module_function() {
 ### Module Statistics
 - **Total Lines**: 604 lines
 - **Module Count**: 6 core modules
-- **Version**: 4.2.3
+- **Version**: 5.3.0
 
 ### Core Modules
 - `core.zsh` (94 lines) - Core environment setup

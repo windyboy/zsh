@@ -1,5 +1,52 @@
 # Changelog
 
+## [5.3.0] - 2025-01-15
+
+### 🎨 Enhanced Theme Installation System & Robust Configuration Management
+
+#### ✨ New Features
+- **Essential Theme Installation** - Automatic installation of 3 essential themes (1_shell, agnoster, jandedobbeleer) during setup
+- **Theme Validation System** - Comprehensive theme file validation with automatic cleanup of corrupted themes
+- **Enhanced Theme Management** - Improved `posh_theme()` function with proper theme switching and preference ordering
+- **Dependency Installation Option** - New `--install-deps` flag for complete system setup including all themes
+- **Theme Verification** - Post-installation verification to ensure valid themes are available
+
+#### 🔧 Enhanced
+- **install.sh** - Added essential theme installation and verification system
+- **themes/prompt.zsh** - Enhanced theme validation, automatic cleanup, and robust theme selection
+- **Theme Functions** - Improved `posh_theme()`, `posh_theme_install()`, and theme management functions
+- **Error Handling** - Better error recovery for theme-related issues and corrupted theme files
+- **Installation Flow** - Streamlined installation with automatic theme setup
+
+#### 🎯 User Experience
+- **No More Empty Prompts** - Essential themes are always installed during setup
+- **Automatic Cleanup** - Corrupted theme files are automatically detected and removed
+- **Complete Installation** - `--install-deps` option installs everything including all themes
+- **Better Validation** - Ensures themes are valid JSON and properly formatted
+- **Helpful Instructions** - Clear guidance for theme management and troubleshooting
+
+#### 📊 Technical Improvements
+- **Theme Validation**: File size, JSON validity, and error message detection
+- **Automatic Cleanup**: Removal of corrupted theme files (like "404: Not Found")
+- **Robust Selection**: Smart theme preference ordering with fallback options
+- **Installation Verification**: Post-installation validation of theme availability
+- **Enhanced Error Handling**: Better error messages and recovery mechanisms
+
+#### 🚀 Performance
+- **No Performance Impact** - Theme validation adds minimal overhead
+- **Enhanced Reliability** - Automatic cleanup prevents theme-related errors
+- **Better User Experience** - Essential themes ensure working prompts out of the box
+- **Improved Maintainability** - Centralized theme management and validation
+
+#### 🎨 Theme System Improvements
+- **Essential Themes**: 1_shell, agnoster, jandedobbeleer automatically installed
+- **Theme Validation**: Comprehensive validation prevents corrupted theme usage
+- **Automatic Cleanup**: Removes invalid themes (size < 100 bytes, invalid JSON, error messages)
+- **Smart Selection**: Preference-based theme selection with fallback to default
+- **Enhanced Management**: Improved theme switching and installation functions
+
+---
+
 ## [5.2.0] - 2025-08-11
 
 ### 🚀 Script Quality Upgrade & Enhanced Configuration Management

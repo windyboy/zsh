@@ -2,7 +2,7 @@
 # shellcheck shell=bash
 # =============================================================================
 # ZSH Configuration Status Check Script
-# Version: 4.3 - Enhanced Beautiful Output
+# Version: 5.3.0 - Enhanced Beautiful Output
 # =============================================================================
 
 # Load shared color functions
@@ -79,7 +79,7 @@ echo
 # Version information with beautiful formatting
 status_color_cyan "📦 Version Information"
 status_color_yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-printf "  %s %s %s\n" "🏷️" "Version:" "$(status_color_bold "5.1.0 (Enhanced)")"
+printf "  %s %s %s\n" "🏷️" "Version:" "$(status_color_bold "5.3.0 (Enhanced)")"
 printf "  %s %s %s\n" "🎯" "Architecture:" "$(status_color_cyan "Modular & Minimal")"
 printf "  %s %s %s\n" "⚡" "Performance:" "$(status_color_green "Optimized")"
 printf "  %s %s %s\n" "🎨" "Experience:" "$(status_color_purple "Personalized")"

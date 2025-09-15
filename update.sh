@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # ZSH Configuration Update Script
-# Version: 1.0 - Automatic Update System
+# Version: 5.3.0 - Automatic Update System
 # =============================================================================
 # shellcheck disable=SC2015,SC2162
 
@@ -12,7 +12,7 @@ warning() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️  $1"; }
 error() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ $1"; }
 
 # Version information
-VERSION="1.0.0"
+VERSION="5.3.0"
 BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Configuration

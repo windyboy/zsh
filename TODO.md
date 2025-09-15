@@ -129,6 +129,6 @@
 ---
 
 **Current Status**: Ready for practical improvements
-**Current Version**: v5.2.0
+**Current Version**: v5.3.0
 **Last Updated**: 2025-08-11
 **Next Priority**: Enhance `perf` command and fix plugin error handling 

@@ -1,4 +1,4 @@
-# 🚀 ZSH Configuration v5.1.0
+# 🚀 ZSH Configuration v5.3.0
 
 > **High-performance, modular ZSH configuration system** with comprehensive testing, automated updates, and professional CI/CD pipeline.
 
@@ -51,7 +51,7 @@
 
 ### One-Command Installation
 
-> **💡 New in v5.2.0**: All scripts now support external configuration files for customization!
+> **💡 New in v5.3.0**: Enhanced theme installation system with automatic validation and essential theme installation!
 
 ```bash
 # Quick install with automatic setup
@@ -337,7 +337,7 @@ config test       # Run test suite
 ./backup/         # Backup configuration
 ./backup/restore.sh # Restore configuration
 
-# Enhanced script options (v5.2.0+)
+# Enhanced script options (v5.3.0+)
 ./check-project.sh --config custom.conf  # Use custom configuration
 ./install-plugins.sh list                # List available plugins
 ./quick-install.sh                      # Configurable installation
@@ -618,7 +618,7 @@ source ~/.config/zsh/zshrc
 
 ## ⚙️ Configuration Files
 
-### Script Configuration (v5.2.0+)
+### Script Configuration (v5.3.0+)
 
 All major scripts now support external configuration files for customization:
 
@@ -677,7 +677,7 @@ export ZSH_REPO_URL="https://github.com/yourusername/zsh-config.git"
 
 ## ⭐ Script Quality Metrics
 
-### Code Quality Improvements (v5.2.0+)
+### Code Quality Improvements (v5.3.0+)
 - **Unused Variables**: 100% eliminated
 - **Code Duplication**: Significantly reduced
 - **Error Handling**: Enhanced throughout all scripts
@@ -695,14 +695,14 @@ export ZSH_REPO_URL="https://github.com/yourusername/zsh-config.git"
 
 ## 🔄 Version History
 
-### v5.2.0 (Current)
+### v5.3.0 (Current)
 - ⭐ **Script Quality Upgrade** - Comprehensive improvements to all scripts for better maintainability and user experience
 - ⚙️ **Configuration Files** - External configuration support for all major scripts
 - 🔧 **Code Quality** - Eliminated duplication, removed unused variables, improved maintainability
 - 🎛️ **Enhanced Options** - New CLI options and configuration capabilities
 - 📁 **New Templates** - Configuration file examples and templates
 
-### v5.1.0
+### v5.2.0
 - 🚀 Complete rewrite with modular architecture
 - 📊 Comprehensive testing framework
 - 🔄 Automated update system

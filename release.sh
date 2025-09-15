@@ -23,7 +23,7 @@ error() { echo -e "${RED}❌ $1${NC}"; }
 info() { echo -e "${CYAN}📋 $1${NC}"; }
 
 # Configuration
-CURRENT_VERSION="${ZSH_VERSION:-5.0.0}"
+CURRENT_VERSION="${ZSH_VERSION:-5.3.0}"
 RELEASE_DATE=$(date +%Y-%m-%d)
 
 # Load version from git if available

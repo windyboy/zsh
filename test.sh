@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # ZSH Configuration Test Suite
-# Version: 5.1 - Enhanced CI-Ready Testing Framework
+# Version: 5.3.0 - Enhanced CI-Ready Testing Framework
 # =============================================================================
 # shellcheck disable=SC1091
 

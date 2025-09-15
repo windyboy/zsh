@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # =============================================================================
 # Main ZSH Configuration - Simplified Modular Loader
-# Version: 5.0 - Enhanced with Testing and Monitoring
+# Version: 5.3.0 - Enhanced with Testing and Monitoring
 # =============================================================================
 
 # Set ZSH configuration root directory (compatible with direct calls)

@@ -637,7 +637,7 @@ perf() {
 
 # Version information
 version() {
-    echo "📦 ZSH Configuration Version 5.0.0 (Enhanced Modular)"
+    echo "📦 ZSH Configuration Version 5.3.0 (Enhanced Modular)"
     echo "Key Features: Modular architecture, comprehensive testing, performance optimization"
     echo "Modules: core/security/navigation/aliases/plugins/completion/keybindings/utils"
     echo "Interface: Professional monitoring and validation system"
