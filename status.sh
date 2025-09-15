@@ -54,11 +54,23 @@ echo
 
 status_color_cyan "🔄 Loading configuration..."
 # Suppress module loading messages for cleaner output
+<<<<<<< HEAD
 # shellcheck disable=SC1091
 if source "$HOME/.config/zsh/zshrc" >/dev/null 2>&1; then
     status_color_green "✅ Configuration loaded successfully!"
 else
     status_color_yellow "⚠️  Configuration loaded with warnings (continuing...)"
+=======
+if [[ -f "$ZSH_CONFIG_DIR/zshrc" ]]; then
+    source "$ZSH_CONFIG_DIR/zshrc" >/dev/null 2>&1 || {
+        status_color_red "❌ Unable to load ZSH configuration"
+        exit 1
+    }
+    status_color_green "✅ Configuration loaded successfully!"
+else
+    status_color_red "❌ ZSH configuration file not found: $ZSH_CONFIG_DIR/zshrc"
+    exit 1
+>>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
 fi
 echo
 

@@ -5,6 +5,7 @@
 # =============================================================================
 # shellcheck disable=SC1091
 
+<<<<<<< HEAD
 # Re-exec with zsh if available
 if [[ -z "${ZSH_VERSION:-}" ]]; then
     if command -v zsh >/dev/null 2>&1; then
@@ -19,6 +20,13 @@ if [[ -z "${ZSH_VERSION:-}" ]]; then
         exit 1
     fi
 fi
+=======
+# Fallback logging functions
+log() { echo "ℹ️  $1"; }
+success() { echo "✅ $1"; }
+error() { echo "❌ $1"; }
+warning() { echo "⚠️  $1"; }
+>>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
 
 # Enhanced color functions with fallback
 test_color_red()    { echo -e "\033[31m$1\033[0m" 2>/dev/null || echo "$1"; }
@@ -29,6 +37,7 @@ test_color_purple() { echo -e "\033[35m$1\033[0m" 2>/dev/null || echo "$1"; }
 test_color_cyan()   { echo -e "\033[36m$1\033[0m" 2>/dev/null || echo "$1"; }
 test_color_bold()   { echo -e "\033[1m$1\033[0m" 2>/dev/null || echo "$1"; }
 
+<<<<<<< HEAD
 # Test framework variables
 TEST_RESULTS=()
 TEST_COUNT=0
@@ -37,6 +46,16 @@ FAILED_COUNT=0
 SKIPPED_COUNT=0
 TEST_START_TIME=$(date +%s)
 CI_MODE=${CI:-false}
+=======
+# Source the plugins module
+if [[ -f "$ZSH_CONFIG_DIR/modules/plugins.zsh" ]]; then
+    source "$ZSH_CONFIG_DIR/modules/plugins.zsh"
+    success "Plugins module loaded"
+else
+    error "Plugins module not found: $ZSH_CONFIG_DIR/modules/plugins.zsh"
+    exit 1
+fi
+>>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
 
 # Test framework functions
 test_assert() {

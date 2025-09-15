@@ -124,33 +124,56 @@ install_eza() {
     rm -rf "$temp_dir"
 }
 
+<<<<<<< HEAD
 # Common theme installation function
 install_themes_from_github() {
     local themes_dir="$1"
     local temp_dir
     temp_dir=$(mktemp -d)
+=======
+# Install oh-my-posh themes
+install_oh_my_posh_themes() {
+    log "从GitHub下载所有Oh My Posh主题..."
+    local themes_dir="$HOME/.poshthemes"
+    mkdir -p "$themes_dir"
+    
+    # Create temporary directory for cloning
+    local temp_dir=$(mktemp -d)
+>>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
     cd "$temp_dir"
     
     # Clone the oh-my-posh repository to get all themes
     if git clone --depth 1 https://github.com/JanDeDobbeleer/oh-my-posh.git; then
+<<<<<<< HEAD
         log "GitHub repository cloned successfully"
+=======
+        log "GitHub仓库克隆成功"
+>>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
         
         # Copy all theme files
         if [[ -d "oh-my-posh/themes" ]]; then
             local theme_count=0
             for theme_file in oh-my-posh/themes/*.omp.json; do
                 if [[ -f "$theme_file" ]]; then
+<<<<<<< HEAD
                     local theme_name
                     theme_name=$(basename "$theme_file")
                     cp "$theme_file" "$themes_dir/"
                     ((theme_count++))
                     log "Theme ${theme_name} copied successfully"
+=======
+                    local theme_name=$(basename "$theme_file")
+                    cp "$theme_file" "$themes_dir/"
+                    ((theme_count++))
+                    log "主题 ${theme_name} 复制成功"
+>>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
                 fi
             done
             
             # Also copy YAML themes if they exist
             for theme_file in oh-my-posh/themes/*.omp.yaml; do
                 if [[ -f "$theme_file" ]]; then
+<<<<<<< HEAD
                     local theme_name
                     theme_name=$(basename "$theme_file")
                     cp "$theme_file" "$themes_dir/"
@@ -175,6 +198,31 @@ install_themes_from_github() {
                 log "Theme ${theme} downloaded successfully"
             else
                 warning "Theme ${theme} download failed"
+=======
+                    local theme_name=$(basename "$theme_file")
+                    cp "$theme_file" "$themes_dir/"
+                    ((theme_count++))
+                    log "主题 ${theme_name} 复制成功"
+                fi
+            done
+            
+            success "主题安装完成，共安装 ${theme_count} 个主题"
+            echo "💡 主题位置: $themes_dir"
+            echo "💡 使用主题: oh-my-posh init zsh --config $themes_dir/agnoster.omp.json"
+            echo "💡 预览主题: oh-my-posh print primary --config $themes_dir/agnoster.omp.json"
+        else
+            warning "主题目录未找到"
+        fi
+    else
+        warning "GitHub仓库克隆失败，尝试下载常用主题..."
+        # Fallback to downloading popular themes
+        local themes=("agnoster" "powerlevel10k_modern" "paradox" "atomic" "agnosterplus" "jandedobbeleer")
+        for theme in "${themes[@]}"; do
+            if curl -s "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -o "$themes_dir/${theme}.omp.json"; then
+                log "主题 ${theme} 下载成功"
+            else
+                warning "主题 ${theme} 下载失败"
+>>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
             fi
         done
     fi
@@ -186,6 +234,7 @@ install_themes_from_github() {
 
 # Install oh-my-posh and themes
 install_oh_my_posh() {
+<<<<<<< HEAD
     log "Installing oh-my-posh..."
     local arch="amd64"
     [[ "$(uname -m)" == "aarch64" ]] && arch="arm64"
@@ -199,6 +248,33 @@ install_oh_my_posh() {
         mkdir -p "$themes_dir"
         
         install_themes_from_github "$themes_dir"
+=======
+    log "安装oh-my-posh..."
+    local os=""
+    local arch=""
+    
+    case "$(uname -s)" in
+        Darwin*)    os="darwin";;
+        Linux*)     os="linux";;
+        *)          warning "不支持的操作系统: $(uname -s)，跳过oh-my-posh安装"; return 1;;
+    esac
+    
+    case "$(uname -m)" in
+        x86_64)         arch="amd64";;
+        arm64|aarch64)  arch="arm64";;
+        armv7l)         arch="arm";;
+        *)              warning "不支持的架构: $(uname -m)，跳过oh-my-posh安装"; return 1;;
+    esac
+    
+    local binary_name="posh-${os}-${arch}"
+    local download_url="https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/${binary_name}"
+    
+    if curl -L -o /tmp/oh-my-posh "$download_url" && sudo mv /tmp/oh-my-posh /usr/local/bin/oh-my-posh && sudo chmod +x /usr/local/bin/oh-my-posh; then
+        success "oh-my-posh安装成功"
+        
+        # Install themes
+        install_oh_my_posh_themes
+>>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
     else
         warning "oh-my-posh installation failed"
     fi
@@ -227,12 +303,17 @@ install_macos() {
     if brew install oh-my-posh; then
         success "oh-my-posh installed successfully"
         
+<<<<<<< HEAD
         # Install all themes from GitHub
         log "Downloading all Oh My Posh themes from GitHub..."
         local themes_dir="$HOME/.poshthemes"
         mkdir -p "$themes_dir"
         
         install_themes_from_github "$themes_dir"
+=======
+        # Install themes
+        install_oh_my_posh_themes
+>>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
     else
         warning "oh-my-posh installation failed"
     fi
@@ -259,10 +340,17 @@ install_ubuntu() {
     log "Installing recommended tools..."
     sudo apt install -y fzf
     
+<<<<<<< HEAD
     # Install zoxide
     log "Installing zoxide..."
     if curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash; then
         success "zoxide installed successfully"
+=======
+    # 安装zoxide
+    log "安装zoxide..."
+    if curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | zsh; then
+        success "zoxide安装成功"
+>>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
     else
         warning "zoxide installation failed"
     fi
@@ -292,10 +380,17 @@ install_centos() {
         return 1
     fi
     
+<<<<<<< HEAD
     # Install zoxide
     log "Installing zoxide..."
     if curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash; then
         success "zoxide installed successfully"
+=======
+    # 安装zoxide
+    log "安装zoxide..."
+    if curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | zsh; then
+        success "zoxide安装成功"
+>>>>>>> 8931f41 (refactor: enhance oh-my-posh installation and theme management)
     else
         warning "zoxide installation failed"
     fi
