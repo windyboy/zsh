@@ -43,7 +43,6 @@ FAILED_COUNT=0
 SKIPPED_COUNT=0
 TEST_START_TIME=$(date +%s)
 CI_MODE=${CI:-false}
-=======
 # Source the plugins module
 if [[ -f "$ZSH_CONFIG_DIR/modules/plugins.zsh" ]]; then
     source "$ZSH_CONFIG_DIR/modules/plugins.zsh"
