@@ -74,5 +74,12 @@ echo "✅ ZSH config loaded ($loaded_modules/$total_modules modules + extras)" >
 
 # Load NVM configuration
 export NVM_DIR="$HOME/.config/nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+    # Load NVM only when the script is present to avoid affecting the caller's status
+    source "$NVM_DIR/nvm.sh"
+fi
+
+if [[ -s "$NVM_DIR/bash_completion" ]]; then
+    # Load the complementary bash completion when available without altering exit codes
+    source "$NVM_DIR/bash_completion"
+fi
