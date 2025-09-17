@@ -35,6 +35,17 @@ test_color_purple() { echo -e "\033[35m$1\033[0m" 2>/dev/null || echo "$1"; }
 test_color_cyan()   { echo -e "\033[36m$1\033[0m" 2>/dev/null || echo "$1"; }
 test_color_bold()   { echo -e "\033[1m$1\033[0m" 2>/dev/null || echo "$1"; }
 
+# Ensure ZSH_CONFIG_DIR points to a usable configuration directory before loading modules
+if [[ -z "${ZSH_CONFIG_DIR:-}" ]]; then
+    if [[ -d "$HOME/.config/zsh/modules" ]]; then
+        export ZSH_CONFIG_DIR="$HOME/.config/zsh"
+    else
+        script_path="${(%):-%N}"
+        script_dir="$(cd "$(dirname "${script_path:-$0}")" 2>/dev/null && pwd)"
+        export ZSH_CONFIG_DIR="${script_dir:-$PWD}"
+    fi
+fi
+
 # Test framework variables
 TEST_RESULTS=()
 TEST_COUNT=0
