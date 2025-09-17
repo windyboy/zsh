@@ -40,11 +40,32 @@ if [[ -z "${ZSH_CONFIG_DIR:-}" ]]; then
     if [[ -d "$HOME/.config/zsh/modules" ]]; then
         export ZSH_CONFIG_DIR="$HOME/.config/zsh"
     else
-        script_path="${(%):-%N}"
-        script_dir="$(cd "$(dirname "${script_path:-$0}")" 2>/dev/null && pwd)"
+        script_source="$0"
+        script_dir="$(cd "$(dirname "${script_source}")" 2>/dev/null && pwd)"
         export ZSH_CONFIG_DIR="${script_dir:-$PWD}"
     fi
 fi
+
+# Helper functions for portable floating-point math comparisons
+float_difference() {
+    awk -v lhs="${1:-0}" -v rhs="${2:-0}" 'BEGIN {printf "%.6f", (lhs + 0) - (rhs + 0)}' 2>/dev/null || echo "0"
+}
+
+float_less_than() {
+    awk -v lhs="${1:-0}" -v rhs="${2:-0}" 'BEGIN {exit ((lhs + 0) < (rhs + 0)) ? 0 : 1}' 2>/dev/null
+}
+
+float_divide() {
+    awk -v numerator="${1:-0}" -v denominator="${2:-1}" '
+        BEGIN {
+            if ((denominator + 0) == 0) {
+                print "0"
+            } else {
+                printf "%.1f", (numerator + 0) / (denominator + 0)
+            }
+        }
+    ' 2>/dev/null || echo "0"
+}
 
 # Test framework variables
 TEST_RESULTS=()
@@ -117,9 +138,9 @@ test_summary() {
     test_color_bold "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
     printf "  %s %-20s %s\n" "📈" "Total Tests:" "$TEST_COUNT"
-    printf "  %s %-20s %s\n" "✅" "Passed:" "$(test_color_green $PASSED_COUNT)"
-    printf "  %s %-20s %s\n" "❌" "Failed:" "$(test_color_red $FAILED_COUNT)"
-    printf "  %s %-20s %s\n" "⏭️" "Skipped:" "$(test_color_yellow $SKIPPED_COUNT)"
+    printf "  %s %-20s %s\n" "✅" "Passed:" "$(test_color_green "$PASSED_COUNT")"
+    printf "  %s %-20s %s\n" "❌" "Failed:" "$(test_color_red "$FAILED_COUNT")"
+    printf "  %s %-20s %s\n" "⏭️" "Skipped:" "$(test_color_yellow "$SKIPPED_COUNT")"
     printf "  %s %-20s %s\n" "⏱️" "Duration:" "${duration}s"
     
     if [[ $FAILED_COUNT -eq 0 ]]; then
@@ -205,9 +226,9 @@ run_unit_tests() {
             test_assert "Modules directory exists" "true" "Modules directory not found"
             
             # Count module files
-                    local module_count
-        module_count=0
-        module_count=$(find "$ZSH_CONFIG_DIR/modules" -name "*.zsh" 2>/dev/null | wc -l)
+            local module_count
+            module_count=0
+            module_count=$(find "$ZSH_CONFIG_DIR/modules" -name "*.zsh" 2>/dev/null | wc -l)
             if [[ $module_count -gt 0 ]]; then
                 test_assert "Module files found" "true" "No module files found"
             else
@@ -283,7 +304,7 @@ run_performance_tests() {
         local end_time
         end_time=$(date +%s.%N)
         local startup_time
-        startup_time=$(echo "$end_time - $start_time" | bc 2>/dev/null || echo "0")
+        startup_time=$(float_difference "$end_time" "$start_time")
         
         # Adjust threshold based on CI mode
         local threshold=5
@@ -291,7 +312,7 @@ run_performance_tests() {
             threshold=10
         fi
         
-        if (( $(echo "$startup_time < $threshold" | bc 2>/dev/null || echo "0") )); then
+        if float_less_than "$startup_time" "$threshold"; then
             test_assert "Startup time < ${threshold}s" "true" "Startup time too slow: ${startup_time}s"
         else
             test_skip "Startup time < ${threshold}s" "Startup time slow: ${startup_time}s (but continuing)"
@@ -306,14 +327,14 @@ run_performance_tests() {
         memory_kb=$(ps -p $$ -o rss 2>/dev/null | awk 'NR==2 {gsub(/ /, "", $1); print $1}')
         if [[ -n "$memory_kb" && "$memory_kb" != "RSS" ]]; then
             local memory_mb
-            memory_mb=$(echo "scale=1; ${memory_kb:-0} / 1024" | bc 2>/dev/null || echo "0")
+            memory_mb=$(float_divide "${memory_kb:-0}" 1024)
             
             local memory_threshold=50
             if [[ "$CI_MODE" == "true" ]]; then
                 memory_threshold=100
             fi
             
-            if (( $(echo "$memory_mb < $memory_threshold" | bc 2>/dev/null || echo "0") )); then
+            if float_less_than "$memory_mb" "$memory_threshold"; then
                 test_assert "Memory usage < ${memory_threshold}MB" "true" "Memory usage too high: ${memory_mb}MB"
             else
                 test_skip "Memory usage < ${memory_threshold}MB" "Memory usage high: ${memory_mb}MB (but continuing)"
