@@ -348,22 +348,31 @@ perf() {
     [[ "$1" == "-h" || "$1" == "--help" ]] && {
         echo "Usage: perf [options]"
         echo "Options:"
+        echo "  --modules        Show per-module performance breakdown"
+        echo "  --memory         Display memory usage analysis"
+        echo "  --startup        Show startup time analysis"
         echo "  --monitor, -m    Start continuous performance monitoring"
         echo "  --profile, -p    Generate detailed performance profile"
         echo "  --optimize, -o   Show optimization recommendations"
         echo "  --history, -h    Show performance history"
         return 0
     }
-    
+
     local monitor_mode=false
     local profile_mode=false
     local optimize_mode=false
     local history_mode=false
+    local modules_mode=false
+    local memory_mode=false
+    local startup_mode=false
     local profile_file="$ZSH_CACHE_DIR/performance_profile_$(date +%Y%m%d_%H%M%S).txt"
-    
+
     # Parse options
     while [[ $# -gt 0 ]]; do
         case "$1" in
+            --modules) modules_mode=true; shift ;;
+            --memory) memory_mode=true; shift ;;
+            --startup) startup_mode=true; shift ;;
             --monitor|-m) monitor_mode=true; shift ;;
             --profile|-p) profile_mode=true; shift ;;
             --optimize|-o) optimize_mode=true; shift ;;
@@ -371,7 +380,7 @@ perf() {
             *) echo "Unknown option: $1"; return 1 ;;
         esac
     done
-    
+
     # Helper function to get performance metrics
     get_performance_metrics() {
         local func_count=$(declare -F 2>/dev/null | wc -l 2>/dev/null)
@@ -401,7 +410,7 @@ perf() {
     display_metrics() {
         local metrics="$1"
         IFS='|' read -r func_count alias_count memory_mb startup_time history_lines uptime score <<< "$metrics"
-        
+
         echo "📊 Performance Metrics"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         printf "  %s %-20s %s\n" "🔧" "Functions:" "$func_count"
@@ -423,6 +432,159 @@ perf() {
             color_red "Performance: Needs optimization"
         fi
     }
+
+    local module_dir="$ZSH_CONFIG_DIR/modules"
+
+    # Helper to show module breakdown using data from status.sh
+    if [[ "$modules_mode" == "true" ]]; then
+        echo "📦 Module Performance Breakdown"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        if [[ ! -d "$module_dir" ]]; then
+            echo "Modules directory not found: $module_dir"
+        else
+            emulate -L zsh
+            setopt localoptions null_glob extendedglob
+            local module_files=($module_dir/*.zsh(N))
+            if (( ${#module_files[@]} == 0 )); then
+                echo "No modules found in $module_dir"
+            else
+                local total_lines=0
+                local total_size=0
+                local total_functions=0
+                for module_file in "${module_files[@]}"; do
+                    local module_name="${module_file##*/}"
+                    module_name="${module_name%.zsh}"
+                    local lines=$(wc -l < "$module_file" 2>/dev/null | tr -d ' ')
+                    local size_kb=$(du -k "$module_file" 2>/dev/null | awk '{print $1}')
+                    local functions=$(grep -E '^[[:space:]]*[_[:alnum:]]+\(\)' "$module_file" 2>/dev/null | wc -l | tr -d ' ')
+                    local status_icon="⚠️"
+                    if [[ " $ZSH_MODULES_LOADED " == *" $module_name "* ]]; then
+                        status_icon="✅"
+                    fi
+                    printf "  %s %-18s %6s lines | %5s KB | %3s functions\n" \
+                        "$status_icon" "$module_name" "${lines:-0}" "${size_kb:-0}" "${functions:-0}"
+
+                    (( total_lines += ${lines:-0} ))
+                    (( total_size += ${size_kb:-0} ))
+                    (( total_functions += ${functions:-0} ))
+                done
+                echo
+                printf "  %s %-18s %6s lines | %5s KB | %3s functions\n" \
+                    "📊" "Total" "$total_lines" "$total_size" "$total_functions"
+            fi
+        fi
+
+        echo
+    fi
+
+    # Helper to show memory usage analysis per module
+    if [[ "$memory_mode" == "true" ]]; then
+        echo "💾 Memory Usage Analysis"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        local ps_available=true
+        command -v ps >/dev/null 2>&1 || ps_available=false
+
+        if [[ "$ps_available" == "false" ]]; then
+            echo "ps command not available. Unable to calculate memory usage."
+        elif [[ ! -d "$module_dir" ]]; then
+            echo "Modules directory not found: $module_dir"
+        else
+            emulate -L zsh
+            setopt localoptions null_glob extendedglob
+            local module_files=($module_dir/*.zsh(N))
+            if (( ${#module_files[@]} == 0 )); then
+                echo "No modules found in $module_dir"
+            else
+                local total_memory_kb=0
+                for module_file in "${module_files[@]}"; do
+                    local module_name="${module_file##*/}"
+                    module_name="${module_name%.zsh}"
+                    local memory_kb=""
+                    if command -v zsh >/dev/null 2>&1; then
+                        memory_kb=$(zsh -f -c '
+                            typeset module="$1"
+                            typeset start
+                            start=$(ps -p $$ -o rss= 2>/dev/null | tr -d " ")
+                            [[ -z "$start" ]] && start=0
+                            source "$module" >/dev/null 2>&1
+                            typeset finish
+                            finish=$(ps -p $$ -o rss= 2>/dev/null | tr -d " ")
+                            [[ -z "$finish" ]] && finish="$start"
+                            typeset diff=$(( finish - start ))
+                            (( diff < 0 )) && diff=0
+                            printf "%s" "$diff"
+                        ' "$module_file" 2>/dev/null)
+                    fi
+
+                    if [[ -z "$memory_kb" ]]; then
+                        memory_kb=$(du -k "$module_file" 2>/dev/null | awk '{print $1}')
+                        [[ -z "$memory_kb" ]] && memory_kb=0
+                        printf "  ⚠️  %-18s Estimated %5s KB (file size)\n" "$module_name" "$memory_kb"
+                    else
+                        local memory_mb=$(echo "scale=1; ${memory_kb:-0} / 1024" | bc 2>/dev/null || echo "0")
+                        printf "  ✅ %-18s %5s KB (%s MB)\n" "$module_name" "$memory_kb" "$memory_mb"
+                        (( total_memory_kb += ${memory_kb:-0} ))
+                    fi
+                done
+
+                if (( total_memory_kb > 0 )); then
+                    local total_memory_mb=$(echo "scale=1; ${total_memory_kb} / 1024" | bc 2>/dev/null || echo "0")
+                    echo
+                    printf "  %s %-18s %5s KB (%s MB)\n" "📊" "Total Loaded" "$total_memory_kb" "$total_memory_mb"
+                fi
+            fi
+        fi
+
+        echo
+    fi
+
+    # Helper to show startup time analysis
+    if [[ "$startup_mode" == "true" ]]; then
+        echo "🚀 Startup Time Analysis"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        if [[ ! -d "$module_dir" ]]; then
+            echo "Modules directory not found: $module_dir"
+        else
+            local module_times=""
+            if command -v zsh >/dev/null 2>&1; then
+                module_times=$(MODULE_DIR="$module_dir" zsh -f <<'EOF'
+zmodload zsh/datetime 2>/dev/null
+zmodload zsh/mathfunc 2>/dev/null
+setopt null_glob
+for module_file in $MODULE_DIR/*.zsh(N); do
+    typeset start=$EPOCHREALTIME
+    source "$module_file" >/dev/null 2>&1
+    typeset finish=$EPOCHREALTIME
+    typeset duration=$(( finish - start ))
+    printf "%s|%.4f\n" "${module_file:t:r}" "$duration"
+done
+EOF
+)
+            fi
+
+            if [[ -z "$module_times" ]]; then
+                echo "Unable to calculate startup times (requires zsh with datetime module)."
+            else
+                local total_time="0.0"
+                while IFS='|' read -r module_name module_time; do
+                    [[ -z "$module_name" ]] && continue
+                    printf "  ✅ %-18s %6ss\n" "$module_name" "$module_time"
+                    total_time=$(echo "scale=4; $total_time + $module_time" | bc 2>/dev/null || echo "$total_time")
+                done <<< "$module_times"
+
+                local metrics=$(get_performance_metrics)
+                IFS='|' read -r _ _ _ startup_time _ _ _ <<< "$metrics"
+                echo
+                printf "  %s %-18s %6ss\n" "📊" "Module Sum" "$total_time"
+                printf "  %s %-18s %6ss\n" "📈" "Measured Startup" "$startup_time"
+            fi
+        fi
+
+        echo
+    fi
     
     # Continuous monitoring mode
     if [[ "$monitor_mode" == "true" ]]; then

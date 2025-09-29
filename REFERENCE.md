@@ -33,6 +33,9 @@ validate --report       # Generate detailed validation report
 
 ```bash
 perf                    # Display basic performance metrics
+perf --modules          # Display per-module performance breakdown
+perf --memory           # Display memory usage per module
+perf --startup          # Show startup time analysis
 perf --monitor          # Start continuous performance monitoring
 perf --profile          # Generate detailed performance analysis report
 perf --optimize         # Display optimization suggestions

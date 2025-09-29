@@ -3,10 +3,10 @@
 ## 📋 Immediate Improvements (Week 1-2)
 
 ### 🚀 Enhance Existing Commands - High Impact, Low Effort
-- [ ] **Enhance `perf` command** - Copy logic from `status.sh`
-  - [ ] `perf --modules` - Show per-module performance breakdown
-  - [ ] `perf --memory` - Display memory usage per module
-  - [ ] `perf --startup` - Show startup time analysis
+- [x] **Enhance `perf` command** - Copy logic from `status.sh`
+  - [x] `perf --modules` - Show per-module performance breakdown
+  - [x] `perf --memory` - Display memory usage per module
+  - [x] `perf --startup` - Show startup time analysis
   - [ ] **Effort**: ~30 lines of code, **Value**: Users see what's slow
 - [ ] **Fix plugin loading issues** - Improve error handling
   - [ ] Better error messages when plugins fail to load
