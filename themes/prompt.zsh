@@ -347,7 +347,7 @@ posh_theme() {
             print "        \"" theme "\""
             next
         }
-        /^[[:space:]]*"[^"]*\.omp\.json"/ && !printed {
+        /^[[:space:]]*"[a-zA-Z0-9_]*\.omp\.json"/ && !printed {
             if ($0 !~ theme) {
                 print "        \"" theme "\""
                 printed = 1
