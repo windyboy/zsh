@@ -47,6 +47,12 @@ _clean_prompt() {
             PROMPT="${PROMPT%/\}}"
         fi
         
+        # Additional cleanup for any remaining artifacts
+        while [[ "$PROMPT" == *"/}" ]] || [[ "$PROMPT" == *"}" ]]; do
+            PROMPT="${PROMPT%/}"
+            PROMPT="${PROMPT%}"
+        done
+        
         # Clean up multiple spaces
         PROMPT="${PROMPT//  / }"
         PROMPT="${PROMPT//  / }"
@@ -70,6 +76,12 @@ _clean_prompt() {
         if [[ "$RPROMPT" == *"/}" ]]; then
             RPROMPT="${RPROMPT%/\}}"
         fi
+        
+        # Additional cleanup for any remaining artifacts
+        while [[ "$RPROMPT" == *"/}" ]] || [[ "$RPROMPT" == *"}" ]]; do
+            RPROMPT="${RPROMPT%/}"
+            RPROMPT="${RPROMPT%}"
+        done
         
         # Clean up multiple spaces
         RPROMPT="${RPROMPT//  / }"
