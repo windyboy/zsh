@@ -29,34 +29,35 @@ _validate_theme_file() {
     return 0
 }
 
-# Function to clean up prompt and remove extra spaces (enhanced for Linux compatibility)
+# Function to clean up prompt and remove extra spaces (simplified for reliability)
 _clean_prompt() {
     # Only clean if PROMPT is set and contains extra spaces
     if [[ -n "$PROMPT" ]]; then
-        # Remove multiple consecutive spaces (more aggressive cleaning)
-        PROMPT="${PROMPT//[[:space:]]\{2,\}/ }"
+        # Remove multiple consecutive spaces (simple approach)
+        while [[ "$PROMPT" == *"  "* ]]; do
+            PROMPT="${PROMPT//  / }"
+        done
         
-        # Remove spaces that appear between color codes and content
+        # Remove empty color codes
         PROMPT="${PROMPT//%\{\}/}"
-        PROMPT="${PROMPT//%\{[^}]*\}[[:space:]]+/%\{[^}]*\}}"
         
         # Remove trailing spaces
-        PROMPT="${PROMPT%[[:space:]]}"
+        PROMPT="${PROMPT% }"
+        PROMPT="${PROMPT%$'\t'}"
         
         # Remove Oh My Posh artifacts
         PROMPT="${PROMPT%%%}"
-        
-        # Final cleanup: remove any remaining multiple spaces
-        PROMPT="${PROMPT//  +/ }"
     fi
     
     # Clean RPROMPT similarly
     if [[ -n "$RPROMPT" ]]; then
-        RPROMPT="${RPROMPT//[[:space:]]\{2,\}/ }"
+        while [[ "$RPROMPT" == *"  "* ]]; do
+            RPROMPT="${RPROMPT//  / }"
+        done
         RPROMPT="${RPROMPT//%\{\}/}"
-        RPROMPT="${RPROMPT%[[:space:]]}"
+        RPROMPT="${RPROMPT% }"
+        RPROMPT="${RPROMPT%$'\t'}"
         RPROMPT="${RPROMPT%%%}"
-        RPROMPT="${RPROMPT//  +/ }"
     fi
 }
 
@@ -115,18 +116,22 @@ if command -v oh-my-posh >/dev/null 2>&1; then
         _linux_prompt_cleanup() {
             if [[ -n "$PROMPT" ]]; then
                 # More aggressive space cleaning for Linux
-                PROMPT="${PROMPT//[[:space:]]\{3,\}/ }"
+                while [[ "$PROMPT" == *"   "* ]]; do
+                    PROMPT="${PROMPT//   / }"
+                done
                 
                 # Clean up empty color codes that might cause spacing issues
-                PROMPT="${PROMPT//%\{\}[[:space:]]*/}"
+                PROMPT="${PROMPT//%\{\}/}"
                 
-                # Remove spaces around color codes
-                PROMPT="${PROMPT//[[:space:]]%\{/%\{}"
+                # Remove spaces around color codes (simplified approach)
+                PROMPT="${PROMPT// %\{/%\{}"
                 PROMPT="${PROMPT//\}%\{/\}%\{"
                 
                 # Final space normalization
-                PROMPT="${PROMPT//  +/ }"
-                PROMPT="${PROMPT%[[:space:]]}"
+                while [[ "$PROMPT" == *"  "* ]]; do
+                    PROMPT="${PROMPT//  / }"
+                done
+                PROMPT="${PROMPT% }"
             fi
         }
         add-zsh-hook precmd _linux_prompt_cleanup
