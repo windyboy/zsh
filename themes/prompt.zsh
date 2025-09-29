@@ -533,19 +533,19 @@ posh_theme_favorites() {
     
     case "$action" in
         "list"|"ls")
-            echo "⭐ Favorite Themes"
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "Favorite Themes"
+            echo "=========================================="
             if [[ -f "$favorites_file" ]]; then
                 local count=0
                 while IFS= read -r theme; do
                     [[ -n "$theme" ]] && echo "  $((++count)). $theme"
                 done < "$favorites_file"
                 echo ""
-                echo "💡 Use 'posh_theme favorites add <name>' to add themes"
-                echo "💡 Use 'posh_theme favorites remove <name>' to remove themes"
+                echo "Use 'posh_theme favorites add <name>' to add themes"
+                echo "Use 'posh_theme favorites remove <name>' to remove themes"
             else
-                echo "📝 No favorite themes yet"
-                echo "💡 Add themes with: posh_theme favorites add <theme_name>"
+                echo "No favorite themes yet"
+                echo "Add themes with: posh_theme favorites add <theme_name>"
             fi
             ;;
         "add")
