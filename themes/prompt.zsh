@@ -29,49 +29,33 @@ _validate_theme_file() {
 # Simple and reliable prompt cleaning function
 _clean_prompt() {
     if [[ -n "$PROMPT" ]]; then
-        # Only remove empty or broken color codes, preserve valid ones
-        PROMPT="${PROMPT//%\{\}/}"
-        PROMPT="${PROMPT//%\{ \}/}"
-        PROMPT="${PROMPT//%\{}/}"
+        # Remove trailing artifacts with limited iterations
+        local count=0
+        while [[ "$PROMPT" == *"/}" ]] || [[ "$PROMPT" == *"}" ]] || [[ "$PROMPT" == *" " ]] && [[ $count -lt 10 ]]; do
+            PROMPT="${PROMPT%/}"
+            PROMPT="${PROMPT%}"
+            PROMPT="${PROMPT% }"
+            ((count++))
+        done
         
-        # Remove trailing artifacts
-        PROMPT="${PROMPT% }"
-        PROMPT="${PROMPT% }"
-        PROMPT="${PROMPT%}/}"
-        PROMPT="${PROMPT%}/}"
-        PROMPT="${PROMPT%}}"
-        PROMPT="${PROMPT%}}"
-        
-        # Clean up multiple spaces (but preserve single spaces)
+        # Clean up multiple spaces
         PROMPT="${PROMPT//  / }"
         PROMPT="${PROMPT//  / }"
-        
-        # Final trailing space cleanup
-        PROMPT="${PROMPT% }"
-        PROMPT="${PROMPT% }"
     fi
     
     if [[ -n "$RPROMPT" ]]; then
-        # Same selective cleaning for RPROMPT
-        RPROMPT="${RPROMPT//%\{\}/}"
-        RPROMPT="${RPROMPT//%\{ \}/}"
-        RPROMPT="${RPROMPT//%\{}/}"
-        
-        # Remove trailing artifacts
-        RPROMPT="${RPROMPT% }"
-        RPROMPT="${RPROMPT% }"
-        RPROMPT="${RPROMPT%}/}"
-        RPROMPT="${RPROMPT%}/}"
-        RPROMPT="${RPROMPT%}}"
-        RPROMPT="${RPROMPT%}}"
+        # Same safe cleaning for RPROMPT
+        local count=0
+        while [[ "$RPROMPT" == *"/}" ]] || [[ "$RPROMPT" == *"}" ]] || [[ "$RPROMPT" == *" " ]] && [[ $count -lt 10 ]]; do
+            RPROMPT="${RPROMPT%/}"
+            RPROMPT="${RPROMPT%}"
+            RPROMPT="${RPROMPT% }"
+            ((count++))
+        done
         
         # Clean up multiple spaces
         RPROMPT="${RPROMPT//  / }"
         RPROMPT="${RPROMPT//  / }"
-        
-        # Final trailing space cleanup
-        RPROMPT="${RPROMPT% }"
-        RPROMPT="${RPROMPT% }"
     fi
 }
 
