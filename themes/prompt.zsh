@@ -1,115 +1,32 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Oh My Posh Theme Configuration - Ultra Simple and Reliable
+# Oh My Posh Theme Configuration - Clean and Simple
 # =============================================================================
 
-# Function to validate theme file
+# Validate theme file
 _validate_theme_file() {
     local theme_file="$1"
-    
-    if [[ ! -f "$theme_file" ]]; then
-        return 1
-    fi
-    
-    if [[ $(wc -c < "$theme_file") -lt 100 ]]; then
-        return 1
-    fi
-    
-    if grep -q "404\|Not Found\|Error\|error" "$theme_file" 2>/dev/null; then
-        return 1
-    fi
-    
-    if ! python3 -m json.tool "$theme_file" >/dev/null 2>&1; then
-        return 1
-    fi
-    
-    return 0
+    [[ -f "$theme_file" ]] && [[ $(wc -c < "$theme_file") -gt 100 ]] && \
+    ! grep -q "404\|Not Found\|Error\|error" "$theme_file" 2>/dev/null && \
+    python3 -m json.tool "$theme_file" >/dev/null 2>&1
 }
 
-# Simple and reliable prompt cleaning function
+# Simple prompt cleanup
 _clean_prompt() {
-    if [[ -n "$PROMPT" ]]; then
-        # Remove trailing artifacts with limited iterations
-        local count=0
-        while [[ "$PROMPT" == *"/}" ]] || [[ "$PROMPT" == *"}" ]] || [[ "$PROMPT" == *" " ]] && [[ $count -lt 10 ]]; do
-            PROMPT="${PROMPT%/}"
-            PROMPT="${PROMPT%\}}"
-            PROMPT="${PROMPT% }"
-            ((count++))
-        done
-
-        # Final cleanup for any remaining artifacts
-        PROMPT="${PROMPT%/}"
-        PROMPT="${PROMPT%\}}"
-        
-        # Specific cleanup for the persistent "/}" pattern
-        if [[ "$PROMPT" == *"/}" ]]; then
-            PROMPT="${PROMPT%/\}}"
-        fi
-        
-        # Additional cleanup for any remaining artifacts (safe version)
-        count=0
-        while [[ "$PROMPT" == *"/}" ]] || [[ "$PROMPT" == *"}" ]] && [[ $count -lt 5 ]]; do
-            PROMPT="${PROMPT%/}"
-            PROMPT="${PROMPT%\}}"
-            ((count++))
-        done
-        
-        # Clean up multiple spaces
-        PROMPT="${PROMPT//  / }"
-        PROMPT="${PROMPT//  / }"
-    fi
-    
-    if [[ -n "$RPROMPT" ]]; then
-        # Same safe cleaning for RPROMPT
-        local count=0
-        while [[ "$RPROMPT" == *"/}" ]] || [[ "$RPROMPT" == *"}" ]] || [[ "$RPROMPT" == *" " ]] && [[ $count -lt 10 ]]; do
-            RPROMPT="${RPROMPT%/}"
-            RPROMPT="${RPROMPT%\}}"
-            RPROMPT="${RPROMPT% }"
-            ((count++))
-        done
-
-        # Final cleanup for any remaining artifacts
-        RPROMPT="${RPROMPT%/}"
-        RPROMPT="${RPROMPT%\}}"
-        
-        # Specific cleanup for the persistent "/}" pattern
-        if [[ "$RPROMPT" == *"/}" ]]; then
-            RPROMPT="${RPROMPT%/\}}"
-        fi
-        
-        # Additional cleanup for any remaining artifacts (safe version)
-        count=0
-        while [[ "$RPROMPT" == *"/}" ]] || [[ "$RPROMPT" == *"}" ]] && [[ $count -lt 5 ]]; do
-            RPROMPT="${RPROMPT%/}"
-            RPROMPT="${RPROMPT%\}}"
-            ((count++))
-        done
-        
-        # Clean up multiple spaces
-        RPROMPT="${RPROMPT//  / }"
-        RPROMPT="${RPROMPT//  / }"
-    fi
+    [[ -n "$PROMPT" ]] && PROMPT="${PROMPT%[[:space:]]}"
+    [[ -n "$RPROMPT" ]] && RPROMPT="${RPROMPT%[[:space:]]}"
 }
 
-# Ensure the cleanup hook runs before each prompt render (register once)
-if ! typeset -f add-zsh-hook >/dev/null 2>&1; then
-    autoload -Uz add-zsh-hook 2>/dev/null
-fi
+# Register cleanup hook
+autoload -Uz add-zsh-hook 2>/dev/null
+add-zsh-hook precmd _clean_prompt 2>/dev/null
 
-if typeset -f add-zsh-hook >/dev/null 2>&1; then
-    if [[ -z ${(M)precmd_functions:#_clean_prompt} ]]; then
-        add-zsh-hook precmd _clean_prompt
-    fi
-fi
-
-# Check if Oh My Posh is available
+# Initialize Oh My Posh if available
 if command -v oh-my-posh >/dev/null 2>&1; then
-    # Initialize Oh My Posh
+    local themes_dir="$HOME/.poshthemes"
     local preferred_themes=(
         "1_shell.omp.json"
-        "agnoster.omp.json"
+        "agnoster.omp.json" 
         "jandedobbeleer.omp.json"
         "atomic.omp.json"
         "dracula.omp.json"
@@ -118,24 +35,19 @@ if command -v oh-my-posh >/dev/null 2>&1; then
         "robbyrussell.omp.json"
     )
     
+    # Find first valid theme
     local theme_file=""
-    local themes_dir="$HOME/.poshthemes"
-    
-    # Find the first available and valid theme
     for theme in "${preferred_themes[@]}"; do
-        local candidate_file="$themes_dir/$theme"
-        if _validate_theme_file "$candidate_file"; then
-            theme_file="$candidate_file"
+        local candidate="$themes_dir/$theme"
+        if _validate_theme_file "$candidate"; then
+            theme_file="$candidate"
             break
-        else
-            if [[ -f "$candidate_file" ]]; then
-                echo "Warning: Removing invalid theme file: $theme" >&2
-                rm -f "$candidate_file"
-            fi
+        elif [[ -f "$candidate" ]]; then
+            rm -f "$candidate"  # Remove invalid theme
         fi
     done
     
-    # Oh My Posh Configuration
+    # Configure and initialize
     export OMP_DEBUG=0
     export OMP_TRANSIENT=1
     
@@ -144,137 +56,70 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     else
         eval "$(oh-my-posh init zsh)"
     fi
-    
-    # Add a hook to clean up prompt on every command
-    # add-zsh-hook precmd _clean_prompt
-    
-    # Linux-specific additional cleanup
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        _linux_prompt_cleanup() {
-            if [[ -n "$PROMPT" ]]; then
-                # Selective cleanup for Linux - preserve valid color codes
-                PROMPT="${PROMPT//%\{\}/}"
-                PROMPT="${PROMPT//%\{ \}/}"
-                PROMPT="${PROMPT//%\{}/}"
-                
-                # Multiple passes for spaces
-                PROMPT="${PROMPT//  / }"
-                PROMPT="${PROMPT//  / }"
-                PROMPT="${PROMPT//  / }"
-                
-                # Remove trailing spaces
-                PROMPT="${PROMPT% }"
-                PROMPT="${PROMPT% }"
-                PROMPT="${PROMPT% }"
-            fi
-        }
-        if [[ -z ${(M)precmd_functions:#_linux_prompt_cleanup} ]]; then
-            add-zsh-hook precmd _linux_prompt_cleanup 2>/dev/null
-        fi
-    fi
 else
-    # Fallback to custom prompt if Oh My Posh is not available
-    _setup_custom_prompt() {
-        autoload -Uz vcs_info
-        precmd() { 
-            if [[ -z "$OMP_TRANSIENT" ]] && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-                vcs_info
-            fi
-        }
-        
-        zstyle ':vcs_info:git:*' formats '%F{blue}(%b)%f'
-        zstyle ':vcs_info:*' enable git
-        
-        setopt PROMPT_SUBST
-        
-        PROMPT='%F{green}%n@%m%f:%F{cyan}%~%f${vcs_info_msg_0_} %# '
-        RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
+    # Fallback custom prompt
+    autoload -Uz vcs_info
+    precmd() { 
+        git rev-parse --is-inside-work-tree >/dev/null 2>&1 && vcs_info
     }
     
-    _setup_custom_prompt
+    zstyle ':vcs_info:git:*' formats '%F{blue}(%b)%f'
+    zstyle ':vcs_info:*' enable git
+    setopt PROMPT_SUBST
+    
+    PROMPT='%F{green}%n@%m%f:%F{cyan}%~%f${vcs_info_msg_0_} %# '
+    RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
 fi
 
-# Simple theme switching function
+# Theme switching function
 posh_theme() {
     local theme_name="$1"
+    [[ -z "$theme_name" ]] && { echo "Usage: posh_theme <theme_name>"; return 1; }
     
-    if [[ -z "$theme_name" ]]; then
-        echo "Usage: posh_theme <theme_name>"
-        return 1
-    fi
-    
-    local theme_file="$HOME/.poshthemes/${theme_name}.omp.json"
-    
-    if [[ ! -f "$theme_file" ]]; then
-        theme_file="$HOME/.poshthemes/${theme_name}.omp.yaml"
-    fi
+    local themes_dir="$HOME/.poshthemes"
+    local theme_file="$themes_dir/${theme_name}.omp.json"
+    [[ ! -f "$theme_file" ]] && theme_file="$themes_dir/${theme_name}.omp.yaml"
     
     if [[ -f "$theme_file" ]]; then
         if ! _validate_theme_file "$theme_file"; then
-            echo "Theme file is corrupted: $theme_name"
+            echo "Invalid theme: $theme_name"
             rm -f "$theme_file"
             return 1
         fi
         
-        local temp_file
-        temp_file=$(mktemp 2>/dev/null || echo "/tmp/posh_theme_$$.tmp")
-        local theme_filename=$(basename "$theme_file")
+        # Update preferred themes list
+        local config_file="${BASH_SOURCE[0]:-$0}"
+        local temp_file=$(mktemp) || return 1
         
-        [[ -f "$temp_file" ]] && rm -f "$temp_file"
-        
-        awk -v theme="$theme_filename" '
-        /local preferred_themes=\(/ {
-            print $0
-            print "        \"" theme "\""
-            next
-        }
-        /^[[:space:]]*"[a-zA-Z0-9_]*\.omp\.json"/ && !printed {
-            if ($0 !~ theme) {
-                print "        \"" theme "\""
-                printed = 1
-            }
-        }
-        { print }
-        ' ~/.config/zsh/themes/prompt.zsh > "$temp_file"
-        
-        if [[ -s "$temp_file" ]] && [[ -f "$temp_file" ]]; then
-            mv "$temp_file" ~/.config/zsh/themes/prompt.zsh
-            echo "Switched to theme: $theme_name"
-            echo "Reload your shell with: source ~/.zshrc"
-        else
-            echo "Failed to update theme configuration"
-            [[ -f "$temp_file" ]] && rm -f "$temp_file"
-        fi
+        sed "s/\"[^\"]*\.omp\.json\"/\"$(basename "$theme_file")\"/" "$config_file" > "$temp_file" && \
+        mv "$temp_file" "$config_file" && \
+        echo "Switched to theme: $theme_name (reload with: source ~/.zshrc)"
     else
         echo "Theme not found: $theme_name"
         echo "Available themes:"
-        ls -1 "$HOME/.poshthemes"/*.omp.* 2>/dev/null | sed 's/.*\///' | sed 's/\.omp\.\(json\|yaml\)$//' | sort | head -10
+        ls -1 "$themes_dir"/*.omp.* 2>/dev/null | sed 's/.*\///; s/\.omp\.\(json\|yaml\)$//' | sort | head -10
     fi
 }
 
-# Simple theme list function
+# List available themes
 posh_themes() {
     if command -v oh-my-posh >/dev/null 2>&1; then
+        local theme_dir="$HOME/.poshthemes"
         echo "Available Oh My Posh themes:"
         echo "=============================="
         
-        local theme_dir="$HOME/.poshthemes"
         if [[ -d "$theme_dir" ]]; then
-            echo "Official themes ($theme_dir):"
-            ls -1 "$theme_dir"/*.omp.json 2>/dev/null | sed 's/.*\///' | sed 's/\.omp\.json$//' | sort
+            ls -1 "$theme_dir"/*.omp.json 2>/dev/null | sed 's/.*\///; s/\.omp\.json$//' | sort
         else
             echo "No themes found. Install with: oh-my-posh theme install"
         fi
         
         echo ""
-        echo "Usage:"
-        echo "  posh_theme <theme_name>     # Switch to a theme"
-        echo "  posh_themes                # List all available themes"
+        echo "Usage: posh_theme <theme_name>"
     else
-        echo "Oh My Posh is not installed"
-        echo "Install with: brew install oh-my-posh (macOS) or follow official docs"
+        echo "Oh My Posh not installed. Install with: brew install oh-my-posh"
     fi
 }
 
-# Export theme functions
+# Export functions
 export -f posh_themes posh_theme 2>/dev/null || true
