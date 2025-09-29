@@ -33,14 +33,14 @@ _clean_prompt() {
         local count=0
         while [[ "$PROMPT" == *"/}" ]] || [[ "$PROMPT" == *"}" ]] || [[ "$PROMPT" == *" " ]] && [[ $count -lt 10 ]]; do
             PROMPT="${PROMPT%/}"
-            PROMPT="${PROMPT%}"
+            PROMPT="${PROMPT%\}}"
             PROMPT="${PROMPT% }"
             ((count++))
         done
-        
+
         # Final cleanup for any remaining artifacts
         PROMPT="${PROMPT%/}"
-        PROMPT="${PROMPT%}"
+        PROMPT="${PROMPT%\}}"
         
         # Specific cleanup for the persistent "/}" pattern
         if [[ "$PROMPT" == *"/}" ]]; then
@@ -51,7 +51,7 @@ _clean_prompt() {
         count=0
         while [[ "$PROMPT" == *"/}" ]] || [[ "$PROMPT" == *"}" ]] && [[ $count -lt 5 ]]; do
             PROMPT="${PROMPT%/}"
-            PROMPT="${PROMPT%}"
+            PROMPT="${PROMPT%\}}"
             ((count++))
         done
         
@@ -65,14 +65,14 @@ _clean_prompt() {
         local count=0
         while [[ "$RPROMPT" == *"/}" ]] || [[ "$RPROMPT" == *"}" ]] || [[ "$RPROMPT" == *" " ]] && [[ $count -lt 10 ]]; do
             RPROMPT="${RPROMPT%/}"
-            RPROMPT="${RPROMPT%}"
+            RPROMPT="${RPROMPT%\}}"
             RPROMPT="${RPROMPT% }"
             ((count++))
         done
-        
+
         # Final cleanup for any remaining artifacts
         RPROMPT="${RPROMPT%/}"
-        RPROMPT="${RPROMPT%}"
+        RPROMPT="${RPROMPT%\}}"
         
         # Specific cleanup for the persistent "/}" pattern
         if [[ "$RPROMPT" == *"/}" ]]; then
@@ -83,7 +83,7 @@ _clean_prompt() {
         count=0
         while [[ "$RPROMPT" == *"/}" ]] || [[ "$RPROMPT" == *"}" ]] && [[ $count -lt 5 ]]; do
             RPROMPT="${RPROMPT%/}"
-            RPROMPT="${RPROMPT%}"
+            RPROMPT="${RPROMPT%\}}"
             ((count++))
         done
         
@@ -92,6 +92,17 @@ _clean_prompt() {
         RPROMPT="${RPROMPT//  / }"
     fi
 }
+
+# Ensure the cleanup hook runs before each prompt render (register once)
+if ! typeset -f add-zsh-hook >/dev/null 2>&1; then
+    autoload -Uz add-zsh-hook 2>/dev/null
+fi
+
+if typeset -f add-zsh-hook >/dev/null 2>&1; then
+    if [[ -z ${(M)precmd_functions:#_clean_prompt} ]]; then
+        add-zsh-hook precmd _clean_prompt
+    fi
+fi
 
 # Check if Oh My Posh is available
 if command -v oh-my-posh >/dev/null 2>&1; then
@@ -157,7 +168,9 @@ if command -v oh-my-posh >/dev/null 2>&1; then
                 PROMPT="${PROMPT% }"
             fi
         }
-        # add-zsh-hook precmd _linux_prompt_cleanup
+        if [[ -z ${(M)precmd_functions:#_linux_prompt_cleanup} ]]; then
+            add-zsh-hook precmd _linux_prompt_cleanup 2>/dev/null
+        fi
     fi
 else
     # Fallback to custom prompt if Oh My Posh is not available
