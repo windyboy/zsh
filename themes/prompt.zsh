@@ -34,11 +34,19 @@ _clean_prompt() {
         PROMPT="${PROMPT//%\{ \}/}"
         PROMPT="${PROMPT//%\{}/}"
         
+        # Remove trailing artifacts
+        PROMPT="${PROMPT% }"
+        PROMPT="${PROMPT% }"
+        PROMPT="${PROMPT%}/}"
+        PROMPT="${PROMPT%}/}"
+        PROMPT="${PROMPT%}}"
+        PROMPT="${PROMPT%}}"
+        
         # Clean up multiple spaces (but preserve single spaces)
         PROMPT="${PROMPT//  / }"
         PROMPT="${PROMPT//  / }"
         
-        # Remove trailing spaces
+        # Final trailing space cleanup
         PROMPT="${PROMPT% }"
         PROMPT="${PROMPT% }"
     fi
@@ -49,11 +57,19 @@ _clean_prompt() {
         RPROMPT="${RPROMPT//%\{ \}/}"
         RPROMPT="${RPROMPT//%\{}/}"
         
+        # Remove trailing artifacts
+        RPROMPT="${RPROMPT% }"
+        RPROMPT="${RPROMPT% }"
+        RPROMPT="${RPROMPT%}/}"
+        RPROMPT="${RPROMPT%}/}"
+        RPROMPT="${RPROMPT%}}"
+        RPROMPT="${RPROMPT%}}"
+        
         # Clean up multiple spaces
         RPROMPT="${RPROMPT//  / }"
         RPROMPT="${RPROMPT//  / }"
         
-        # Remove trailing spaces
+        # Final trailing space cleanup
         RPROMPT="${RPROMPT% }"
         RPROMPT="${RPROMPT% }"
     fi
