@@ -609,8 +609,8 @@ posh_theme_favorites() {
             fi
             ;;
         *)
-            echo "❌ Unknown action: $action"
-            echo "💡 Available actions: list, add, remove, clear"
+            echo "Error: Unknown action: $action"
+            echo "Available actions: list, add, remove, clear"
             ;;
     esac
 }
