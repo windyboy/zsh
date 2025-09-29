@@ -1,5 +1,47 @@
 # Changelog
 
+## [5.3.1] - 2025-01-15
+
+### 🧹 Prompt System Simplification & Code Quality Improvements
+
+#### ✨ New Features
+- **Simplified Prompt Configuration** - Streamlined `themes/prompt.zsh` from 280 to 125 lines (55% reduction)
+- **Enhanced Code Maintainability** - Removed redundant cleanup loops and complex validation logic
+- **Improved Performance** - Optimized prompt cleanup with single-line operations
+- **Better Error Handling** - Simplified theme validation with concise conditional chains
+
+#### 🔧 Enhanced
+- **themes/prompt.zsh** - Complete refactoring for simplicity and maintainability:
+  - Removed 95+ lines of redundant cleanup code
+  - Simplified theme validation from 20+ lines to 4 lines
+  - Streamlined theme switching with sed instead of awk
+  - Eliminated Linux-specific cleanup complexity
+  - Fixed hardcoded paths with dynamic resolution
+- **Theme Management** - Improved `posh_theme()` and `posh_themes()` functions
+- **Fallback Prompt** - Simplified custom prompt setup when Oh My Posh unavailable
+
+#### 🗑️ Removed
+- **Redundant Cleanup Loops** - Eliminated multiple while loops doing similar work
+- **Complex Validation Logic** - Simplified theme file validation
+- **Linux-Specific Code** - Removed platform-specific cleanup functions
+- **Hardcoded Paths** - Replaced with dynamic path resolution
+- **Verbose Error Handling** - Streamlined to essential error messages
+
+#### 📊 Technical Improvements
+- **Code Reduction**: 55% reduction in prompt configuration file size
+- **Performance**: Eliminated redundant operations on every prompt render
+- **Maintainability**: Single-line functions instead of complex multi-loop operations
+- **Readability**: Clear, concise code with better organization
+- **Error Handling**: Simplified but effective error management
+
+#### 🎯 User Experience
+- **Faster Prompt Rendering** - Reduced cleanup overhead
+- **Cleaner Code** - Easier to understand and modify
+- **Better Reliability** - Simplified logic reduces potential bugs
+- **Maintained Functionality** - All features preserved with improved implementation
+
+---
+
 ## [5.3.0] - 2025-01-15
 
 ### 🎨 Enhanced Theme Installation System & Robust Configuration Management

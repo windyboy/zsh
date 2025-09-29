@@ -110,6 +110,27 @@ config <file>   # Edit configuration file
 - `aliases` - Alias module
 - `keybindings` - Key binding module
 - `utils` - Utility module
+- `prompt` - Theme and prompt configuration
+
+## 🎨 Theme Management
+
+### Oh My Posh Integration
+```bash
+posh_theme <name>    # Switch to a theme
+posh_themes          # List available themes
+```
+
+### Theme Functions
+- **posh_theme()** - Switch between Oh My Posh themes
+- **posh_themes()** - Display available themes
+- **Theme Validation** - Automatic validation and cleanup of corrupted themes
+- **Fallback Prompt** - Custom prompt when Oh My Posh unavailable
+
+### Theme Configuration
+- **Simplified Setup** - Streamlined from 280 to 125 lines (55% reduction)
+- **Enhanced Performance** - Optimized prompt rendering and cleanup
+- **Better Maintainability** - Clean, readable code structure
+- **Dynamic Path Resolution** - No hardcoded paths
 
 ## 🔧 Environment Variables
 
@@ -241,7 +262,7 @@ new_module_function() {
 ### Module Statistics
 - **Total Lines**: 604 lines
 - **Module Count**: 6 core modules
-- **Version**: 5.3.0
+- **Version**: 5.3.1
 
 ### Core Modules
 - `core.zsh` (94 lines) - Core environment setup
@@ -250,8 +271,15 @@ new_module_function() {
 - `completion.zsh` (119 lines) - Auto-completion
 - `keybindings.zsh` (116 lines) - Key bindings
 - `utils.zsh` (85 lines) - Utility tools
+- `themes/prompt.zsh` (125 lines) - Simplified theme configuration
+
+### Recent Improvements (v5.3.1)
+- **Prompt System**: 55% code reduction (280 → 125 lines)
+- **Performance**: Optimized prompt rendering and cleanup
+- **Maintainability**: Simplified theme management functions
+- **Code Quality**: Removed redundant loops and complex validation
 
 ---
 
-**Last Updated**: 2024-12-19  
+**Last Updated**: 2025-01-15  
 **Status**: Production Ready ✅ 
