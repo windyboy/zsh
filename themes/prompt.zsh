@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Oh My Posh Theme Configuration - Simplified and Clean
+# Oh My Posh Theme Configuration - Minimal and Clean
 # =============================================================================
 
 # Function to validate theme file
@@ -11,17 +11,14 @@ _validate_theme_file() {
         return 1
     fi
     
-    # Check if file is too small (likely corrupted)
     if [[ $(wc -c < "$theme_file") -lt 100 ]]; then
         return 1
     fi
     
-    # Check if file contains error messages
     if grep -q "404\|Not Found\|Error\|error" "$theme_file" 2>/dev/null; then
         return 1
     fi
     
-    # Check if file is valid JSON
     if ! python3 -m json.tool "$theme_file" >/dev/null 2>&1; then
         return 1
     fi
@@ -29,9 +26,8 @@ _validate_theme_file() {
     return 0
 }
 
-# Function to clean up prompt and remove extra spaces (ultra-simplified)
+# Function to clean up prompt and remove extra spaces
 _clean_prompt() {
-    # Only clean if PROMPT is set
     if [[ -n "$PROMPT" ]]; then
         # Remove multiple consecutive spaces
         while [[ "$PROMPT" == *"  "* ]]; do
@@ -54,7 +50,6 @@ _clean_prompt() {
         PROMPT="${PROMPT%%%}"
     fi
     
-    # Clean RPROMPT similarly
     if [[ -n "$RPROMPT" ]]; then
         while [[ "$RPROMPT" == *"  "* ]]; do
             RPROMPT="${RPROMPT//  / }"
@@ -73,7 +68,7 @@ _clean_prompt() {
 
 # Check if Oh My Posh is available
 if command -v oh-my-posh >/dev/null 2>&1; then
-    # Initialize Oh My Posh with optimized configuration
+    # Initialize Oh My Posh
     local preferred_themes=(
         "1_shell.omp.json"
         "agnoster.omp.json"
@@ -95,7 +90,6 @@ if command -v oh-my-posh >/dev/null 2>&1; then
             theme_file="$candidate_file"
             break
         else
-            # Remove invalid theme files
             if [[ -f "$candidate_file" ]]; then
                 echo "Warning: Removing invalid theme file: $theme" >&2
                 rm -f "$candidate_file"
@@ -108,10 +102,8 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     export OMP_TRANSIENT=1
     
     if [[ -n "$theme_file" ]]; then
-        # Initialize with the found theme
         eval "$(oh-my-posh init zsh --config "$theme_file")"
     else
-        # Fallback to default theme
         eval "$(oh-my-posh init zsh)"
     fi
     
@@ -122,20 +114,11 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         _linux_prompt_cleanup() {
             if [[ -n "$PROMPT" ]]; then
-                # More aggressive space cleaning for Linux
                 while [[ "$PROMPT" == *"   "* ]]; do
                     PROMPT="${PROMPT//   / }"
                 done
-                
-                # Clean up empty color codes
                 PROMPT="${PROMPT//%\{}"
                 PROMPT="${PROMPT//\}/}"
-                
-                # Remove spaces around color codes
-                PROMPT="${PROMPT// %\{/%\{}"
-                PROMPT="${PROMPT//\}%\{/\}%\{"
-                
-                # Final space normalization
                 while [[ "$PROMPT" == *"  "* ]]; do
                     PROMPT="${PROMPT//  / }"
                 done
@@ -149,30 +132,22 @@ if command -v oh-my-posh >/dev/null 2>&1; then
 else
     # Fallback to custom prompt if Oh My Posh is not available
     _setup_custom_prompt() {
-        # Load vcs_info for git status
         autoload -Uz vcs_info
         precmd() { 
-            # Only run vcs_info if we're in a git repository and not in a transient prompt
             if [[ -z "$OMP_TRANSIENT" ]] && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
                 vcs_info
             fi
         }
         
-        # Configure git status display
         zstyle ':vcs_info:git:*' formats '%F{blue}(%b)%f'
         zstyle ':vcs_info:*' enable git
         
-        # Enable prompt substitution
         setopt PROMPT_SUBST
         
-        # Main prompt with git status
         PROMPT='%F{green}%n@%m%f:%F{cyan}%~%f${vcs_info_msg_0_} %# '
-        
-        # Right prompt with time
         RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
     }
     
-    # Initialize the custom prompt
     _setup_custom_prompt
 fi
 
@@ -187,29 +162,23 @@ posh_theme() {
     
     local theme_file="$HOME/.poshthemes/${theme_name}.omp.json"
     
-    # Check for YAML format if JSON not found
     if [[ ! -f "$theme_file" ]]; then
         theme_file="$HOME/.poshthemes/${theme_name}.omp.yaml"
     fi
     
     if [[ -f "$theme_file" ]]; then
-        # Validate theme file
         if ! _validate_theme_file "$theme_file"; then
             echo "Theme file is corrupted: $theme_name"
-            echo "Removing corrupted theme file..."
             rm -f "$theme_file"
             return 1
         fi
         
-        # Update the preferred themes array to put the selected theme first
         local temp_file
         temp_file=$(mktemp 2>/dev/null || echo "/tmp/posh_theme_$$.tmp")
         local theme_filename=$(basename "$theme_file")
         
-        # Ensure temp file is clean
         [[ -f "$temp_file" ]] && rm -f "$temp_file"
         
-        # Simple awk script to update theme preference
         awk -v theme="$theme_filename" '
         /local preferred_themes=\(/ {
             print $0
@@ -246,7 +215,6 @@ posh_themes() {
         echo "Available Oh My Posh themes:"
         echo "=============================="
         
-        # List official themes
         local theme_dir="$HOME/.poshthemes"
         if [[ -d "$theme_dir" ]]; then
             echo "Official themes ($theme_dir):"
