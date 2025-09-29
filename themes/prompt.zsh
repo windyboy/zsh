@@ -44,7 +44,7 @@ _clean_prompt() {
         
         # Specific cleanup for the persistent "/}" pattern
         if [[ "$PROMPT" == *"/}" ]]; then
-            PROMPT="${PROMPT%/}"
+            PROMPT="${PROMPT%/\}}"
         fi
         
         # Clean up multiple spaces
@@ -68,7 +68,7 @@ _clean_prompt() {
         
         # Specific cleanup for the persistent "/}" pattern
         if [[ "$RPROMPT" == *"/}" ]]; then
-            RPROMPT="${RPROMPT%/}"
+            RPROMPT="${RPROMPT%/\}}"
         fi
         
         # Clean up multiple spaces
