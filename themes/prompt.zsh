@@ -29,23 +29,34 @@ _validate_theme_file() {
     return 0
 }
 
-# Function to clean up prompt and remove extra spaces
+# Function to clean up prompt and remove extra spaces (enhanced for Linux compatibility)
 _clean_prompt() {
-    # Remove trailing spaces from PROMPT and RPROMPT
-    PROMPT="${PROMPT%[[:space:]]}"
-    RPROMPT="${RPROMPT%[[:space:]]}"
-    
-    # Remove any double spaces
-    PROMPT="${PROMPT//  / }"
-    RPROMPT="${RPROMPT//  / }"
-    
-    # Remove trailing % characters (Oh My Posh artifact)
-    PROMPT="${PROMPT%%%}"
-    RPROMPT="${RPROMPT%%%}"
-    
-    # Ensure proper newline handling
-    if [[ "$PROMPT" =~ %$ ]]; then
+    # Only clean if PROMPT is set and contains extra spaces
+    if [[ -n "$PROMPT" ]]; then
+        # Remove multiple consecutive spaces (more aggressive cleaning)
+        PROMPT="${PROMPT//[[:space:]]\{2,\}/ }"
+        
+        # Remove spaces that appear between color codes and content
+        PROMPT="${PROMPT//%\{\}/}"
+        PROMPT="${PROMPT//%\{[^}]*\}[[:space:]]+/%\{[^}]*\}}"
+        
+        # Remove trailing spaces
+        PROMPT="${PROMPT%[[:space:]]}"
+        
+        # Remove Oh My Posh artifacts
         PROMPT="${PROMPT%%%}"
+        
+        # Final cleanup: remove any remaining multiple spaces
+        PROMPT="${PROMPT//  +/ }"
+    fi
+    
+    # Clean RPROMPT similarly
+    if [[ -n "$RPROMPT" ]]; then
+        RPROMPT="${RPROMPT//[[:space:]]\{2,\}/ }"
+        RPROMPT="${RPROMPT//%\{\}/}"
+        RPROMPT="${RPROMPT%[[:space:]]}"
+        RPROMPT="${RPROMPT%%%}"
+        RPROMPT="${RPROMPT//  +/ }"
     fi
 }
 
@@ -94,11 +105,32 @@ if command -v oh-my-posh >/dev/null 2>&1; then
         eval "$(oh-my-posh init zsh)"
     fi
     
-    # Add a hook to clean up prompt on every command
+    # Add a hook to clean up prompt on every command (improved timing)
     add-zsh-hook precmd _clean_prompt
     
-    # Also clean up after Oh My Posh sets the prompt
-    add-zsh-hook preexec _clean_prompt
+    # Alternative: Set up a more robust prompt cleaning for problematic systems
+    # This addresses issues where Oh My Posh may generate inconsistent output
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Linux-specific: Additional aggressive cleaning for terminal compatibility issues
+        _linux_prompt_cleanup() {
+            if [[ -n "$PROMPT" ]]; then
+                # More aggressive space cleaning for Linux
+                PROMPT="${PROMPT//[[:space:]]\{3,\}/ }"
+                
+                # Clean up empty color codes that might cause spacing issues
+                PROMPT="${PROMPT//%\{\}[[:space:]]*/}"
+                
+                # Remove spaces around color codes
+                PROMPT="${PROMPT//[[:space:]]%\{/%\{}"
+                PROMPT="${PROMPT//\}%\{/\}%\{"
+                
+                # Final space normalization
+                PROMPT="${PROMPT//  +/ }"
+                PROMPT="${PROMPT%[[:space:]]}"
+            fi
+        }
+        add-zsh-hook precmd _linux_prompt_cleanup
+    fi
     
     # Popular official themes you can use:
     # eval "$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)"      # Classic powerline
