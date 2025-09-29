@@ -49,8 +49,10 @@ _clean_prompt() {
         # Remove Oh My Posh artifacts
         PROMPT="${PROMPT%%%}"
         
-        # Clean up any remaining broken color sequences
-        PROMPT="${PROMPT//%\{[^}]*\}/}"
+        # Clean up any remaining broken color sequences (simplified)
+        while [[ "$PROMPT" == *"%{"* ]]; do
+            PROMPT="${PROMPT//%\{/}"
+        done
         
         # Final space cleanup
         while [[ "$PROMPT" == *"  "* ]]; do
@@ -79,8 +81,10 @@ _clean_prompt() {
         # Remove Oh My Posh artifacts
         RPROMPT="${RPROMPT%%%}"
         
-        # Clean up any remaining broken color sequences
-        RPROMPT="${RPROMPT//%\{[^}]*\}/}"
+        # Clean up any remaining broken color sequences (simplified)
+        while [[ "$RPROMPT" == *"%{"* ]]; do
+            RPROMPT="${RPROMPT//%\{/}"
+        done
         
         # Final space cleanup
         while [[ "$RPROMPT" == *"  "* ]]; do
@@ -140,7 +144,10 @@ if command -v oh-my-posh >/dev/null 2>&1; then
                 # Aggressive cleanup for Linux
                 PROMPT="${PROMPT//%\{}"
                 PROMPT="${PROMPT//\}/}"
-                PROMPT="${PROMPT//%\{[^}]*\}/}"
+                # Clean up broken color sequences (simplified)
+                while [[ "$PROMPT" == *"%{"* ]]; do
+                    PROMPT="${PROMPT//%\{/}"
+                done
                 
                 # Remove multiple spaces
                 while [[ "$PROMPT" == *"   "* ]]; do
