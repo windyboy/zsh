@@ -57,6 +57,10 @@ _clean_prompt() {
             ((count++))
         done
         
+        # Final cleanup for any remaining artifacts
+        RPROMPT="${RPROMPT%/}"
+        RPROMPT="${RPROMPT%}"
+        
         # Clean up multiple spaces
         RPROMPT="${RPROMPT//  / }"
         RPROMPT="${RPROMPT//  / }"
