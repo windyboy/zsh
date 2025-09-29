@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# Oh My Posh Theme Configuration - Minimal and Clean
+# Oh My Posh Theme Configuration - Ultra Simple and Reliable
 # =============================================================================
 
 # Function to validate theme file
@@ -26,78 +26,40 @@ _validate_theme_file() {
     return 0
 }
 
-# Function to clean up prompt and remove extra spaces (safe version)
+# Simple and reliable prompt cleaning function
 _clean_prompt() {
     if [[ -n "$PROMPT" ]]; then
-        # Remove empty color codes first
-        PROMPT="${PROMPT//%\{}"
+        # Remove all problematic characters that cause display issues
+        PROMPT="${PROMPT//%/}"
+        PROMPT="${PROMPT//\{/}"
         PROMPT="${PROMPT//\}/}"
         
-        # Remove multiple consecutive spaces (limited iterations)
-        local count=0
-        while [[ "$PROMPT" == *"  "* ]] && [[ $count -lt 10 ]]; do
-            PROMPT="${PROMPT//  / }"
-            ((count++))
-        done
+        # Clean up multiple spaces
+        PROMPT="${PROMPT//  / }"
+        PROMPT="${PROMPT//  / }"
+        PROMPT="${PROMPT//  / }"
         
-        # Remove trailing spaces and tabs (limited iterations)
-        count=0
-        while [[ "$PROMPT" == *" " ]] && [[ $count -lt 5 ]]; do
-            PROMPT="${PROMPT% }"
-            ((count++))
-        done
-        
-        count=0
-        while [[ "$PROMPT" == *$'\t' ]] && [[ $count -lt 5 ]]; do
-            PROMPT="${PROMPT%$'\t'}"
-            ((count++))
-        done
-        
-        # Remove Oh My Posh artifacts
-        PROMPT="${PROMPT%%%}"
-        
-        # Clean up broken color sequences (limited iterations)
-        count=0
-        while [[ "$PROMPT" == *"%{"* ]] && [[ $count -lt 5 ]]; do
-            PROMPT="${PROMPT//%\{/}"
-            ((count++))
-        done
+        # Remove trailing spaces
+        PROMPT="${PROMPT% }"
+        PROMPT="${PROMPT% }"
+        PROMPT="${PROMPT% }"
     fi
     
     if [[ -n "$RPROMPT" ]]; then
-        # Remove empty color codes first
-        RPROMPT="${RPROMPT//%\{}"
+        # Same cleaning for RPROMPT
+        RPROMPT="${RPROMPT//%/}"
+        RPROMPT="${RPROMPT//\{/}"
         RPROMPT="${RPROMPT//\}/}"
         
-        # Remove multiple consecutive spaces (limited iterations)
-        local count=0
-        while [[ "$RPROMPT" == *"  "* ]] && [[ $count -lt 10 ]]; do
-            RPROMPT="${RPROMPT//  / }"
-            ((count++))
-        done
+        # Clean up multiple spaces
+        RPROMPT="${RPROMPT//  / }"
+        RPROMPT="${RPROMPT//  / }"
+        RPROMPT="${RPROMPT//  / }"
         
-        # Remove trailing spaces and tabs (limited iterations)
-        count=0
-        while [[ "$RPROMPT" == *" " ]] && [[ $count -lt 5 ]]; do
-            RPROMPT="${RPROMPT% }"
-            ((count++))
-        done
-        
-        count=0
-        while [[ "$RPROMPT" == *$'\t' ]] && [[ $count -lt 5 ]]; do
-            RPROMPT="${RPROMPT%$'\t'}"
-            ((count++))
-        done
-        
-        # Remove Oh My Posh artifacts
-        RPROMPT="${RPROMPT%%%}"
-        
-        # Clean up broken color sequences (limited iterations)
-        count=0
-        while [[ "$RPROMPT" == *"%{"* ]] && [[ $count -lt 5 ]]; do
-            RPROMPT="${RPROMPT//%\{/}"
-            ((count++))
-        done
+        # Remove trailing spaces
+        RPROMPT="${RPROMPT% }"
+        RPROMPT="${RPROMPT% }"
+        RPROMPT="${RPROMPT% }"
     fi
 }
 
@@ -145,43 +107,26 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     # Add a hook to clean up prompt on every command
     add-zsh-hook precmd _clean_prompt
     
-    # Linux-specific additional cleanup (safe version)
+    # Linux-specific additional cleanup
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         _linux_prompt_cleanup() {
             if [[ -n "$PROMPT" ]]; then
                 # Aggressive cleanup for Linux
-                PROMPT="${PROMPT//%\{}"
+                PROMPT="${PROMPT//%/}"
+                PROMPT="${PROMPT//\{/}"
                 PROMPT="${PROMPT//\}/}"
                 
-                # Clean up broken color sequences (limited iterations)
-                local count=0
-                while [[ "$PROMPT" == *"%{"* ]] && [[ $count -lt 5 ]]; do
-                    PROMPT="${PROMPT//%\{/}"
-                    ((count++))
-                done
+                # Multiple passes for spaces
+                PROMPT="${PROMPT//  / }"
+                PROMPT="${PROMPT//  / }"
+                PROMPT="${PROMPT//  / }"
+                PROMPT="${PROMPT//  / }"
                 
-                # Remove multiple spaces (limited iterations)
-                count=0
-                while [[ "$PROMPT" == *"   "* ]] && [[ $count -lt 5 ]]; do
-                    PROMPT="${PROMPT//   / }"
-                    ((count++))
-                done
-                
-                count=0
-                while [[ "$PROMPT" == *"  "* ]] && [[ $count -lt 10 ]]; do
-                    PROMPT="${PROMPT//  / }"
-                    ((count++))
-                done
-                
-                # Remove trailing spaces (limited iterations)
-                count=0
-                while [[ "$PROMPT" == *" " ]] && [[ $count -lt 5 ]]; do
-                    PROMPT="${PROMPT% }"
-                    ((count++))
-                done
-                
-                # Remove Oh My Posh artifacts
-                PROMPT="${PROMPT%%%}"
+                # Remove trailing spaces
+                PROMPT="${PROMPT% }"
+                PROMPT="${PROMPT% }"
+                PROMPT="${PROMPT% }"
+                PROMPT="${PROMPT% }"
             fi
         }
         add-zsh-hook precmd _linux_prompt_cleanup
