@@ -29,35 +29,31 @@ _validate_theme_file() {
 # Simple and reliable prompt cleaning function
 _clean_prompt() {
     if [[ -n "$PROMPT" ]]; then
-        # Remove all problematic characters that cause display issues
-        PROMPT="${PROMPT//%/}"
-        PROMPT="${PROMPT//\{/}"
-        PROMPT="${PROMPT//\}/}"
+        # Only remove empty or broken color codes, preserve valid ones
+        PROMPT="${PROMPT//%\{\}/}"
+        PROMPT="${PROMPT//%\{ \}/}"
+        PROMPT="${PROMPT//%\{}/}"
         
-        # Clean up multiple spaces
-        PROMPT="${PROMPT//  / }"
+        # Clean up multiple spaces (but preserve single spaces)
         PROMPT="${PROMPT//  / }"
         PROMPT="${PROMPT//  / }"
         
         # Remove trailing spaces
-        PROMPT="${PROMPT% }"
         PROMPT="${PROMPT% }"
         PROMPT="${PROMPT% }"
     fi
     
     if [[ -n "$RPROMPT" ]]; then
-        # Same cleaning for RPROMPT
-        RPROMPT="${RPROMPT//%/}"
-        RPROMPT="${RPROMPT//\{/}"
-        RPROMPT="${RPROMPT//\}/}"
+        # Same selective cleaning for RPROMPT
+        RPROMPT="${RPROMPT//%\{\}/}"
+        RPROMPT="${RPROMPT//%\{ \}/}"
+        RPROMPT="${RPROMPT//%\{}/}"
         
         # Clean up multiple spaces
         RPROMPT="${RPROMPT//  / }"
         RPROMPT="${RPROMPT//  / }"
-        RPROMPT="${RPROMPT//  / }"
         
         # Remove trailing spaces
-        RPROMPT="${RPROMPT% }"
         RPROMPT="${RPROMPT% }"
         RPROMPT="${RPROMPT% }"
     fi
@@ -111,19 +107,17 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         _linux_prompt_cleanup() {
             if [[ -n "$PROMPT" ]]; then
-                # Aggressive cleanup for Linux
-                PROMPT="${PROMPT//%/}"
-                PROMPT="${PROMPT//\{/}"
-                PROMPT="${PROMPT//\}/}"
+                # Selective cleanup for Linux - preserve valid color codes
+                PROMPT="${PROMPT//%\{\}/}"
+                PROMPT="${PROMPT//%\{ \}/}"
+                PROMPT="${PROMPT//%\{}/}"
                 
                 # Multiple passes for spaces
                 PROMPT="${PROMPT//  / }"
                 PROMPT="${PROMPT//  / }"
                 PROMPT="${PROMPT//  / }"
-                PROMPT="${PROMPT//  / }"
                 
                 # Remove trailing spaces
-                PROMPT="${PROMPT% }"
                 PROMPT="${PROMPT% }"
                 PROMPT="${PROMPT% }"
                 PROMPT="${PROMPT% }"
