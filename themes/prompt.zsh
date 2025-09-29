@@ -38,6 +38,10 @@ _clean_prompt() {
             ((count++))
         done
         
+        # Final cleanup for any remaining artifacts
+        PROMPT="${PROMPT%/}"
+        PROMPT="${PROMPT%}"
+        
         # Clean up multiple spaces
         PROMPT="${PROMPT//  / }"
         PROMPT="${PROMPT//  / }"
