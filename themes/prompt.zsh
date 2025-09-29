@@ -135,7 +135,7 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     fi
     
     # Add a hook to clean up prompt on every command
-    add-zsh-hook precmd _clean_prompt
+    # add-zsh-hook precmd _clean_prompt
     
     # Linux-specific additional cleanup
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -157,7 +157,7 @@ if command -v oh-my-posh >/dev/null 2>&1; then
                 PROMPT="${PROMPT% }"
             fi
         }
-        add-zsh-hook precmd _linux_prompt_cleanup
+        # add-zsh-hook precmd _linux_prompt_cleanup
     fi
 else
     # Fallback to custom prompt if Oh My Posh is not available
