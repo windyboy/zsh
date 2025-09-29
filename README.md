@@ -251,6 +251,9 @@ plugins_clean   # Clean unused plugins
 
 # Performance
 perf            # Performance metrics
+perf --modules  # Per-module performance breakdown
+perf --memory   # Memory usage analysis
+perf --startup  # Startup time analysis
 perf --monitor  # Continuous monitoring
 perf --optimize # Optimization suggestions
 ```
@@ -563,6 +566,9 @@ zsh --version
 perf --optimize    # Show optimization recommendations
 perf --profile     # Generate performance profile
 perf --monitor     # Continuous performance monitoring
+perf --modules     # Show per-module performance metrics
+perf --memory      # Display module memory impact
+perf --startup     # Analyze startup time per module
 ```
 
 #### Plugin Conflicts
