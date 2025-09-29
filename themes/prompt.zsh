@@ -98,7 +98,7 @@ if command -v oh-my-posh >/dev/null 2>&1; then
         else
             # Remove invalid theme files
             if [[ -f "$candidate_file" ]]; then
-                echo "⚠️  Removing invalid theme file: $theme" >&2
+                echo "Warning: Removing invalid theme file: $theme" >&2
                 rm -f "$candidate_file"
             fi
         fi
@@ -550,7 +550,7 @@ posh_theme_favorites() {
             ;;
         "add")
             if [[ $# -lt 2 ]]; then
-                echo "❌ Usage: posh_theme favorites add <theme_name>"
+                echo "Usage: posh_theme favorites add <theme_name>"
                 return 1
             fi
             
@@ -563,7 +563,7 @@ posh_theme_favorites() {
             fi
             
             if [[ ! -f "$theme_file" ]]; then
-                echo "❌ Theme not found: $theme_name"
+                echo "Theme not found: $theme_name"
                 return 1
             fi
             
@@ -572,22 +572,22 @@ posh_theme_favorites() {
             
             # Check if already in favorites
             if grep -q "^${theme_name}$" "$favorites_file" 2>/dev/null; then
-                echo "⭐ Theme '$theme_name' is already in favorites"
+                echo "Theme '$theme_name' is already in favorites"
             else
                 echo "$theme_name" >> "$favorites_file"
-                echo "✅ Added '$theme_name' to favorites"
+                echo "Added '$theme_name' to favorites"
             fi
             ;;
         "remove"|"rm")
             if [[ $# -lt 2 ]]; then
-                echo "❌ Usage: posh_theme favorites remove <theme_name>"
+                echo "Usage: posh_theme favorites remove <theme_name>"
                 return 1
             fi
             
             local theme_name="$2"
             
             if [[ ! -f "$favorites_file" ]]; then
-                echo "📝 No favorites file found"
+                echo "No favorites file found"
                 return 1
             fi
             
@@ -595,17 +595,17 @@ posh_theme_favorites() {
                 local temp_file
                 temp_file=$(mktemp 2>/dev/null || echo "/tmp/posh_favorites_$$.tmp")
                 grep -v "^${theme_name}$" "$favorites_file" > "$temp_file" && mv "$temp_file" "$favorites_file"
-                echo "✅ Removed '$theme_name' from favorites"
+                echo "Removed '$theme_name' from favorites"
             else
-                echo "❌ Theme '$theme_name' not found in favorites"
+                echo "Theme '$theme_name' not found in favorites"
             fi
             ;;
         "clear")
             if [[ -f "$favorites_file" ]]; then
                 rm -f "$favorites_file"
-                echo "✅ Cleared all favorite themes"
+                echo "Cleared all favorite themes"
             else
-                echo "📝 No favorites to clear"
+                echo "No favorites to clear"
             fi
             ;;
         *)
