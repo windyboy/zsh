@@ -46,7 +46,7 @@ simple_source "$ZSH_CONFIG_DIR/zshenv" "environment variables"
 
 # Load core modules (order cannot be changed)
 local loaded_modules=0
-local module_list=(colors core security navigation path plugins completion aliases keybindings utils)
+local module_list=(colors core navigation path plugins completion aliases keybindings utils)
 local total_modules=${#module_list[@]}
 
 for mod in "${module_list[@]}"; do
@@ -58,13 +58,6 @@ done
 
 # Load theme configuration
 simple_source "$ZSH_CONFIG_DIR/themes/prompt.zsh" "theme configuration"
-
-# Load user custom extensions (optional)
-if [[ -d "$ZSH_CONFIG_DIR/modules/custom" ]]; then
-    for custom in "$ZSH_CONFIG_DIR/modules/custom"/*.zsh(N); do
-        [[ -f "$custom" ]] && simple_source "$custom" "custom module: ${custom##*/}"
-    done
-fi
 
 # Load local personalization configuration (optional)
 simple_source "$ZSH_CONFIG_DIR/local.zsh" "local configuration"

@@ -120,7 +120,6 @@ check_file_structure() {
     # Configuration files
     run_test "Main zshrc exists" "[[ -f "$PROJECT_ROOT/zshrc" ]]" "Main configuration file"
     run_test "Environment file exists" "[[ -f "$PROJECT_ROOT/zshenv" ]]" "Environment configuration"
-    run_test "Template file exists" "[[ -f "$PROJECT_ROOT/.zshrc.template" ]]" "Configuration template"
     
     # Documentation
     run_test "README exists" "[[ -f "$PROJECT_ROOT/README.md" ]]" "Project documentation"
@@ -131,7 +130,6 @@ check_file_structure() {
     # Directories
     run_test "Modules directory exists" "[[ -d "$PROJECT_ROOT/modules" ]]" "Configuration modules"
     run_test "Themes directory exists" "[[ -d "$PROJECT_ROOT/themes" ]]" "Theme collection"
-    run_test "Custom directory exists" "[[ -d "$PROJECT_ROOT/custom" ]]" "Custom configurations"
     run_test "Completions directory exists" "[[ -d "$PROJECT_ROOT/completions" ]]" "Completion scripts"
     run_test "Environment directory exists" "[[ -d "$PROJECT_ROOT/env" ]]" "Environment management"
     

@@ -393,9 +393,6 @@ run_plugin_tests() {
         plugin_dirs+=("$ZINIT_HOME/plugins:zinit plugins")
     fi
     
-    # Add custom directory (always check this)
-    plugin_dirs+=("$ZSH_CONFIG_DIR/custom:custom")
-    
     for dir_info in "${plugin_dirs[@]}"; do
         local dir="${dir_info%%:*}"
         local dir_name="${dir_info##*:}"

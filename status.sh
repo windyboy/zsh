@@ -83,7 +83,7 @@ printf "  %s %s %s\n" "🏷️" "Version:" "$(status_color_bold "5.3.0 (Enhanced
 printf "  %s %s %s\n" "🎯" "Architecture:" "$(status_color_cyan "Modular & Minimal")"
 printf "  %s %s %s\n" "⚡" "Performance:" "$(status_color_green "Optimized")"
 printf "  %s %s %s\n" "🎨" "Experience:" "$(status_color_purple "Personalized")"
-printf "  %s %s %s\n" "📦" "Modules:" "$(status_color_yellow "core/aliases/plugins/completion/keybindings/utils")"
+printf "  %s %s %s\n" "📦" "Modules:" "$(status_color_yellow "colors/core/navigation/path/plugins/completion/aliases/keybindings/utils")"
 echo
 
 # Module status with enhanced formatting and progress
@@ -91,10 +91,10 @@ status_color_cyan "📁 Module Status"
 status_color_yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 local total_lines=0
 local loaded_modules=0
-local module_count=6
+local module_count=9
 local current_module=0
 
-for module in core aliases plugins completion keybindings utils; do
+for module in colors core navigation path plugins completion aliases keybindings utils; do
     current_module=$((current_module + 1))
     local file="$ZSH_CONFIG_DIR/modules/${module}.zsh"
     if [[ -f "$file" ]]; then
@@ -236,12 +236,6 @@ printf "%s\n" "$plugin_manager_status"
 # Check plugin directories
 if [[ -n "$ZINIT_HOME" && -d "$ZINIT_HOME/plugins" ]]; then
     printf "✅ Plugin directory exists: %s\n" "$(status_color_green "zinit plugins")"
-fi
-
-if [[ -d "$ZSH_CONFIG_DIR/custom" ]]; then
-    printf "✅ Plugin directory exists: %s\n" "$(status_color_green "custom")"
-else
-    printf "❌ Plugin directory exists: custom - Custom directory not found\n"
 fi
 
 # Check if oh-my-posh is available

@@ -11,12 +11,19 @@
 core_color_red()   { color_red "$@"; }
 core_color_green() { color_green "$@"; }
 
+# -------------------- Security Settings --------------------
+# Safe file operations (merged from security.zsh)
+alias rm='rm -i' cp='cp -i' mv='mv -i'
+
+# Secure umask
+umask 022
+
 # -------------------- Module Loading Status --------------------
 export ZSH_MODULES_LOADED=""
 
 # -------------------- Directory Initialization --------------------
 core_init_dirs() {
-    local dirs=("$ZSH_CACHE_DIR" "$ZSH_DATA_DIR" "$ZSH_CONFIG_DIR/custom" "$ZSH_CONFIG_DIR/completions")
+    local dirs=("$ZSH_CACHE_DIR" "$ZSH_DATA_DIR" "$ZSH_CONFIG_DIR/completions")
     for dir in "${dirs[@]}"; do
         [[ ! -d "$dir" ]] && mkdir -p "$dir" 2>/dev/null && color_green "Created: $dir"
     done
@@ -28,6 +35,7 @@ setopt CORRECT CORRECT_ALL
 setopt NO_HUP NO_CHECK_JOBS
 setopt AUTO_PARAM_KEYS AUTO_PARAM_SLASH COMPLETE_IN_WORD HASH_LIST_ALL
 setopt INTERACTIVE_COMMENTS MULTIOS NOTIFY
+setopt NO_CLOBBER RM_STAR_WAIT PIPE_FAIL
 unsetopt BEEP CASE_GLOB FLOW_CONTROL
 
 # -------------------- Enhanced Error Handling --------------------
@@ -203,7 +211,7 @@ validate() {
     
     # 4. Check module loading
     log_validation "info" "Checking module loading..."
-    local modules=("core" "security" "navigation" "aliases" "plugins" "completion" "keybindings" "utils")
+    local modules=("core" "navigation" "aliases" "plugins" "completion" "keybindings" "utils")
     for module in "${modules[@]}"; do
         local modfile="$ZSH_CONFIG_DIR/modules/${module}.zsh"
         if [[ -f "$modfile" ]]; then
@@ -639,7 +647,7 @@ EOF
             
             # Module analysis
             echo "Module Analysis:"
-            local modules=("core" "security" "navigation" "aliases" "plugins" "completion" "keybindings" "utils")
+            local modules=("core" "navigation" "aliases" "plugins" "completion" "keybindings" "utils")
             for module in "${modules[@]}"; do
                 local modfile="$ZSH_CONFIG_DIR/modules/${module}.zsh"
                 if [[ -f "$modfile" ]]; then
