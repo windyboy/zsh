@@ -437,6 +437,11 @@ run_validation_tests() {
     if typeset -f validation_run >/dev/null 2>&1; then
         local -a validation_messages=()
         validation_run validation_messages false
+        
+        # Suppress shellcheck warning - messages are used by validation_run internally
+        # shellcheck disable=SC2034
+        : "${validation_messages[@]}"
+        
         test_assert "Validation reports no errors" "[[ $VALIDATION_ERRORS -eq 0 ]]" "Validation reported $VALIDATION_ERRORS error(s)"
 
         if [[ $VALIDATION_WARNINGS -gt 0 ]]; then
