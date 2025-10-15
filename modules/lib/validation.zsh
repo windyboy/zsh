@@ -9,16 +9,14 @@ __ZSH_VALIDATION_LIB_LOADED=1
 typeset -gi VALIDATION_ERRORS=0
 typeset -gi VALIDATION_WARNINGS=0
 typeset -ga __VALIDATION_MESSAGES=()
-typeset -A __VALIDATION_STATE=()
+typeset -g __VALIDATION_FIX_MODE="false"
 
 validation_reset_context() {
     local fix_mode="${1:-false}"
     __VALIDATION_MESSAGES=()
-    __VALIDATION_STATE=(
-        fix_mode "$fix_mode"
-        errors 0
-        warnings 0
-    )
+    __VALIDATION_FIX_MODE="$fix_mode"
+    VALIDATION_ERRORS=0
+    VALIDATION_WARNINGS=0
 }
 
 validation_add() {
@@ -26,8 +24,12 @@ validation_add() {
     local message="$2"
     __VALIDATION_MESSAGES+=("$level|$message")
     case "$level" in
-        error) __VALIDATION_STATE[errors]=$(( __VALIDATION_STATE[errors] + 1 )) ;;
-        warning) __VALIDATION_STATE[warnings]=$(( __VALIDATION_STATE[warnings] + 1 )) ;;
+        error) 
+            (( VALIDATION_ERRORS++ ))
+            ;;
+        warning) 
+            (( VALIDATION_WARNINGS++ ))
+            ;;
     esac
 }
 
@@ -35,7 +37,7 @@ validation_attempt_fix() {
     local description="$1"
     local command="$2"
 
-    [[ "${__VALIDATION_STATE[fix_mode]}" == "true" ]] || return 1
+    [[ "$__VALIDATION_FIX_MODE" == "true" ]] || return 1
 
     validation_add info "Attempting to fix: $description"
     if [[ "$command" =~ ^(mkdir|chmod|chown|ln|cp|mv|rm)\  ]]; then
@@ -201,8 +203,6 @@ validation_run() {
     done
 
     eval "$target_array=(\"\${__VALIDATION_MESSAGES[@]}\")"
-    VALIDATION_ERRORS=${__VALIDATION_STATE[errors]}
-    VALIDATION_WARNINGS=${__VALIDATION_STATE[warnings]}
-
+    
     (( VALIDATION_ERRORS == 0 ))
 }
