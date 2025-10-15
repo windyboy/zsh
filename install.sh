@@ -9,11 +9,10 @@ set -euo pipefail
 VERSION="5.3.0"
 BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-# Simple logging
-log() { echo "ℹ️  $1"; }
-success() { echo "✅ $1"; }
-warning() { echo "⚠️  $1"; }
-error() { echo "❌ $1"; }
+# Shared logging
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/scripts/lib/logging.sh"
 
 # Check ZSH version
 check_zsh_version() {

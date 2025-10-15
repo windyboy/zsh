@@ -10,6 +10,7 @@ source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 # Module specific wrappers
 nav_color_red()   { color_red "$@"; }
 nav_color_green() { color_green "$@"; }
+nav_color_yellow() { color_yellow "$@"; }
 
 # -------------------- Navigation Settings --------------------
 # Directory navigation

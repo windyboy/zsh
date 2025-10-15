@@ -13,6 +13,18 @@
   - [x] Removed redundant cleanup loops and complex validation
   - [x] Improved performance and maintainability
   - [x] **Effort**: Complete refactoring, **Value**: Better performance and code quality
+- [x] **Unify script logging** - Shared `scripts/lib/logging.sh` used across CLI tools
+  - [x] Removed duplicated color blocks and ad-hoc logging
+  - [x] Added emoji+ANSI toggles with `NO_COLOR`
+  - [x] **Effort**: ~60 lines total, **Value**: Consistent user experience and maintainability
+- [x] **Centralize plugin registry** - Declarative lists for plugin management
+  - [x] Added `plugins/core.list` and `plugins/optional.list`
+  - [x] Updated `modules/plugins.zsh` & `install-plugins.sh` to consume the lists
+  - [x] **Effort**: ~120 lines refactor, **Value**: Single source of truth, easier customization
+- [x] **Extract validation library** - Reusable diagnostics for CLI tools
+  - [x] Added `modules/lib/validation.zsh`
+  - [x] Hooked into `validate`, `status.sh`, and `test.sh`
+  - [x] **Effort**: ~150 lines refactor, **Value**: Consistent reporting and auto-fix logic reuse
 - [ ] **Fix plugin loading issues** - Improve error handling
   - [ ] Better error messages when plugins fail to load
   - [ ] Auto-retry logic for failed plugin installations
@@ -32,11 +44,11 @@
   - [ ] Detect plugin conflicts
   - [ ] Display plugin performance impact
   - [ ] **Effort**: ~50 lines of code, **Value**: Prevents configuration issues
-- [ ] **Add theme switching commands** - User customization
-  - [ ] `theme list` - Show available themes
-  - [ ] `theme switch <name>` - Change active theme
-  - [ ] Uses existing `themes/` directory
-  - [ ] **Effort**: ~40 lines of code, **Value**: Immediate user satisfaction
+- [x] **Persist theme selection** - User customization
+  - [x] Theme preference stored in `themes/theme-preference`
+  - [x] `posh_theme` records selection and validates files
+  - [x] Environment overrides via `ZSH_POSH_THEME`/`POSH_THEME_PREF_FILE`
+  - [x] **Effort**: ~80 lines of code, **Value**: Stable prompt experience across sessions
 
 ## 📊 Performance & Monitoring Improvements
 

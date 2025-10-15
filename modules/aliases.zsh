@@ -6,11 +6,6 @@
 # -------------------- Directory/File Operations --------------------
 alias ..='cd ..'
 alias ...='cd ../..'
-up() {
-    local levels=${1:-1} path=""
-    for ((i=0; i<levels; i++)); do path="../$path"; done
-    cd "$path"
-}
 
 # -------------------- ls/eza Related --------------------
 if command -v eza >/dev/null 2>&1; then

@@ -5,11 +5,25 @@
 # =============================================================================
 # shellcheck disable=SC2015,SC2162
 
-# Enhanced logging with timestamps
-log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] ℹ️  $1"; }
-success() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ $1"; }
-warning() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️  $1"; }
-error() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ $1"; }
+# Shared logging with timestamp wrappers
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/scripts/lib/logging.sh"
+
+with_timestamp() {
+    printf '[%s] ' "$(date '+%Y-%m-%d %H:%M:%S')"
+    "$@"
+}
+
+eval "$(declare -f log     | sed '1s/^log/_log_plain/')"
+eval "$(declare -f success | sed '1s/^success/_success_plain/')"
+eval "$(declare -f warning | sed '1s/^warning/_warning_plain/')"
+eval "$(declare -f error   | sed '1s/^error/_error_plain/')"
+
+log()     { with_timestamp _log_plain "$@"; }
+success() { with_timestamp _success_plain "$@"; }
+warning() { with_timestamp _warning_plain "$@"; }
+error()   { with_timestamp _error_plain "$@"; }
 
 # Version information
 VERSION="5.3.0"

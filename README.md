@@ -394,6 +394,20 @@ plugins_clean   # Clean unused plugins
 - If you encounter issues, check logs: `./status.sh --verbose`
 - Plugins are automatically installed when missing, reducing manual setup
 
+### Plugin Registry Overview
+
+- **Core list**: `plugins/core.list` controls the default zinit plugins sourced by `modules/plugins.zsh`.
+- **Optional list**: `plugins/optional.list` holds plugins loaded only when `ZSH_ENABLE_OPTIONAL_PLUGINS=1`.
+- **Legacy override**: `plugins.conf` remains supported for associative-array based configuration (handy for scripted deployments).
+
+To add or remove plugins, edit the relevant list and run `./install-plugins.sh install` (or reload your shell). Use `./install-plugins.sh list` to review the effective set before installing.
+
+### Theme Preferences
+
+- Running `posh_theme <name>` validates the theme and records the choice in `themes/theme-preference` so future sessions keep the same look.
+- Set `ZSH_POSH_THEME=<name>` to override the stored preference without editing files.
+- Customize the preference file location by exporting `POSH_THEME_PREF_FILE=/path/to/file` before loading ZSH.
+
 ## 🧪 Testing & Validation
 
 ### Comprehensive Test Suite
@@ -629,9 +643,11 @@ source ~/.config/zsh/zshrc
 All major scripts now support external configuration files for customization:
 
 ```bash
-# Plugin configuration
-cp plugins.conf.example plugins.conf
-# Edit plugins.conf to customize plugin selection
+# Plugin registry (core set loaded for every shell)
+${EDITOR:-code} plugins/core.list
+
+# Optional plugins (loaded when ZSH_ENABLE_OPTIONAL_PLUGINS=1)
+${EDITOR:-code} plugins/optional.list
 
 # Project health check configuration
 cp .check-project.conf.example .check-project.conf
@@ -640,18 +656,26 @@ cp .check-project.conf.example .check-project.conf
 # Installation configuration
 cp .zsh-install.conf.example ~/.zsh-install.conf
 # Edit ~/.zsh-install.conf to customize installation options
+
+# (Legacy) override plugin configuration
+cp plugins.conf.example plugins.conf
 ```
 
-**Available Configuration Files:**
-- **`plugins.conf`** - Plugin selection and management options
+**Available Configuration & Registry Files:**
+- **`plugins/core.list`** - Primary zinit plugins (one `owner/repo` per line)
+- **`plugins/optional.list`** - Optional plugins, loaded when enabled
+- **`plugins.conf`** *(optional)* - Legacy override using shell arrays if you prefer script-based configuration
 - **`.check-project.conf`** - Health check thresholds and exclusions
 - **`.zsh-install.conf`** - Installation preferences and repository settings
+- **`themes/theme-preference`** - Last selected Oh My Posh theme (created automatically)
+- **`modules/lib/validation.zsh`** - Shared validation helpers; ensure this file exists under your `$ZSH_CONFIG_DIR/modules/lib/`
 
 ### Configuration Examples
 
 ```bash
-# Customize plugin installation
-export ZSH_PLUGINS="fzf,zoxide,eza"
+# Customize plugin registry
+echo "zsh-users/zsh-autosuggestions" >> plugins/core.list
+./install-plugins.sh list
 ./install-plugins.sh install
 
 # Custom repository for quick-install

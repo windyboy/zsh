@@ -147,274 +147,33 @@ echo
 # Configuration validation with beautiful formatting
 status_color_cyan "🔧 Configuration Validation"
 status_color_yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-# Validate configuration
-local validation_errors=0
+if typeset -f validation_run >/dev/null 2>&1; then
+    local -a status_validation_messages=()
+    validation_run status_validation_messages false
 
-# Check if essential variables are set
-if [[ -z "$ZSH_CONFIG_DIR" ]]; then
-    printf "    %s %s\n" "❌" "$(status_color_red "ZSH_CONFIG_DIR not set")"
-    ((validation_errors++))
-else
-    printf "    %s %s\n" "✅" "$(status_color_green "ZSH_CONFIG_DIR: $ZSH_CONFIG_DIR")"
-fi
-
-# Check if modules are loaded by looking for module-specific indicators
-if [[ -n "$ZSH_MODULES_LOADED" ]]; then
-    printf "    %s %s\n" "✅" "$(status_color_green "Modules loaded: $ZSH_MODULES_LOADED")"
-else
-    # Fallback: check if key module functions exist
-    if (( ${+functions[color_green]} )) || (( ${+functions[color_red]} )); then
-        printf "    %s %s\n" "✅" "$(status_color_green "Modules loaded (detected via functions)")"
-    else
-        printf "    %s %s\n" "❌" "$(status_color_red "No modules loaded")"
-        ((validation_errors++))
-    fi
-fi
-
-# Check if zinit is available
-if [[ -z "$ZINIT_HOME" ]]; then
-    printf "    %s %s\n" "⚠️" "$(status_color_yellow "ZINIT_HOME not set (plugins may not work)")"
-else
-    printf "    %s %s\n" "✅" "$(status_color_green "ZINIT_HOME: $ZINIT_HOME")"
-fi
-
-# Check if history file exists
-if [[ ! -f "$HISTFILE" ]]; then
-    printf "    %s %s\n" "⚠️" "$(status_color_yellow "History file not found: $HISTFILE")"
-else
-    printf "    %s %s\n" "✅" "$(status_color_green "History file: $HISTFILE")"
-fi
-
-if [[ $validation_errors -eq 0 ]]; then
-    printf "    %s %s\n" "✅" "$(status_color_green "Configuration validation passed")"
-else
-    printf "    %s %s\n" "❌" "$(status_color_red "Configuration validation failed ($validation_errors errors)")"
-fi
-echo
-
-# Plugin status with beautiful formatting
-status_color_cyan "🔌 Plugin Status"
-status_color_yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-# Check plugin manager availability
-local plugin_managers=("zinit" "zplug" "antigen")
-local found_manager=""
-local plugin_manager_status=""
-
-# First check if plugin manager is available in PATH
-for manager in "${plugin_managers[@]}"; do
-    if command -v "$manager" >/dev/null 2>&1; then
-        found_manager="$manager"
-        plugin_manager_status="✅ Plugin manager available - $manager found"
-        break
-    fi
-done
-
-# If no manager found in PATH, check for zinit in common locations
-if [[ -z "$found_manager" ]]; then
-    local zinit_paths=(
-        "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
-        "$HOME/.zinit/bin/zinit.zsh"
-        "/usr/local/share/zinit/zinit.git/zinit.zsh"
-    )
-    
-    for zinit_path in "${zinit_paths[@]}"; do
-        if [[ -f "$zinit_path" ]]; then
-            found_manager="zinit"
-            plugin_manager_status="✅ Plugin manager available - zinit found (at $zinit_path)"
-            break
-        fi
-    done
-fi
-
-if [[ -z "$found_manager" ]]; then
-    plugin_manager_status="⏭️  Plugin manager available - No plugin manager found"
-fi
-
-printf "%s\n" "$plugin_manager_status"
-
-# Check plugin directories
-if [[ -n "$ZINIT_HOME" && -d "$ZINIT_HOME/plugins" ]]; then
-    printf "✅ Plugin directory exists: %s\n" "$(status_color_green "zinit plugins")"
-fi
-
-# Check if oh-my-posh is available
-if command -v oh-my-posh >/dev/null 2>&1; then
-    printf "✅ oh-my-posh is available\n"
-else
-    printf "❌ oh-my-posh is available - oh-my-posh not installed\n"
-fi
-
-# Get plugin information
-local plugin_count=0
-local active_plugins=0
-
-# Check zinit plugins
-local zinit_plugins=(
-    "fast-syntax-highlighting:Syntax Highlighting"
-    "zsh-autosuggestions:Auto Suggestions"
-    "zsh-completions:Enhanced Completions"
-    "fzf-tab:FZF Tab Completion"
-    "z:Directory Jump"
-    "zsh-extract:Enhanced File Extraction"
-)
-
-# Check tool plugins
-local tool_plugins=(
-    "fzf:Fuzzy Finder"
-    "zoxide:Smart Navigation"
-    "eza:Enhanced ls"
-)
-
-# Check builtin plugins
-local builtin_plugins=(
-    "git:Git Integration"
-    "history:History Management"
-)
-
-plugin_count=$(( ${#zinit_plugins[@]} + ${#tool_plugins[@]} + ${#builtin_plugins[@]} ))
-
-# Display zinit plugins
-if [[ -n "$found_manager" && "$found_manager" == "zinit" ]]; then
-    printf "  %s %s\n" "🎨" "$(status_color_cyan "Zinit Plugins:")"
-    for plugin in "${zinit_plugins[@]}"; do
-        local name="${plugin%%:*}"
-        local desc="${plugin##*:}"
-        
-        # Check if plugin is actually loaded by looking for plugin-specific functions or files
-        local plugin_loaded=false
-        
-        case "$name" in
-            "fast-syntax-highlighting")
-                # Check for syntax highlighting functions or if the plugin file exists
-                if (( ${+functions[_zsh_highlight]} )) || (( ${+functions[_zsh_highlight_highlighter_main_paint]} )) || \
-                   [[ -f "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]]; then
-                    plugin_loaded=true
-                fi
-                ;;
-            "zsh-autosuggestions")
-                # Check for autosuggestions functions or if the plugin file exists
-                if (( ${+functions[_zsh_autosuggest_start]} )) || (( ${+functions[_zsh_autosuggest_suggest]} )) || \
-                   [[ -f "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-                    plugin_loaded=true
-                fi
-                ;;
-            "zsh-completions")
-                # Check if plugin directory exists and has content
-                if [[ -d "$ZINIT_HOME/plugins/zsh-users---zsh-completions" ]] && \
-                   [[ -n "$(ls -A "$ZINIT_HOME/plugins/zsh-users---zsh-completions" 2>/dev/null)" ]]; then
-                    plugin_loaded=true
-                fi
-                ;;
-            "fzf-tab")
-                # Check for fzf-tab functions or if the plugin file exists
-                if (( ${+functions[_fzf_tab_complete]} )) || (( ${+functions[_fzf-tab-apply]} )) || (( ${+functions[-ftb-complete]} )) || \
-                   [[ -f "$ZINIT_HOME/plugins/Aloxaf---fzf-tab/fzf-tab.plugin.zsh" ]]; then
-                    plugin_loaded=true
-                fi
-                ;;
-            "z")
-                # Check for z function or if the plugin file exists
-                if (( ${+functions[_z]} )) || (( ${+functions[z]} )) || \
-                   [[ -f "$ZINIT_HOME/plugins/rupa---z/z.sh" ]]; then
-                    plugin_loaded=true
-                fi
-                ;;
-            "zsh-extract")
-                # Check for extract function or if the plugin file exists
-                if (( ${+functions[extract]} )) || (( ${+functions[x]} )) || \
-                   [[ -f "$ZINIT_HOME/plugins/le0me55i---zsh-extract/extract.plugin.zsh" ]]; then
-                    plugin_loaded=true
-                fi
-                ;;
-            *)
-                # Fallback: check if plugin directory exists
-                if [[ -d "$ZINIT_HOME/plugins" ]]; then
-                    plugin_loaded=true
-                fi
-                ;;
+    for entry in "${status_validation_messages[@]}"; do
+        local level="${entry%%|*}"
+        local message="${entry#*|}"
+        case "$level" in
+            success) printf "    %s %s\n" "✅" "$(status_color_green "$message")" ;;
+            warning) printf "    %s %s\n" "⚠️" "$(status_color_yellow "$message")" ;;
+            error)   printf "    %s %s\n" "❌" "$(status_color_red "$message")" ;;
+            info)    printf "    %s %s\n" "ℹ️" "$(status_color_blue "$message")" ;;
         esac
-        
-        if [[ "$plugin_loaded" == "true" ]]; then
-            printf "    %s %-25s %s\n" "✅" "$name" "$(status_color_green "$desc")"
-            ((active_plugins++))
-        else
-            printf "    %s %-25s %s\n" "❌" "$name" "$(status_color_red "$desc")"
-        fi
     done
-else
-    printf "  %s %s\n" "⚠️" "$(status_color_yellow "Zinit Plugins:")"
-    printf "    %s %s\n" "⏭️" "$(status_color_yellow "Plugin manager not available or not zinit")"
-fi
 
-# Display tool plugins
-printf "  %s %s\n" "🛠️" "$(status_color_cyan "Tool Plugins:")"
-for plugin in "${tool_plugins[@]}"; do
-    local name="${plugin%%:*}"
-    local desc="${plugin##*:}"
-    if command -v "$name" >/dev/null 2>&1; then
-        printf "    %s %-25s %s\n" "✅" "$name" "$(status_color_green "$desc")"
-        ((active_plugins++))
+    printf "    %s %s\n" "❌" "$(status_color_bold "Errors: $VALIDATION_ERRORS")"
+    printf "    %s %s\n" "⚠️" "$(status_color_bold "Warnings: $VALIDATION_WARNINGS")"
+
+    if [[ $VALIDATION_ERRORS -eq 0 && $VALIDATION_WARNINGS -eq 0 ]]; then
+        printf "    %s %s\n" "✅" "$(status_color_green "Configuration validation passed")"
+    elif [[ $VALIDATION_ERRORS -eq 0 ]]; then
+        printf "    %s %s\n" "⚠️" "$(status_color_yellow "Warnings present but no errors")"
     else
-        printf "    %s %-25s %s\n" "❌" "$name" "$(status_color_red "$desc")"
+        printf "    %s %s\n" "❌" "$(status_color_red "Validation reported errors")"
     fi
-done
-
-# Display builtin plugins
-printf "  %s %s\n" "🔧" "$(status_color_cyan "Builtin Plugins:")"
-for plugin in "${builtin_plugins[@]}"; do
-    local name="${plugin%%:*}"
-    local desc="${plugin##*:}"
-    printf "    %s %-25s %s\n" "✅" "$name" "$(status_color_green "$desc")"
-    ((active_plugins++))
-done
-
-echo
-printf "  %s %s %s %s\n" "📊" "Plugin Summary:" "$(status_color_green "$active_plugins/$plugin_count active")" "$(status_color_cyan "($((active_plugins * 100 / plugin_count))%)")"
-echo
-
-# Summary section
-status_color_cyan "📋 Summary"
-status_color_yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-# Calculate overall score
-local module_score=$((loaded_modules * 100 / module_count))
-local plugin_score=$((active_plugins * 100 / plugin_count))
-local performance_score=0
-if (( func_count < 100 )); then
-    performance_score=100
-elif (( func_count < 200 )); then
-    performance_score=80
 else
-    performance_score=60
+    status_color_red "Validation library not available"
 fi
-local overall_score=$(( (module_score + plugin_score + performance_score) / 3 ))
-
-# Determine overall status
-local overall_status=""
-if (( overall_score >= 90 )); then
-    overall_status="$(status_color_green "EXCELLENT")"
-elif (( overall_score >= 80 )); then
-    overall_status="$(status_color_yellow "GOOD")"
-elif (( overall_score >= 70 )); then
-    overall_status="$(status_color_blue "FAIR")"
-else
-    overall_status="$(status_color_red "NEEDS ATTENTION")"
-fi
-
-printf "  %s %s %s\n" "🎯" "Overall Status:" "$overall_status"
-printf "  %s %s %s\n" "📦" "Modules Loaded:" "$(status_color_green "$loaded_modules/$module_count") ($(status_color_cyan "${module_score}%"))"
-printf "  %s %s %s\n" "🔌" "Plugins Active:" "$(status_color_green "$active_plugins/$plugin_count") ($(status_color_cyan "${plugin_score}%"))"
-printf "  %s %s %s\n" "⚡" "Performance:" "$(status_color_green "$performance_score/100")"
-printf "  %s %s %s\n" "📝" "Total Code:" "$(status_color_cyan "$total_lines lines")"
-printf "  %s %s %s\n" "📊" "Overall Score:" "$(status_color_bold "$overall_score/100")"
-echo
-
-# Beautiful footer with timestamp
-status_color_yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-status_color_green "✅ Status check completed successfully!"
-status_color_cyan "   Your ZSH configuration is ready to use."
-status_color_dim "   Generated at $(date '+%Y-%m-%d %H:%M:%S')"
-echo
-}
 
 main "$@"

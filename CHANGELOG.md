@@ -9,6 +9,10 @@
 - **Enhanced Code Maintainability** - Removed redundant cleanup loops and complex validation logic
 - **Improved Performance** - Optimized prompt cleanup with single-line operations
 - **Better Error Handling** - Simplified theme validation with concise conditional chains
+- **Shared Logging Library** - Added `scripts/lib/logging.sh` and unified logging across all installer/maintenance scripts
+- **Plugin Registries** - Introduced `plugins/core.list` and `plugins/optional.list` for declarative plugin management
+- **Validation Library** - Extracted shared validation helpers (`modules/lib/validation.zsh`) reused by `validate`, `status.sh`, and `test.sh`
+- **Theme Preference File** - Added persistent theme selection via `themes/theme-preference` with environment overrides
 
 #### 🔧 Enhanced
 - **themes/prompt.zsh** - Complete refactoring for simplicity and maintainability:
@@ -33,6 +37,8 @@
 - **Maintainability**: Single-line functions instead of complex multi-loop operations
 - **Readability**: Clear, concise code with better organization
 - **Error Handling**: Simplified but effective error management
+- **Configuration Consistency**: Scripts and runtime share the same plugin registry source of truth
+- **Validation Reuse**: Centralized validation logic reduces duplication between CLI tools
 
 #### 🎯 User Experience
 - **Faster Prompt Rendering** - Reduced cleanup overhead

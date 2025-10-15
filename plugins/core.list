@@ -1,0 +1,8 @@
+# Core plugins managed via zinit (owner/repo)
+zdharma-continuum/fast-syntax-highlighting
+zsh-users/zsh-autosuggestions
+zsh-users/zsh-completions
+zsh-users/zsh-history-substring-search
+le0me55i/zsh-extract
+rupa/z
+Aloxaf/fzf-tab

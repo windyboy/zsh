@@ -4,11 +4,10 @@ set -euo pipefail
 # Dependency Installation Script
 # =============================================================================
 
-# Simple logging
-log() { echo "ℹ️  $1"; }
-success() { echo "✅ $1"; }
-warning() { echo "⚠️  $1"; }
-error() { echo "❌ $1"; }
+# Shared logging
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/scripts/lib/logging.sh"
 
 # Check dependencies
 check_dependencies() {

@@ -7,18 +7,10 @@
 
 set -euo pipefail
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Logging functions
-log() { echo -e "${BLUE}ℹ️  $1${NC}"; }
-success() { echo -e "${GREEN}✅ $1${NC}"; }
-warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-error() { echo -e "${RED}❌ $1${NC}"; }
+# Shared logging
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/scripts/lib/logging.sh"
 
 # Configuration
 REPO_URL="${ZSH_REPO_URL:-https://github.com/yourusername/zsh-config.git}"
@@ -190,9 +182,9 @@ show_next_steps() {
 
 # Main function
 main() {
-    echo -e "${BLUE}╔══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║                🚀 Quick ZSH Installation                    ║${NC}"
-    echo -e "${BLUE}╚══════════════════════════════════════════════════════════════╝${NC}"
+    printf '%b╔══════════════════════════════════════════════════════════════╗%b\n' "$LOG_COLOR_BLUE" "$LOG_COLOR_RESET"
+    printf '%b║                🚀 Quick ZSH Installation                    ║%b\n' "$LOG_COLOR_BLUE" "$LOG_COLOR_RESET"
+    printf '%b╚══════════════════════════════════════════════════════════════╝%b\n' "$LOG_COLOR_BLUE" "$LOG_COLOR_RESET"
     echo
     
     # Check prerequisites

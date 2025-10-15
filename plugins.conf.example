@@ -1,5 +1,6 @@
-# Plugin Configuration File
-# Copy this file to plugins.conf and customize as needed
+# Plugin Configuration File (Legacy Override)
+# The preferred way to manage plugins is via plugins/core.list and plugins/optional.list.
+# Copy this file to plugins.conf only if you need script-based overrides.
 
 # Plugin definitions - format: ["plugin_name"]="owner/repo"
 declare -A PLUGINS=(

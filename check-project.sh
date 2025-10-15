@@ -7,23 +7,10 @@
 
 set -euo pipefail
 
-# Colors for output
-RED="\033[0;31m"
-GREEN="\033[0;32m"
-YELLOW="\033[1;33m"
-BLUE="\033[0;34m"
-CYAN="\033[0;36m"
-NC="\033[0m" # No Color
-
-# Logging functions
-log() { echo -e "${BLUE}ℹ️  $1${NC}"; }
-success() { echo -e "${GREEN}✅ $1${NC}"; }
-warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-error() { echo -e "${RED}❌ $1${NC}"; }
-info() { echo -e "${CYAN}📋 $1${NC}"; }
-
 # Configuration
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/scripts/lib/logging.sh"
 PROJECT_ROOT="$SCRIPT_DIR"
 
 # Load configuration if available

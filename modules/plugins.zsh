@@ -15,6 +15,41 @@ source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 # Set ZINIT_HOME globally
 export ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit"
 
+# -------------------- Plugin Registry --------------------
+plugins_registry_load_list() {
+    local file="$1"
+    local target="$2"
+    local line
+    local -a entries=()
+
+    [[ -f "$file" ]] || { eval "$target=()"; return 0; }
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ -z "$line" || "$line" == \#* ]] && continue
+        entries+=("$line")
+    done < "$file"
+
+    eval "$target=(\"\${entries[@]}\")"
+}
+
+typeset -ga ZINIT_PLUGINS=()
+typeset -ga OPTIONAL_ZINIT_PLUGINS=()
+
+plugins_registry_load_list "$ZSH_CONFIG_DIR/plugins/core.list" ZINIT_PLUGINS
+plugins_registry_load_list "$ZSH_CONFIG_DIR/plugins/optional.list" OPTIONAL_ZINIT_PLUGINS
+
+if (( ${#ZINIT_PLUGINS[@]} == 0 )); then
+    ZINIT_PLUGINS=(
+        zdharma-continuum/fast-syntax-highlighting
+        zsh-users/zsh-autosuggestions
+        zsh-users/zsh-completions
+        zsh-users/zsh-history-substring-search
+        le0me55i/zsh-extract
+        rupa/z
+        Aloxaf/fzf-tab
+    )
+fi
+
 # -------------------- Plugin Initialization --------------------
 plugin_init() {
     # Only initialize zinit if not already loaded
@@ -73,12 +108,19 @@ typeset -ga BUILTIN_SNIPPETS=(
 )
 
 # Enhanced plugin installation helpers
+plugin_repo_dir() {
+    local repo="$1"
+    echo "$ZINIT_HOME/plugins/${repo//\//---}"
+}
+
 plugin_install_if_missing() {
     local repo="$1"
     local plugin_name="${repo##*/}"
+    local plugin_dir
+    plugin_dir="$(plugin_repo_dir "$repo")"
 
     # Check if plugin is already installed
-    if [[ -d "$ZINIT_HOME/plugins/${repo//\//---}" ]]; then
+    if [[ -d "$plugin_dir" ]]; then
         return 0
     fi
 

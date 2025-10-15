@@ -20,11 +20,10 @@ if [[ -z "${ZSH_VERSION:-}" ]]; then
     fi
 fi
 
-# Fallback logging functions
-log() { echo "ℹ️  $1"; }
-success() { echo "✅ $1"; }
-error() { echo "❌ $1"; }
-warning() { echo "⚠️  $1"; }
+# Shared logging
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/scripts/lib/logging.sh"
 
 # Enhanced color functions with fallback
 test_color_red()    { echo -e "\033[31m$1\033[0m" 2>/dev/null || echo "$1"; }
@@ -82,6 +81,13 @@ if [[ -f "$ZSH_CONFIG_DIR/modules/plugins.zsh" ]]; then
 else
     error "Plugins module not found: $ZSH_CONFIG_DIR/modules/plugins.zsh"
     exit 1
+fi
+
+if [[ -f "$ZSH_CONFIG_DIR/modules/lib/validation.zsh" ]]; then
+    # shellcheck disable=SC1091
+    source "$ZSH_CONFIG_DIR/modules/lib/validation.zsh"
+else
+    warning "Validation library not found: $ZSH_CONFIG_DIR/modules/lib/validation.zsh"
 fi
 
 # Test framework functions
@@ -425,6 +431,24 @@ run_plugin_tests() {
     fi
 }
 
+run_validation_tests() {
+    test_section "Validation Checks"
+
+    if typeset -f validation_run >/dev/null 2>&1; then
+        local -a validation_messages=()
+        validation_run validation_messages false
+        test_assert "Validation reports no errors" "[[ $VALIDATION_ERRORS -eq 0 ]]" "Validation reported $VALIDATION_ERRORS error(s)"
+
+        if [[ $VALIDATION_WARNINGS -gt 0 ]]; then
+            test_skip "Validation warnings" "$VALIDATION_WARNINGS warning(s) reported"
+        else
+            test_assert "Validation reports no warnings" "[[ $VALIDATION_WARNINGS -eq 0 ]]" "Validation warnings detected"
+        fi
+    else
+        test_skip "Validation library available" "validation_run not found"
+    fi
+}
+
 # Conflict Tests
 run_conflict_tests() {
     test_section "Conflict Detection Tests"
@@ -512,6 +536,9 @@ main() {
         "plugins")
             run_plugin_tests
             ;;
+        "validation")
+            run_validation_tests
+            ;;
         "conflicts")
             run_conflict_tests
             ;;
@@ -523,6 +550,7 @@ main() {
             run_integration_tests
             run_performance_tests
             run_plugin_tests
+            run_validation_tests
             run_conflict_tests
             run_security_tests
             ;;
@@ -540,6 +568,7 @@ show_help() {
     echo "  integration  - Run integration tests only"
     echo "  performance  - Run performance tests only"
     echo "  plugins      - Run plugin tests only"
+    echo "  validation   - Run validation checks only"
     echo "  conflicts    - Run conflict detection tests only"
     echo "  security     - Run security tests only"
     echo "  all          - Run all tests (default)"

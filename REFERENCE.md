@@ -18,6 +18,7 @@ version         # View version
 ./test.sh integration  # Run integration tests only
 ./test.sh performance  # Run performance tests only
 ./test.sh plugins      # Run plugin conflict tests only
+./test.sh validation   # Run validation checks only
 ./test.sh security     # Run security tests only
 ```
 
@@ -27,6 +28,8 @@ validate                # Basic configuration validation
 validate --verbose      # Detailed validation information
 validate --fix          # Auto-fix common issues
 validate --report       # Generate detailed validation report
+
+> The validation helpers live in `modules/lib/validation.zsh`; keep this file in sync with your deployed configuration so `validate`, `status.sh`, and `./test.sh validation` can run reliably.
 ```
 
 ## 📊 Performance Monitoring
@@ -94,7 +97,14 @@ extract <file>  # Smart extraction, supports multiple formats
 
 ```bash
 plugins         # Plugin status
+./install-plugins.sh list     # Show core and optional plugin registries
+./install-plugins.sh install  # Install plugins from registry files
 ```
+
+### Plugin Registry Files
+- `plugins/core.list` — Primary zinit plugins (one `owner/repo` per line)
+- `plugins/optional.list` — Optional plugins loaded when `ZSH_ENABLE_OPTIONAL_PLUGINS=1`
+- `plugins.conf` — Optional legacy override supporting associative arrays (`PLUGINS`, `CORE_PLUGINS`, `OPTIONAL_PLUGINS`)
 
 ## ⚙️ Configuration Management
 
@@ -125,6 +135,8 @@ posh_themes          # List available themes
 - **posh_themes()** - Display available themes
 - **Theme Validation** - Automatic validation and cleanup of corrupted themes
 - **Fallback Prompt** - Custom prompt when Oh My Posh unavailable
+- **Theme Preference File** - Last selection stored at `themes/theme-preference`
+- **Environment Overrides** - `ZSH_POSH_THEME` forces a theme; `POSH_THEME_PREF_FILE` customizes preference path
 
 ### Theme Configuration
 - **Simplified Setup** - Streamlined from 280 to 125 lines (55% reduction)
