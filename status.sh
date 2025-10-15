@@ -176,4 +176,6 @@ else
     status_color_red "Validation library not available"
 fi
 
+}
+
 main "$@"
