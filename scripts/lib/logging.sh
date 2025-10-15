@@ -39,5 +39,3 @@ info()    { _log_print "📋"    "$LOG_COLOR_CYAN"   "${1:-}"; }
 success() { _log_print "✅"    "$LOG_COLOR_GREEN"  "${1:-}"; }
 warning() { _log_print "⚠️ "  "$LOG_COLOR_YELLOW" "${1:-}"; }
 error()   { _log_print "❌"    "$LOG_COLOR_RED"    "${1:-}"; }
-
-unset -f _log_print
