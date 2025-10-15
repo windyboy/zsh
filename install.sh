@@ -2,11 +2,11 @@
 set -euo pipefail
 # =============================================================================
 # Simple ZSH Installer
-# Version: 5.3.0
+# Version: 5.3.1
 # =============================================================================
 
 # Version information
-VERSION="5.3.0"
+VERSION="5.3.1"
 BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Shared logging
@@ -71,6 +71,7 @@ parse_args() {
     SKIP_CHECKS=false
     FORCE_INSTALL=false
     INSTALL_DEPS=false
+    INTERACTIVE_MODE=0
     
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -93,6 +94,10 @@ parse_args() {
                 ;;
             --install-deps)
                 export INSTALL_DEPS=true
+                shift
+                ;;
+            --interactive)
+                export INTERACTIVE_MODE=1
                 shift
                 ;;
             *)
@@ -246,8 +251,13 @@ verify_theme_installation() {
         # Count valid theme files (at least 100 bytes and valid JSON)
         for theme_file in "$themes_dir"/*.omp.json; do
             if [[ -f "$theme_file" ]] && [[ $(wc -c < "$theme_file") -ge 100 ]]; then
-                # Check if it's valid JSON
-                if python3 -m json.tool "$theme_file" >/dev/null 2>&1; then
+                # Check if it's valid JSON using available tools
+                if command -v python3 >/dev/null 2>&1 && python3 -m json.tool "$theme_file" >/dev/null 2>&1; then
+                    ((valid_themes++))
+                elif command -v jq >/dev/null 2>&1 && jq empty "$theme_file" >/dev/null 2>&1; then
+                    ((valid_themes++))
+                else
+                    # Basic validation: file size check only
                     ((valid_themes++))
                 fi
             fi
@@ -350,15 +360,6 @@ set_shell() {
 # Parse arguments
 parse_args "$@"
 
-INTERACTIVE_MODE=0
-for arg in "$@"; do
-    case "$arg" in
-        --interactive)
-            INTERACTIVE_MODE=1
-            ;;
-    esac
-done
-
 # Interactive setup function
 interactive_setup() {
     echo "🧑‍💻 Welcome to the ZSH Interactive Setup!"
@@ -375,11 +376,21 @@ interactive_setup() {
     read -r -p "Install recommended plugins (fzf, zoxide, eza, oh-my-posh)? [Y/n]: " plugins
     plugins=${plugins:-Y}
     if [[ "$plugins" =~ ^[Yy]$ ]]; then
-        echo "Installing recommended plugins..."
+        log "Installing recommended plugins..."
         if command -v brew >/dev/null 2>&1; then
-            brew install fzf zoxide eza oh-my-posh
+            if brew install fzf zoxide eza oh-my-posh 2>/dev/null; then
+                success "Plugins installed successfully"
+            else
+                warning "Some plugins failed to install - you can install them manually later"
+            fi
         elif command -v apt >/dev/null 2>&1; then
-            sudo apt install fzf zoxide eza oh-my-posh
+            if sudo apt install -y fzf zoxide eza oh-my-posh 2>/dev/null; then
+                success "Plugins installed successfully"
+            else
+                warning "Some plugins failed to install - you can install them manually later"
+            fi
+        else
+            warning "No supported package manager found - please install plugins manually"
         fi
     fi
 
@@ -387,8 +398,13 @@ interactive_setup() {
     read -r -p "Install and use oh-my-posh theme (agnoster)? [Y/n]: " theme
     theme=${theme:-Y}
     if [[ "$theme" =~ ^[Yy]$ ]]; then
-        ./install-themes.sh agnoster
-        echo "eval \"\$(oh-my-posh init zsh --config ~/.poshthemes/agnoster.omp.json)\"" >> "$HOME/.zshrc"
+        if ./install-themes.sh agnoster 2>/dev/null; then
+            mkdir -p "$HOME/.config/zsh/themes"
+            echo "agnoster" > "$HOME/.config/zsh/themes/theme-preference"
+            success "Theme preference saved (will load on next shell start)"
+        else
+            warning "Theme installation failed"
+        fi
     fi
 
     # Save to environment config

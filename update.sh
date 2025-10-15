@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # ZSH Configuration Update Script
-# Version: 5.3.0 - Automatic Update System
+# Version: 5.3.1 - Automatic Update System
 # =============================================================================
 # shellcheck disable=SC2015,SC2162
 
@@ -26,7 +26,7 @@ warning() { with_timestamp _warning_plain "$@"; }
 error()   { with_timestamp _error_plain "$@"; }
 
 # Version information
-VERSION="5.3.0"
+VERSION="5.3.1"
 BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Configuration
@@ -215,10 +215,10 @@ update_themes() {
     log "Updating themes..."
     
     if [[ -f "./install-themes.sh" ]]; then
-        if ! bash ./install-themes.sh --update; then
-            warning "Theme update failed"
-        else
+        if bash ./install-themes.sh --all 2>/dev/null; then
             success "Themes updated"
+        else
+            warning "Theme update failed - you can update manually with: ./install-themes.sh --all"
         fi
     else
         warning "install-themes.sh not found"

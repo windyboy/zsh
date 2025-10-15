@@ -90,25 +90,44 @@ update_version() {
     local new_version="$1"
     log "Updating version to $new_version..."
     
+    # Portable sed in-place replacement function
+    portable_sed() {
+        local pattern="$1"
+        local file="$2"
+        local temp_file="${file}.tmp.$$"
+        
+        if sed "$pattern" "$file" > "$temp_file" 2>/dev/null; then
+            mv "$temp_file" "$file"
+            return 0
+        else
+            rm -f "$temp_file"
+            return 1
+        fi
+    }
+    
     # Update README.md
     if [[ -f "README.md" ]]; then
-        sed -i.bak "s/ZSH Configuration v[0-9]\+\.[0-9]\+\.[0-9]\+/ZSH Configuration v$new_version/g" README.md
-        rm -f README.md.bak
+        portable_sed "s/ZSH Configuration v[0-9]\+\.[0-9]\+\.[0-9]\+/ZSH Configuration v$new_version/g" README.md
     fi
     
     # Update install.sh if it has version
     if [[ -f "install.sh" ]]; then
-        sed -i.bak "s/Version: [0-9]\+\.[0-9]\+\.[0-9]\+/Version: $new_version/g" install.sh 2>/dev/null || true
-        rm -f install.sh.bak 2>/dev/null || true
+        portable_sed "s/Version: [0-9]\+\.[0-9]\+\.[0-9]\+/Version: $new_version/g" install.sh 2>/dev/null || true
+        portable_sed "s/VERSION=\"[0-9]\+\.[0-9]\+\.[0-9]\+\"/VERSION=\"$new_version\"/g" install.sh 2>/dev/null || true
     fi
     
     # Update other scripts if they have version
     for script in *.sh; do
         if [[ -f "$script" ]]; then
-            sed -i.bak "s/Version: [0-9]\+\.[0-9]\+\.[0-9]\+/Version: $new_version/g" "$script" 2>/dev/null || true
-            rm -f "$script.bak" 2>/dev/null || true
+            portable_sed "s/Version: [0-9]\+\.[0-9]\+\.[0-9]\+/Version: $new_version/g" "$script" 2>/dev/null || true
+            portable_sed "s/VERSION=\"[0-9]\+\.[0-9]\+\.[0-9]\+\"/VERSION=\"$new_version\"/g" "$script" 2>/dev/null || true
         fi
     done
+    
+    # Update zshrc
+    if [[ -f "zshrc" ]]; then
+        portable_sed "s/Version: [0-9]\+\.[0-9]\+\.[0-9]\+/Version: $new_version/g" zshrc 2>/dev/null || true
+    fi
     
     success "Version updated in files"
 }
@@ -332,9 +351,9 @@ show_release_summary() {
 
 # Parse command line arguments
 parse_arguments() {
-    local new_version=""
-    local skip_checks=0
-    local skip_push=0
+    new_version=""
+    skip_checks=0
+    skip_push=0
     
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -382,20 +401,17 @@ parse_arguments() {
             exit 1
         fi
     fi
-    
-    echo "$new_version"
 }
 
 # Main function
 main() {
-    echo -e "${BLUE}╔══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║                🚀 ZSH Configuration Release                  ║${NC}"
-    echo -e "${BLUE}╚══════════════════════════════════════════════════════════════╝${NC}"
+    printf '%b╔══════════════════════════════════════════════════════════════╗%b\n' "$LOG_COLOR_BLUE" "$LOG_COLOR_RESET"
+    printf '%b║                🚀 ZSH Configuration Release                  ║%b\n' "$LOG_COLOR_BLUE" "$LOG_COLOR_RESET"
+    printf '%b╚══════════════════════════════════════════════════════════════╝%b\n' "$LOG_COLOR_BLUE" "$LOG_COLOR_RESET"
     echo
     
-    # Parse arguments
-    local new_version
-    new_version=$(parse_arguments "$@")
+    # Parse arguments (sets new_version, skip_checks, skip_push)
+    parse_arguments "$@"
     
     # Validate version format
     if [[ ! "$new_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
