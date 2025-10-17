@@ -45,6 +45,11 @@ if [[ -z "${ZSH_CONFIG_DIR:-}" ]]; then
     fi
 fi
 
+# Set up cache and data directories for validation
+: "${ZSH_CACHE_DIR:=${XDG_CACHE_HOME:-$HOME/.cache}/zsh}"
+: "${ZSH_DATA_DIR:=${XDG_DATA_HOME:-$HOME/.local/share}/zsh}"
+export ZSH_CACHE_DIR ZSH_DATA_DIR
+
 # Helper functions for portable floating-point math comparisons
 float_difference() {
     awk -v lhs="${1:-0}" -v rhs="${2:-0}" 'BEGIN {printf "%.6f", (lhs + 0) - (rhs + 0)}' 2>/dev/null || echo "0"
@@ -436,7 +441,7 @@ run_validation_tests() {
 
     if typeset -f validation_run >/dev/null 2>&1; then
         local -a validation_messages=()
-        validation_run validation_messages false
+        validation_run validation_messages false 2>&1 >/dev/null
         
         # Suppress shellcheck warning - messages are used by validation_run internally
         # shellcheck disable=SC2034

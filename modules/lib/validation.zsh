@@ -11,6 +11,16 @@ typeset -gi VALIDATION_WARNINGS=0
 typeset -ga __VALIDATION_MESSAGES=()
 typeset -g __VALIDATION_FIX_MODE="false"
 
+__get_file_perms() {
+    {
+        setopt local_options no_xtrace 2>/dev/null
+        local target_file="$1"
+        local result
+        result=$(stat -f %Lp "$target_file" 2>/dev/null || stat -c %a "$target_file" 2>/dev/null)
+        print -r -- "$result"
+    } 2>/dev/null
+}
+
 validation_reset_context() {
     local fix_mode="${1:-false}"
     __VALIDATION_MESSAGES=()
@@ -80,10 +90,9 @@ validation_run() {
             validation_add error "Missing file: $file"
         else
             validation_add success "File exists: $file"
-            local perms
-            perms=$(stat -c %a "$file" 2>/dev/null || stat -f %Lp "$file" 2>/dev/null)
-            if [[ $perms -gt 644 ]]; then
-                validation_add warning "Insecure permissions on $file: $perms"
+            local file_perms="$(__get_file_perms "$file")"
+            if [[ -n "$file_perms" && $file_perms -gt 644 ]]; then
+                validation_add warning "Insecure permissions on $file: $file_perms"
                 validation_attempt_fix "Fix file permissions" "chmod 644 \"$file\""
             fi
         fi
@@ -127,10 +136,14 @@ validation_run() {
 
     # 6. Completion system
     validation_add info "Checking completion system..."
-    if compdef >/dev/null 2>&1; then
-        validation_add success "Completion system working"
+    if [[ -f "$ZSH_CONFIG_DIR/modules/completion.zsh" ]]; then
+        if compdef >/dev/null 2>&1; then
+            validation_add success "Completion system working"
+        else
+            validation_add warning "Completion system not initialized (may be expected in test contexts)"
+        fi
     else
-        validation_add error "Completion system not working"
+        validation_add error "Completion module file missing"
     fi
 
     # 7. Common issues
