@@ -128,11 +128,15 @@ config <file>   # Edit configuration file
 ```bash
 posh_theme <name>    # Switch to a theme
 posh_themes          # List available themes
+change_theme         # Interactive theme selector with preview
+ct                   # Alias for change_theme
 ```
 
 ### Theme Functions
 - **posh_theme()** - Switch between Oh My Posh themes
 - **posh_themes()** - Display available themes
+- **change_theme()** - Interactive theme selector with live preview
+- **ct()** - Alias for change_theme()
 - **Theme Validation** - Automatic validation and cleanup of corrupted themes
 - **Fallback Prompt** - Custom prompt when Oh My Posh unavailable
 - **Theme Preference File** - Last selection stored at `themes/theme-preference`

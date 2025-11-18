@@ -142,22 +142,45 @@ load_plugin() {
     local repo="$1"
     local plugin_name="${repo##*/}"
     local warn_only="${2:-0}"
+    local max_retries=2
+    local retry_count=0
 
-        if try_load_plugin "$repo"; then
-            color_green "✅ Loaded: $plugin_name"
-            return 0
-        fi
-
-    color_yellow "⚠️  Plugin not found, attempting installation: $plugin_name"
-    if plugin_install_if_missing "$repo" && try_load_plugin "$repo"; then
-        color_green "✅ Loaded after installation: $plugin_name"
+    # First attempt - try to load existing plugin
+    if try_load_plugin "$repo"; then
+        color_green "✅ Loaded: $plugin_name"
         return 0
     fi
 
+    color_yellow "⚠️  Plugin not found, attempting installation: $plugin_name"
+
+    # Installation attempt with retry logic
+    while (( retry_count < max_retries )); do
+        if plugin_install_if_missing "$repo"; then
+            # Try to load after successful installation
+            if try_load_plugin "$repo"; then
+                color_green "✅ Loaded after installation: $plugin_name"
+                return 0
+            else
+                color_yellow "⚠️  Installation succeeded but loading failed, retrying..."
+            fi
+        else
+            color_red "❌ Installation failed for: $plugin_name"
+            if (( retry_count < max_retries - 1 )); then
+                color_yellow "🔄 Retrying installation (attempt $((retry_count + 2))/$max_retries)..."
+                sleep 1
+            fi
+        fi
+        ((retry_count++))
+    done
+
+    # Final failure - provide helpful error message
     if [[ "$warn_only" -eq 1 ]]; then
-        color_yellow "⚠️  Failed to load: $plugin_name"
+        color_yellow "⚠️  Failed to load: $plugin_name (after $max_retries attempts)"
+        color_yellow "💡 Try: zinit update && source ~/.zshrc"
     else
-        color_red "❌ Failed to load: $plugin_name"
+        color_red "❌ Failed to load: $plugin_name (after $max_retries attempts)"
+        color_red "💡 Try: zinit update && source ~/.zshrc"
+        color_red "🔍 Check: ~/.cache/zsh/zinit.log for details"
     fi
     return 1
 }
@@ -247,8 +270,8 @@ ensure_critical_plugins() {
         fi
     fi
     
-    # Check if autosuggestions is working
-    if ! (( ${+functions[_zsh_autosuggest_start]} )); then
+    # Check if autosuggestions is working (check both function and widget)
+    if ! (( ${+functions[_zsh_autosuggest_start]} )) && ! (( ${+widgets[autosuggest-accept]} )); then
         if [[ -f "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
             source "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null
         fi
@@ -533,7 +556,22 @@ plugin_status_complete() {
 }
 
 plugins() {
-    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: plugins" && return 0
+    case "$1" in
+        --health)
+            plugins_health_check
+            return 0
+            ;;
+        -h|--help|"")
+            echo "Usage: plugins [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --health    Show comprehensive plugin health dashboard"
+            echo "  -h, --help  Show this help message"
+            echo ""
+            echo "Without options, shows basic plugin status."
+            return 0
+            ;;
+    esac
 
     # Check zinit plugins
     local zinit_plugins=(
@@ -965,13 +1003,176 @@ plugin_status() {
     if [[ -z "$ZINIT" ]]; then
         color_red "   • zinit not loaded - check installation"
     fi
-    
+
     if [[ ! -d "$ZINIT_HOME" ]]; then
         color_red "   • ZINIT_HOME directory missing"
     fi
-    
+
     if [[ ! -f "$ZINIT_HOME/zinit.git/zinit.zsh" ]]; then
         color_red "   • zinit installation incomplete"
+    fi
+}
+
+plugins_health_check() {
+    echo "🔌 Plugin Health Dashboard"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+    # Zinit status
+    echo ""
+    echo "🧰 Zinit Status:"
+    if [[ -n "$ZINIT" ]]; then
+        color_green "   ✅ zinit loaded"
+    else
+        color_red "   ❌ zinit not loaded"
+    fi
+
+    if [[ -d "$ZINIT_HOME" ]]; then
+        color_green "   ✅ ZINIT_HOME exists: $ZINIT_HOME"
+    else
+        color_red "   ❌ ZINIT_HOME missing: $ZINIT_HOME"
+    fi
+
+    if [[ -f "$ZINIT_HOME/zinit.git/zinit.zsh" ]]; then
+        color_green "   ✅ zinit installation complete"
+    else
+        color_red "   ❌ zinit installation incomplete"
+    fi
+
+    # Plugin counts
+    echo ""
+    echo "📦 Plugin Inventory:"
+    echo "   Core plugins configured: ${#ZINIT_PLUGINS[@]}"
+    echo "   Optional plugins configured: ${#OPTIONAL_ZINIT_PLUGINS[@]}"
+
+    # Check loaded plugins
+    local loaded_plugins=0
+    local total_plugins=$(( ${#ZINIT_PLUGINS[@]} + ${#OPTIONAL_ZINIT_PLUGINS[@]} ))
+
+    echo ""
+    echo "🔍 Plugin Load Status:"
+
+    # Check core plugins
+    for plugin in "${ZINIT_PLUGINS[@]}"; do
+        local plugin_name="${plugin##*/}"
+        local plugin_dir="${plugin//\//---}"
+        if [[ -d "$ZINIT_HOME/plugins/$plugin_dir" ]]; then
+            color_green "   ✅ $plugin_name (core)"
+            ((loaded_plugins++))
+        else
+            color_red "   ❌ $plugin_name (core) - not installed"
+        fi
+    done
+
+    # Check optional plugins (only if enabled)
+    if (( ZSH_ENABLE_OPTIONAL_PLUGINS )); then
+        for plugin in "${OPTIONAL_ZINIT_PLUGINS[@]}"; do
+            local plugin_name="${plugin##*/}"
+            local plugin_dir="${plugin//\//---}"
+            if [[ -d "$ZINIT_HOME/plugins/$plugin_dir" ]]; then
+                color_green "   ✅ $plugin_name (optional)"
+                ((loaded_plugins++))
+            else
+                color_yellow "   ⚠️  $plugin_name (optional) - not installed"
+            fi
+        done
+    else
+        color_yellow "   ⏭️  Optional plugins disabled (ZSH_ENABLE_OPTIONAL_PLUGINS=0)"
+    fi
+
+    # Performance impact
+    echo ""
+    echo "⚡ Performance Impact:"
+    local plugin_count=$(( ${#ZINIT_PLUGINS[@]} + (ZSH_ENABLE_OPTIONAL_PLUGINS ? ${#OPTIONAL_ZINIT_PLUGINS[@]} : 0) ))
+    if (( plugin_count > 20 )); then
+        color_red "   ⚠️  High plugin count ($plugin_count) may slow startup"
+    elif (( plugin_count > 10 )); then
+        color_yellow "   ⚠️  Moderate plugin count ($plugin_count)"
+    else
+        color_green "   ✅ Optimal plugin count ($plugin_count)"
+    fi
+
+    # Conflicts detection
+    echo ""
+    echo "🔀 Potential Conflicts:"
+    local conflicts_found=0
+
+    # Check for key binding conflicts
+    if typeset -f bindkey >/dev/null 2>&1; then
+        local key_bindings=()
+        local seen_keys=()
+
+        # Collect all key bindings
+        while read -r line; do
+            [[ -z "$line" ]] && continue
+            local match
+            if [[ "$line" =~ '"([^"]+)" ([^ ]+)' ]]; then
+                local key="${match[1]}"
+                local function="${match[2]}"
+                key_bindings+=("$key:$function")
+            fi
+        done < <(bindkey 2>/dev/null)
+
+        # Check for duplicates
+        for binding in "${key_bindings[@]}"; do
+            local key="${binding%%:*}"
+            local function="${binding##*:}"
+
+            local found=0
+            for seen in "${seen_keys[@]}"; do
+                local seen_key="${seen%%:*}"
+                local seen_function="${seen##*:}"
+                if [[ "$key" == "$seen_key" && "$function" != "$seen_function" ]]; then
+                    color_red "   ❌ Key conflict: $key ($seen_function vs $function)"
+                    ((conflicts_found++))
+                    found=1
+                    break
+                fi
+            done
+
+            if (( ! found )); then
+                seen_keys+=("$key:$function")
+            fi
+        done
+    fi
+
+    if (( conflicts_found == 0 )); then
+        color_green "   ✅ No key binding conflicts detected"
+    fi
+
+    # Recommendations
+    echo ""
+    echo "💡 Recommendations:"
+    if (( loaded_plugins < total_plugins )); then
+        color_yellow "   • Run 'zinit update' to ensure all plugins are installed"
+    fi
+
+    if (( plugin_count > 15 )); then
+        color_yellow "   • Consider disabling unused optional plugins"
+        color_yellow "   • Use lazy loading for heavy plugins"
+    fi
+
+    if (( conflicts_found > 0 )); then
+        color_red "   • Resolve key binding conflicts manually"
+        color_red "   • Use 'bindkey -r <key>' to unbind conflicting keys"
+    fi
+
+    # Summary
+    echo ""
+    echo "📊 Summary:"
+    printf "   Loaded: %d/%d plugins (%.0f%%)\n" "$loaded_plugins" "$total_plugins" "$(( loaded_plugins * 100 / (total_plugins > 0 ? total_plugins : 1) ))"
+    echo "   Conflicts: $conflicts_found detected"
+
+    local health_score=$(( (loaded_plugins * 100 / (total_plugins > 0 ? total_plugins : 1)) - (conflicts_found * 10) ))
+    health_score=$(( health_score < 0 ? 0 : health_score ))
+
+    echo "   Health Score: $health_score/100"
+
+    if (( health_score >= 90 )); then
+        color_green "   🎉 Excellent plugin health!"
+    elif (( health_score >= 70 )); then
+        color_yellow "   ⚠️  Good plugin health with minor issues"
+    else
+        color_red "   ❌ Plugin health needs attention"
     fi
 }
 
@@ -1019,10 +1220,10 @@ if [[ -o interactive ]]; then
         fi
     fi
     
-    # Verify autosuggestions is working
-    if ! (( ${+functions[_zsh_autosuggest_start]} )); then
+    # Verify autosuggestions is working (check both function and widget)
+    if ! (( ${+functions[_zsh_autosuggest_start]} )) && ! (( ${+widgets[autosuggest-accept]} )); then
         if [[ -f "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-            source "$ZINIT_HOME/plugins/zdharma-continuum---zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null
+            source "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" 2>/dev/null
         fi
     fi
 fi

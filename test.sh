@@ -15,6 +15,8 @@ if [[ -z "${ZSH_VERSION:-}" ]]; then
         echo "   • macOS: brew install zsh" >&2
         echo "   • Ubuntu/Debian: sudo apt install zsh" >&2
         echo "   • CentOS/RHEL: sudo yum install zsh" >&2
+        echo "   • Fedora: sudo dnf install zsh" >&2
+        echo "   • OpenSUSE: sudo zypper install zsh" >&2
         echo "   • Arch: sudo pacman -S zsh" >&2
         exit 1
     fi

@@ -405,6 +405,7 @@ To add or remove plugins, edit the relevant list and run `./install-plugins.sh i
 ### Theme Preferences
 
 - Running `posh_theme <name>` validates the theme and records the choice in `themes/theme-preference` so future sessions keep the same look.
+- Use `change_theme` (or `ct`) for an interactive theme selector with live preview using fzf.
 - Set `ZSH_POSH_THEME=<name>` to override the stored preference without editing files.
 - Customize the preference file location by exporting `POSH_THEME_PREF_FILE=/path/to/file` before loading ZSH.
 
@@ -457,7 +458,7 @@ To add or remove plugins, edit the relevant list and run `./install-plugins.sh i
 The project includes a complete GitHub Actions workflow:
 
 - ✅ **Automated Testing** - Runs on every push/PR
-- ✅ **Cross-platform Support** - Ubuntu, macOS, Windows
+- ✅ **Cross-platform Support** - Ubuntu, CentOS, Fedora, OpenSUSE, Arch Linux, macOS, Windows
 - ✅ **Security Scanning** - Vulnerability detection
 - ✅ **Code Quality** - ShellCheck integration
 - ✅ **Performance Testing** - Startup time validation
@@ -502,7 +503,10 @@ curl -s https://ohmyposh.dev/install.sh | bash -s
 
 # Update optional tools
 brew upgrade fzf zoxide eza  # macOS
-sudo apt update && sudo apt upgrade fzf zoxide eza  # Ubuntu
+sudo apt update && sudo apt upgrade fzf zoxide eza  # Ubuntu/Debian
+sudo dnf upgrade fzf zoxide eza  # Fedora
+sudo zypper update fzf zoxide eza  # OpenSUSE
+sudo pacman -Syu fzf zoxide eza  # Arch Linux
 ```
 
 ## 🛠️ Development

@@ -60,6 +60,10 @@ detect_package_manager() {
         echo "dnf"
     elif command -v yum >/dev/null 2>&1; then
         echo "yum"
+    elif command -v zypper >/dev/null 2>&1; then
+        echo "zypper"
+    elif command -v pacman >/dev/null 2>&1; then
+        echo "pacman"
     else
         echo "unknown"
     fi
@@ -75,7 +79,16 @@ install_eza() {
     
     case "$(uname -s)" in
         Darwin*)    os="apple-darwin";;
-        Linux*)     os="unknown-linux-gnu";;
+        Linux*)
+            # Detect specific Linux distribution for eza
+            if command -v pacman >/dev/null 2>&1; then
+                os="unknown-linux-gnu"  # Arch Linux
+            elif command -v zypper >/dev/null 2>&1; then
+                os="unknown-linux-gnu"  # OpenSUSE
+            else
+                os="unknown-linux-gnu"  # Default for other Linux distros
+            fi
+            ;;
         *)          warning "Unsupported operating system: $(uname -s), skipping eza installation"; return 1;;
     esac
     
@@ -172,7 +185,7 @@ install_oh_my_posh_themes() {
     else
         warning "GitHub repository clone failed, trying to download popular themes..."
         # Fallback to downloading popular themes
-        local themes=("agnoster" "powerlevel10k_modern" "paradox" "atomic" "agnosterplus" "jandedobbeleer")
+        local themes=("1_shell" "atomic" "paradox" "agnosterplus" "aliens" "amro" "blue-owl")
         for theme in "${themes[@]}"; do
             if curl -s "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json" -o "$themes_dir/${theme}.omp.json"; then
                 log "Theme ${theme} downloaded successfully"
@@ -320,6 +333,78 @@ install_centos() {
     success "CentOS/RHEL/Fedora dependencies installation completed"
 }
 
+# Install on OpenSUSE
+install_opensuse() {
+    log "Detected OpenSUSE system, using zypper for installation..."
+
+    # Update package list
+    log "Updating package list..."
+    if ! sudo zypper refresh; then
+        error "Failed to update package list"
+        return 1
+    fi
+
+    # Required tools
+    log "Installing required tools..."
+    sudo zypper install -y zsh git curl wget unzip
+
+    # Recommended tools
+    log "Installing recommended tools..."
+    sudo zypper install -y fzf
+
+    # Install zoxide
+    log "Installing zoxide..."
+    if curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | zsh; then
+        success "zoxide installed successfully"
+    else
+        warning "zoxide installation failed"
+    fi
+
+    # Install eza
+    install_eza
+
+    # Install oh-my-posh and themes
+    install_oh_my_posh
+
+    success "OpenSUSE dependencies installation completed"
+}
+
+# Install on Arch Linux
+install_arch() {
+    log "Detected Arch Linux system, using pacman for installation..."
+
+    # Update package list
+    log "Updating package database..."
+    if ! sudo pacman -Sy; then
+        error "Failed to update package database"
+        return 1
+    fi
+
+    # Required tools
+    log "Installing required tools..."
+    sudo pacman -S --noconfirm zsh git curl wget unzip
+
+    # Recommended tools
+    log "Installing recommended tools..."
+    sudo pacman -S --noconfirm fzf
+
+    # Install zoxide
+    log "Installing zoxide..."
+    if curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | zsh; then
+        success "zoxide installed successfully"
+    else
+        warning "zoxide installation failed"
+    fi
+
+    # Install eza
+    install_eza
+
+    # Install oh-my-posh and themes
+    install_oh_my_posh
+
+    success "Arch Linux dependencies installation completed"
+}
+
 # Install on Windows
 install_windows() {
     log "Detected Windows system..."
@@ -353,8 +438,13 @@ main() {
                 install_ubuntu
             elif [[ "$pkg_manager" == "dnf" || "$pkg_manager" == "yum" ]]; then
                 install_centos
+            elif [[ "$pkg_manager" == "zypper" ]]; then
+                install_opensuse
+            elif [[ "$pkg_manager" == "pacman" ]]; then
+                install_arch
             else
-                error "Unsupported Linux distribution"
+                error "Unsupported Linux distribution (package manager: $pkg_manager)"
+                echo "Supported package managers: apt, dnf, yum, zypper, pacman"
                 echo "Please manually install dependency tools"
                 return 1
             fi

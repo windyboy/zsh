@@ -39,7 +39,9 @@ bindkey '^[[Z' reverse-menu-complete
 # VS Code Terminal Fix - Add alternative completion triggers
 if [[ "$TERM_PROGRAM" == "vscode" ]]; then
     # Alternative completion triggers for VS Code terminal
-    bindkey '^ ' autosuggest-accept 2>/dev/null || true
+    if (( ${+widgets[autosuggest-accept]} )) || (( ${+functions[_zsh_autosuggest_start]} )); then
+        bindkey '^ ' autosuggest-accept 2>/dev/null || true
+    fi
     bindkey '^@' complete-word 2>/dev/null || true
     # Force menu completion for VS Code (only if fzf-tab is not available)
     if ! command -v fzf >/dev/null 2>&1; then
@@ -84,7 +86,8 @@ if command -v fzf >/dev/null 2>&1; then
     # Note: ^[d is already bound to _smart_cd, so we'll use a different key for fzf-cd-widget
     bindkey '^[c' fzf-cd-widget 2>/dev/null || true
 fi
-if (( ${+_comps[zsh-autosuggestions]} )); then
+# Check if autosuggestions is loaded by checking for widget functions or internal function
+if (( ${+widgets[autosuggest-accept]} )) || (( ${+functions[_zsh_autosuggest_start]} )); then
     bindkey '^[;' autosuggest-accept 2>/dev/null || true
     bindkey '^[,' autosuggest-execute 2>/dev/null || true
     bindkey '^[/' autosuggest-toggle 2>/dev/null || true

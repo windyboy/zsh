@@ -1,1 +1,1 @@
-zshenv
+/home/windy/.config/zsh/zshenv

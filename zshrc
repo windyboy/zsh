@@ -76,3 +76,10 @@ if [[ -s "$NVM_DIR/bash_completion" ]]; then
     # Load the complementary bash completion when available without altering exit codes
     source "$NVM_DIR/bash_completion"
 fi
+
+# bun completions
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
