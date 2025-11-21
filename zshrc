@@ -4,6 +4,12 @@
 # Version: 5.3.1 - Enhanced with Testing and Monitoring
 # =============================================================================
 
+# Validate critical environment variables
+if [[ -z "$HOME" ]]; then
+    echo "[zshrc] Error: HOME environment variable is not set" >&2
+    return 1 2>/dev/null || exit 1
+fi
+
 # Set ZSH configuration root directory (compatible with direct calls)
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 
@@ -80,6 +86,22 @@ fi
 # bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+# bun - Add to PATH only if not already present
+if [[ -n "$BUN_INSTALL" ]] && [[ -d "$BUN_INSTALL/bin" ]]; then
+    case ":$PATH:" in
+        *:"$BUN_INSTALL/bin":*)
+            ;;  # Already in PATH, skip
+        *)
+            export PATH="$BUN_INSTALL/bin:$PATH"
+            ;;
+    esac
+elif [[ -d "$HOME/.bun/bin" ]]; then
+    export BUN_INSTALL="$HOME/.bun"
+    case ":$PATH:" in
+        *:"$BUN_INSTALL/bin":*)
+            ;;  # Already in PATH, skip
+        *)
+            export PATH="$BUN_INSTALL/bin:$PATH"
+            ;;
+    esac
+fi

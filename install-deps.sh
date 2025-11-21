@@ -222,7 +222,13 @@ install_oh_my_posh() {
     local binary_name="posh-${os}-${arch}"
     local download_url="https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/${binary_name}"
     
-    if curl -L -o /tmp/oh-my-posh "$download_url" && sudo mv /tmp/oh-my-posh /usr/local/bin/oh-my-posh && sudo chmod +x /usr/local/bin/oh-my-posh; then
+    # Use timeout if available (60 seconds for download)
+    local curl_cmd="curl"
+    if command -v timeout >/dev/null 2>&1; then
+        curl_cmd="timeout 60 curl"
+    fi
+    
+    if $curl_cmd -L -o /tmp/oh-my-posh "$download_url" && sudo mv /tmp/oh-my-posh /usr/local/bin/oh-my-posh && sudo chmod +x /usr/local/bin/oh-my-posh; then
         success "oh-my-posh installed successfully"
         
         # Install themes

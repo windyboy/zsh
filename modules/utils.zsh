@@ -30,7 +30,21 @@ sysinfo() {
 
 # PATH management shortcuts
 alias path-status='echo $PATH | tr ":" "\n" | nl'
-alias path-clean='export PATH=$(echo $PATH | tr ":" "\n" | awk "!seen[\$0]++" | tr "\n" ":" | sed "s/:$//") && echo "PATH cleanup completed"'
+path-clean() {
+    local cleaned_path
+    if [[ -z "$PATH" ]]; then
+        echo "Warning: PATH is empty, skipping cleanup" >&2
+        return 1
+    fi
+    cleaned_path=$(echo "$PATH" | tr ":" "\n" | awk '!seen[$0]++' | tr "\n" ":" | sed 's/:$//')
+    if [[ -n "$cleaned_path" ]]; then
+        export PATH="$cleaned_path"
+        echo "PATH cleanup completed"
+    else
+        echo "Warning: PATH cleanup resulted in empty PATH, keeping original" >&2
+        return 1
+    fi
+}
 alias path-reload='source ~/.config/zsh/modules/path.zsh'
 diskusage() { df -h | grep -E '^/dev/' | awk '{print $1, $2, $3, $4, $5, $6}'; }
 memusage() {

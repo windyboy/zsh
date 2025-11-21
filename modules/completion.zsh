@@ -16,7 +16,17 @@ COMPLETION_CACHE_FILE="$ZSH_CACHE_DIR/zcompdump"
 autoload -Uz compinit
 
 # Initialize completion system
-if [[ ! -f "$COMPLETION_CACHE_FILE" ]] || [[ $(find "$COMPLETION_CACHE_FILE" -mtime +1 2>/dev/null) ]]; then
+# Check cache file age using stat (more reliable than find -mtime)
+local cache_age=0
+if [[ -f "$COMPLETION_CACHE_FILE" ]]; then
+    local cache_mtime=$(stat -f %m "$COMPLETION_CACHE_FILE" 2>/dev/null || stat -c %Y "$COMPLETION_CACHE_FILE" 2>/dev/null)
+    local now=$(date +%s 2>/dev/null)
+    if [[ -n "$cache_mtime" && -n "$now" ]]; then
+        cache_age=$((now - cache_mtime))
+    fi
+fi
+
+if [[ ! -f "$COMPLETION_CACHE_FILE" ]] || [[ $cache_age -gt 86400 ]]; then
     compinit -d "$COMPLETION_CACHE_FILE" 2>/dev/null || compinit -C -d "$COMPLETION_CACHE_FILE"
     [[ -f "$COMPLETION_CACHE_FILE" ]] && zcompile "$COMPLETION_CACHE_FILE" 2>/dev/null
 else

@@ -66,11 +66,21 @@ plugin_init() {
     # Install zinit if not present
     if [[ ! -f "$ZINIT_BIN/zinit.zsh" ]]; then
         echo "📦 Installing zinit..."
-        if git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_BIN" 2>/dev/null; then
-            echo "✅ zinit installed successfully"
+        # Use timeout if available (30 seconds), otherwise use git clone directly
+        if command -v timeout >/dev/null 2>&1; then
+            if timeout 30 git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_BIN" 2>/dev/null; then
+                echo "✅ zinit installed successfully"
+            else
+                echo "❌ Failed to install zinit (timeout or network error)"
+                return 1
+            fi
         else
-            echo "❌ Failed to install zinit"
-            return 1
+            if git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_BIN" 2>/dev/null; then
+                echo "✅ zinit installed successfully"
+            else
+                echo "❌ Failed to install zinit"
+                return 1
+            fi
         fi
     fi
     
@@ -87,20 +97,6 @@ plugin_init() {
         return 1
     fi
 }
-
-typeset -ga ZINIT_PLUGINS=(
-    zdharma-continuum/fast-syntax-highlighting
-    zsh-users/zsh-autosuggestions
-    zsh-users/zsh-completions
-    zsh-users/zsh-history-substring-search
-    le0me55i/zsh-extract
-    rupa/z
-    Aloxaf/fzf-tab
-)
-
-typeset -ga OPTIONAL_ZINIT_PLUGINS=(
-    # Add other optional plugins here if needed
-)
 
 typeset -ga BUILTIN_SNIPPETS=(
     https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh
@@ -323,7 +319,10 @@ configure_syntax_highlighting() {
 # Run fallback check after a short delay to ensure zinit has time to load plugins
 if [[ -o interactive ]]; then
     # Use precmd to run after zinit has had time to load plugins
-    precmd_functions+=(ensure_critical_plugins)
+    # Check if function is already in precmd_functions to avoid duplicates
+    if [[ ${precmd_functions[(ie)ensure_critical_plugins]} -gt ${#precmd_functions} ]]; then
+        precmd_functions+=(ensure_critical_plugins)
+    fi
     
     # Configure syntax highlighting for the current terminal
     configure_syntax_highlighting
@@ -343,7 +342,14 @@ fi
 
 if command -v zoxide >/dev/null 2>&1; then
     # Use source instead of eval for security
-    source <(zoxide init zsh)
+    # Try process substitution first, fallback to temporary file if it fails
+    local zoxide_init_file="$ZSH_CACHE_DIR/zoxide_init.zsh"
+    if ! source <(zoxide init zsh 2>/dev/null) 2>/dev/null; then
+        # Fallback: use temporary file
+        if zoxide init zsh > "$zoxide_init_file" 2>/dev/null && [[ -f "$zoxide_init_file" ]]; then
+            source "$zoxide_init_file" 2>/dev/null
+        fi
+    fi
 fi
 if command -v eza >/dev/null 2>&1; then
     alias lt='eza -T --icons --group-directories-first'
@@ -1266,7 +1272,10 @@ configure_fzf_tab() {
 
 # Configure fzf-tab when it becomes available
 if [[ -o interactive ]]; then
-    precmd_functions+=(configure_fzf_tab)
+    # Check if function is already in precmd_functions to avoid duplicates
+    if [[ ${precmd_functions[(ie)configure_fzf_tab]} -gt ${#precmd_functions} ]]; then
+        precmd_functions+=(configure_fzf_tab)
+    fi
 fi
 
 # Disable fzf-tab preview (useful for troubleshooting)

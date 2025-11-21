@@ -134,7 +134,12 @@ run_installation() {
 # Set default shell
 set_default_shell() {
     local zsh_path
-    zsh_path=$(which zsh)
+    zsh_path=$(command -v zsh)
+    
+    if [[ -z "$zsh_path" ]]; then
+        warning "ZSH command not found in PATH"
+        return 1
+    fi
     
     if [[ "$SHELL" != "$zsh_path" ]]; then
         log "Setting ZSH as default shell..."
@@ -143,7 +148,7 @@ set_default_shell() {
             warning "Please restart your terminal or run 'exec zsh'"
         else
             warning "Failed to change default shell. You can do it manually:"
-            echo "  chsh -s $(which zsh)"
+            echo "  chsh -s $(command -v zsh)"
         fi
     else
         success "ZSH is already the default shell"

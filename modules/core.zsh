@@ -7,9 +7,22 @@
 # Color output tools - colors module should be loaded before core
 # source "$ZSH_CONFIG_DIR/modules/colors.zsh"  # Moved to zshrc loading order
 
-# Module specific wrappers
-core_color_red()   { color_red "$@"; }
-core_color_green() { color_green "$@"; }
+# Module specific wrappers (with safe fallback)
+core_color_red() {
+    if (( ${+functions[color_red]} )); then
+        color_red "$@"
+    else
+        echo "$@"
+    fi
+}
+
+core_color_green() {
+    if (( ${+functions[color_green]} )); then
+        color_green "$@"
+    else
+        echo "$@"
+    fi
+}
 
 # Shared validation helpers
 source "$ZSH_CONFIG_DIR/modules/lib/validation.zsh"
@@ -28,7 +41,17 @@ export ZSH_MODULES_LOADED=""
 core_init_dirs() {
     local dirs=("$ZSH_CACHE_DIR" "$ZSH_DATA_DIR" "$ZSH_CONFIG_DIR/completions")
     for dir in "${dirs[@]}"; do
-        [[ ! -d "$dir" ]] && mkdir -p "$dir" 2>/dev/null && color_green "Created: $dir"
+        if [[ ! -d "$dir" ]]; then
+            if mkdir -p "$dir" 2>/dev/null; then
+                if (( ${+functions[color_green]} )); then
+                    color_green "Created: $dir"
+                else
+                    echo "Created: $dir"
+                fi
+            else
+                echo "Warning: Failed to create directory: $dir" >&2
+            fi
+        fi
     done
 }
 core_init_dirs

@@ -169,7 +169,13 @@ check_prereq() {
         echo "📖 See README.md for installation instructions"
         exit 1
     fi
-    success "ZSH found: $(which zsh)"
+    local zsh_path=$(command -v zsh)
+    if [[ -n "$zsh_path" ]]; then
+        success "ZSH found: $zsh_path"
+    else
+        error "ZSH not found in PATH"
+        exit 1
+    fi
     
     if ! check_zsh_version; then
         error "ZSH version check failed."
@@ -182,7 +188,8 @@ check_prereq() {
         echo "📖 See README.md for installation instructions"
         exit 1
     fi
-    success "Git found: $(which git)"
+    local git_path=$(command -v git)
+    success "Git found: $git_path"
     
     success "Prerequisites OK"
     
@@ -348,9 +355,14 @@ setup_zdotdir() {
 
 # Set default shell
 set_shell() {
-    if [[ "$SHELL" != "$(which zsh)" ]]; then
+    local zsh_path=$(command -v zsh)
+    if [[ -z "$zsh_path" ]]; then
+        warning "ZSH command not found in PATH, skipping shell change"
+        return 1
+    fi
+    if [[ "$SHELL" != "$zsh_path" ]]; then
         log "Setting ZSH as default shell..."
-        chsh -s "$(which zsh)"
+        chsh -s "$zsh_path"
         success "Default shell changed (restart terminal)"
     else
         log "ZSH already default shell"
