@@ -16,8 +16,27 @@ __get_file_perms() {
         setopt local_options no_xtrace 2>/dev/null
         local target_file="$1"
         local result
-        result=$(stat -f %Lp "$target_file" 2>/dev/null || stat -c %a "$target_file" 2>/dev/null)
-        print -r -- "$result"
+        
+        # Try macOS stat format first
+        result=$(stat -f %Lp "$target_file" 2>/dev/null)
+        
+        # If that fails or returns non-numeric, try Linux stat format
+        if [[ -z "$result" || ! "$result" =~ ^[0-9]+$ ]]; then
+            result=$(stat -c %a "$target_file" 2>/dev/null)
+        fi
+        
+        # If still not numeric, try alternative methods
+        if [[ -z "$result" || ! "$result" =~ ^[0-9]+$ ]]; then
+            # Try using ls -l and extracting permissions
+            result=$(ls -ld "$target_file" 2>/dev/null | awk '{print $1}' | sed 's/[^0-9]//g' | head -c 3)
+        fi
+        
+        # Ensure we return a valid numeric value or empty string
+        if [[ "$result" =~ ^[0-9]+$ ]]; then
+            print -r -- "$result"
+        else
+            print -r -- ""
+        fi
     } 2>/dev/null
 }
 
@@ -25,8 +44,9 @@ validation_reset_context() {
     local fix_mode="${1:-false}"
     __VALIDATION_MESSAGES=()
     __VALIDATION_FIX_MODE="$fix_mode"
-    VALIDATION_ERRORS=0
-    VALIDATION_WARNINGS=0
+    # Ensure variables are properly reset as integers
+    typeset -gi VALIDATION_ERRORS=0
+    typeset -gi VALIDATION_WARNINGS=0
 }
 
 validation_add() {
@@ -91,7 +111,8 @@ validation_run() {
         else
             validation_add success "File exists: $file"
             local file_perms="$(__get_file_perms "$file")"
-            if [[ -n "$file_perms" && $file_perms -gt 644 ]]; then
+            # Ensure file_perms is numeric before comparison
+            if [[ -n "$file_perms" && "$file_perms" =~ ^[0-9]+$ && $file_perms -gt 644 ]]; then
                 validation_add warning "Insecure permissions on $file: $file_perms"
                 validation_attempt_fix "Fix file permissions" "chmod 644 \"$file\""
             fi
