@@ -28,8 +28,81 @@ core_color_green() {
 source "$ZSH_CONFIG_DIR/modules/lib/validation.zsh"
 
 # -------------------- Security Settings --------------------
-# Safe file operations (merged from security.zsh)
-alias rm='rm -i' cp='cp -i' mv='mv -i'
+# Safe file operations with extra protections for rm
+safe_rm() {
+    emulate -L zsh
+    setopt localoptions no_nomatch
+
+    if (( $# == 0 )); then
+        echo "Usage: rm <path> [...]"
+        return 1
+    fi
+
+    local -a args=("$@")
+    local -a targets=()
+    local parsing_options=true
+    local arg=""
+
+    for arg in "${args[@]}"; do
+        if [[ "$arg" == "--" ]]; then
+            parsing_options=false
+            continue
+        fi
+        if [[ "$parsing_options" == true && "$arg" == -* ]]; then
+            continue
+        fi
+        targets+=("$arg")
+    done
+
+    local prompt_needed=false
+    local -a reasons=()
+    local home_prefix="$HOME"
+    local cwd_prefix="$PWD"
+    local target=""
+
+    for target in "${targets[@]}"; do
+        [[ -z "$target" ]] && continue
+        local abs_target="${target:A}"
+
+        if [[ -d "$target" ]]; then
+            prompt_needed=true
+            reasons+=("directory: $target")
+        fi
+
+        if [[ "$abs_target" != "$home_prefix" && "$abs_target" != "$home_prefix"/* ]]; then
+            prompt_needed=true
+            reasons+=("outside home: $target")
+        fi
+
+        if [[ "$abs_target" != "$cwd_prefix" && "$abs_target" != "$cwd_prefix"/* ]]; then
+            prompt_needed=true
+            reasons+=("outside current directory: $target")
+        fi
+
+        if [[ -e "$target" ]]; then
+            local owner=""
+            owner=$(stat -f '%Su' "$target" 2>/dev/null || stat -c '%U' "$target" 2>/dev/null || echo "")
+            if [[ -n "$owner" && "$owner" != "$USER" ]]; then
+                prompt_needed=true
+                reasons+=("owner $owner ≠ $USER: $target")
+            fi
+        fi
+    done
+
+    if [[ "$prompt_needed" == true ]]; then
+        color_yellow "⚠️  rm safety check"
+        (( ${#reasons[@]} > 0 )) && printf '  - %s\n' "${reasons[@]}"
+        read -r "?Proceed with rm? [y/N]: " confirm
+        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+            color_red "Deletion cancelled"
+            return 1
+        fi
+    fi
+
+    command rm -i "$@"
+}
+
+alias rm='safe_rm' cp='cp -i' mv='mv -i'
 
 # Secure umask
 umask 022
