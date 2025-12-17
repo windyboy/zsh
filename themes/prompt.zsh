@@ -216,6 +216,7 @@ posh_themes() {
     else
         echo "Oh My Posh not installed. Install with: brew install oh-my-posh"
     fi
+}
 # Interactive theme changer with preview
 change_theme() {
     if ! command -v oh-my-posh >/dev/null 2>&1; then
@@ -248,7 +249,7 @@ change_theme() {
     # Use fzf to select theme with preview (try JSON first, then YAML)
     selected_theme=$(echo "$themes_list" | fzf \
         --prompt="Select theme: " \
-        --preview="if [ -f '$themes_dir/{}.omp.json' ]; then oh-my-posh print primary --config '$themes_dir/{}.omp.json' 2>/dev/null; elif [ -f '$themes_dir/{}.omp.yaml' ]; then oh-my-posh print primary --config '$themes_dir/{}.omp.yaml' 2>/dev/null; else echo 'Preview not available'; fi" \
+        --preview="if [ -f \"$themes_dir/{}.omp.json\" ]; then oh-my-posh print primary --config \"$themes_dir/{}.omp.json\" 2>/dev/null; elif [ -f \"$themes_dir/{}.omp.yaml\" ]; then oh-my-posh print primary --config \"$themes_dir/{}.omp.yaml\" 2>/dev/null; else echo \"Preview not available\"; fi" \
         --preview-window=right:50%:wrap \
         --height=40% \
         --border)
