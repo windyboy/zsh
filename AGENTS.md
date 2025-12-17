@@ -47,7 +47,7 @@
 - **Imports**: Source dependencies at top of files
 
 ### Shell Options
-- **Core options**: `CORRECT`, `CORRECT_ALL`, `AUTO_PARAM_KEYS`, `INTERACTIVE_COMMENTS`
+- **Core options**: `AUTO_PARAM_KEYS`, `INTERACTIVE_COMMENTS`
 - **Safety options**: `NO_CLOBBER`, `RM_STAR_WAIT`, `PIPE_FAIL`
 - **Disabled options**: `BEEP`, `CASE_GLOB`, `FLOW_CONTROL`
 

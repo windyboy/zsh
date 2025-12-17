@@ -130,6 +130,7 @@ core_init_dirs() {
 core_init_dirs
 
 # -------------------- Core Settings --------------------
+# Disable command and argument spelling correction to avoid annoying prompts
 unsetopt CORRECT CORRECT_ALL
 setopt NO_HUP NO_CHECK_JOBS
 setopt AUTO_PARAM_KEYS AUTO_PARAM_SLASH COMPLETE_IN_WORD HASH_LIST_ALL
