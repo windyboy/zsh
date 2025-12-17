@@ -130,7 +130,7 @@ core_init_dirs() {
 core_init_dirs
 
 # -------------------- Core Settings --------------------
-setopt CORRECT CORRECT_ALL
+unsetopt CORRECT CORRECT_ALL
 setopt NO_HUP NO_CHECK_JOBS
 setopt AUTO_PARAM_KEYS AUTO_PARAM_SLASH COMPLETE_IN_WORD HASH_LIST_ALL
 setopt INTERACTIVE_COMMENTS MULTIOS NOTIFY
@@ -142,7 +142,7 @@ unsetopt BEEP CASE_GLOB FLOW_CONTROL
 safe_source() {
     local file="$1"
     local description="${2:-$file}"
-    
+
     if [[ -f "$file" ]]; then
         if source "$file" 2>/dev/null; then
             color_green "✅ Loaded: $description" >&2
@@ -325,23 +325,23 @@ perf() {
         local memory_mb=$(echo "scale=1; ${memory_kb:-0} / 1024" | bc 2>/dev/null || echo "0")
         local history_lines=$(wc -l < "$HISTFILE" 2>/dev/null || echo "0")
         local uptime=$(ps -p $$ -o etime 2>/dev/null | awk 'NR==2 {print $1}')
-        
+
         # Calculate startup time
         local start_time=$(date +%s.%N)
         source "$ZSH_CONFIG_DIR/zshrc" >/dev/null 2>&1
         local end_time=$(date +%s.%N)
         local startup_time=$(echo "$end_time - $start_time" | bc 2>/dev/null || echo "0")
-        
+
         # Calculate performance score
         local score=100
         [[ $func_count -gt 200 ]] && ((score -= 10))
         [[ $alias_count -gt 100 ]] && ((score -= 10))
         [[ $(echo "$memory_mb > 10" | bc 2>/dev/null || echo "0") -eq 1 ]] && ((score -= 20))
         [[ $(echo "$startup_time > 2" | bc 2>/dev/null || echo "0") -eq 1 ]] && ((score -= 20))
-        
+
         echo "$func_count|$alias_count|$memory_mb|$startup_time|$history_lines|$uptime|$score"
     }
-    
+
     # Helper function to display metrics
     display_metrics() {
         local metrics="$1"
@@ -356,7 +356,7 @@ perf() {
         printf "  %s %-20s %s\n" "📚" "History:" "$history_lines lines"
         printf "  %s %-20s %s\n" "⏱️" "Uptime:" "$uptime"
         printf "  %s %-20s %s\n" "📈" "Score:" "$score/100"
-        
+
         # Performance rating
         if [[ $score -ge 90 ]]; then
             color_green "Performance: Excellent"
@@ -521,36 +521,36 @@ EOF
 
         echo
     fi
-    
+
     # Continuous monitoring mode
     if [[ "$monitor_mode" == "true" ]]; then
         echo "📊 Starting performance monitoring (Press Ctrl+C to stop)..."
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        
+
         while true; do
             local metrics=$(get_performance_metrics)
             IFS='|' read -r func_count alias_count memory_mb startup_time history_lines uptime score <<< "$metrics"
-            
+
             printf "\r[%s] Score: %s/100 | Memory: %sMB | Functions: %s | Aliases: %s" \
                 "$(date '+%H:%M:%S')" "$score" "$memory_mb" "$func_count" "$alias_count"
-            
+
             sleep 5
         done
         return 0
     fi
-    
+
     # Profile mode
     if [[ "$profile_mode" == "true" ]]; then
         echo "📊 Generating performance profile..."
         mkdir -p "$ZSH_CACHE_DIR"
-        
+
         # Create detailed profile
         {
             echo "ZSH Configuration Performance Profile"
             echo "Generated: $(date)"
             echo "================================================"
             echo
-            
+
             # System information
             echo "System Information:"
             echo "  OS: $(uname -s) $(uname -r)"
@@ -558,11 +558,11 @@ EOF
             echo "  ZSH Version: $(zsh --version | head -1)"
             echo "  Shell PID: $$"
             echo
-            
+
             # Performance metrics
             local metrics=$(get_performance_metrics)
             IFS='|' read -r func_count alias_count memory_mb startup_time history_lines uptime score <<< "$metrics"
-            
+
             echo "Performance Metrics:"
             echo "  Functions: $func_count"
             echo "  Aliases: $alias_count"
@@ -572,7 +572,7 @@ EOF
             echo "  Uptime: $uptime"
             echo "  Performance Score: $score/100"
             echo
-            
+
             # Module analysis
             echo "Module Analysis:"
             local modules=("core" "navigation" "aliases" "plugins" "completion" "keybindings" "utils")
@@ -584,7 +584,7 @@ EOF
                 fi
             done
             echo
-            
+
             # Plugin analysis
             echo "Plugin Analysis:"
             if command -v zinit >/dev/null 2>&1; then
@@ -596,7 +596,7 @@ EOF
                 echo "  zinit: Not available"
             fi
             echo
-            
+
             # Environment variables
             echo "Environment Variables:"
             echo "  ZSH_CONFIG_DIR: $ZSH_CONFIG_DIR"
@@ -605,7 +605,7 @@ EOF
             echo "  HISTSIZE: $HISTSIZE"
             echo "  SAVEHIST: $SAVEHIST"
             echo
-            
+
             # Recommendations
             echo "Recommendations:"
             if [[ $func_count -gt 200 ]]; then
@@ -627,24 +627,24 @@ EOF
             else
                 echo "  🔧 Consider implementing optimization recommendations"
             fi
-            
+
         } > "$profile_file"
-        
+
         echo "Profile saved to: $profile_file"
         return 0
     fi
-    
+
     # Optimization mode
     if [[ "$optimize_mode" == "true" ]]; then
         echo "🔧 Performance Optimization Recommendations"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        
+
         local metrics=$(get_performance_metrics)
         IFS='|' read -r func_count alias_count memory_mb startup_time history_lines uptime score <<< "$metrics"
-        
+
         echo "Current Performance Score: $score/100"
         echo
-        
+
         # Function optimization
         if [[ $func_count -gt 200 ]]; then
             color_yellow "🔧 Function Optimization:"
@@ -654,7 +654,7 @@ EOF
             echo "  • Check: modules/utils.zsh for utility functions"
             echo
         fi
-        
+
         # Alias optimization
         if [[ $alias_count -gt 100 ]]; then
             color_yellow "🔧 Alias Optimization:"
@@ -664,7 +664,7 @@ EOF
             echo "  • Check: modules/aliases.zsh for alias definitions"
             echo
         fi
-        
+
         # Memory optimization
         if [[ $(echo "$memory_mb > 10" | bc 2>/dev/null || echo "0") -eq 1 ]]; then
             color_yellow "🔧 Memory Optimization:"
@@ -674,7 +674,7 @@ EOF
             echo "  • Check: modules/plugins.zsh for heavy plugins"
             echo
         fi
-        
+
         # Startup time optimization
         if [[ $(echo "$startup_time > 2" | bc 2>/dev/null || echo "0") -eq 1 ]]; then
             color_yellow "🔧 Startup Time Optimization:"
@@ -684,7 +684,7 @@ EOF
             echo "  • Check: zshrc for module loading sequence"
             echo
         fi
-        
+
         # General recommendations
         if [[ $score -ge 90 ]]; then
             color_green "✅ Performance is excellent! No optimizations needed."
@@ -693,22 +693,22 @@ EOF
         else
             color_red "🔧 Performance needs improvement. Implement the above recommendations."
         fi
-        
+
         echo
         echo "💡 Additional Tips:"
         echo "  • Use 'validate --fix' to automatically fix common issues"
         echo "  • Use 'test.sh' to run comprehensive tests"
         echo "  • Review plugin usage with 'plugins' command"
         echo "  • Monitor performance with 'perf --monitor'"
-        
+
         return 0
     fi
-    
+
     # History mode
     if [[ "$history_mode" == "true" ]]; then
         echo "📚 Performance History"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        
+
         # Look for performance history files
         local history_files=($ZSH_CACHE_DIR/performance_profile_*.txt)
         if [[ ${#history_files[@]} -eq 0 ]]; then
@@ -716,7 +716,7 @@ EOF
             echo "Run 'perf --profile' to create performance profiles."
             return 0
         fi
-        
+
         # Show recent profiles
         echo "Recent Performance Profiles:"
         for file in "${history_files[@]: -5}"; do
@@ -724,10 +724,10 @@ EOF
             local score=$(grep "Performance Score:" "$file" | awk '{print $3}' | head -1)
             echo "  $date: Score $score"
         done
-        
+
         return 0
     fi
-    
+
     # Default mode - show basic metrics
     local metrics=$(get_performance_metrics)
     display_metrics "$metrics"
