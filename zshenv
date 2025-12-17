@@ -58,14 +58,9 @@ export PAGER="${PAGER:-less}"
 ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 
 if [[ -f "$ZSH_CONFIG_DIR/env/local/environment.env" ]]; then
-    if source "$ZSH_CONFIG_DIR/env/local/environment.env" 2>/dev/null; then
-        : # Successfully loaded
-    else
-        echo "⚠️  Warning: Failed to load environment.env file" >&2
-    fi
+    source "$ZSH_CONFIG_DIR/env/local/environment.env" 2>/dev/null || true
 elif [[ -f "$ZSH_CONFIG_DIR/env/templates/environment.env.template" ]]; then
-    echo "⚠️  Note: User environment configuration file not found"
-    echo "💡 To customize development tool configuration, run: $ZSH_CONFIG_DIR/env/init-env.sh"
+    : # Template exists but not loaded
 fi
 
 # =============================================================================
@@ -73,11 +68,7 @@ fi
 # Description: Maintain compatibility with old configuration files
 # =============================================================================
 if [[ -f "$ZSH_CONFIG_DIR/env/local.zsh" ]]; then
-    if source "$ZSH_CONFIG_DIR/env/local.zsh" 2>/dev/null; then
-        : # Successfully loaded
-    else
-        echo "⚠️  Warning: Failed to load local.zsh file" >&2
-    fi
+    source "$ZSH_CONFIG_DIR/env/local.zsh" 2>/dev/null || true
 fi
 
 # =============================================================================
@@ -92,4 +83,4 @@ fi
 # =============================================================================
 # End of File Marker
 # Description: This file is responsible for setting core environment variables
-# ============================================================================= 
+# =============================================================================

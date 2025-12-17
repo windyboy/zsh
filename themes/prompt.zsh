@@ -8,13 +8,13 @@ _validate_theme_file() {
     local theme_file="$1"
     [[ -f "$theme_file" ]] || return 1
     [[ $(wc -c < "$theme_file") -gt 100 ]] || return 1
-    
+
     # Check for HTTP error responses (only at start of line or as HTML)
     # This avoids matching legitimate template variables like .Error
     if grep -qiE "^(404|Not Found|<!DOCTYPE|<html)" "$theme_file" 2>/dev/null; then
         return 1
     fi
-    
+
     # Determine file type and validate accordingly
     if [[ "$theme_file" == *.omp.json ]]; then
         # Validate JSON format
@@ -40,7 +40,7 @@ _validate_theme_file() {
         # Unknown format, basic size check
         [[ $(wc -c < "$theme_file") -ge 100 ]] || return 1
     fi
-    
+
     return 0
 }
 
@@ -169,7 +169,7 @@ _init_prompt_system
 posh_theme() {
     local theme_name="$1"
     [[ -z "$theme_name" ]] && { echo "Usage: posh_theme <theme_name>"; return 1; }
-    
+
     local themes_dir="$HOME/.poshthemes"
     local theme_file
     theme_file="$(_posh_locate_theme_file "$theme_name" "$themes_dir")" || {
@@ -200,7 +200,7 @@ posh_themes() {
         local theme_dir="$HOME/.poshthemes"
         echo "Available Oh My Posh themes:"
         echo "=============================="
-        
+
         if [[ -d "$theme_dir" ]]; then
             # List both JSON and YAML themes, removing duplicates
             {
@@ -210,7 +210,7 @@ posh_themes() {
         else
             echo "No themes found. Install with: oh-my-posh theme install"
         fi
-        
+
         echo ""
         echo "Usage: posh_theme <theme_name>"
     else
@@ -264,8 +264,6 @@ change_theme() {
 
 # Quick theme switcher (alias for change_theme)
 ct() {
-    change_theme "$@"
-}
     change_theme "$@"
 }
 

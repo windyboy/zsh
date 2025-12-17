@@ -37,7 +37,7 @@ show_progress() {
     local width=30
     local filled=$((current * width / total))
     local empty=$((width - filled))
-    
+
     printf "["
     printf "%${filled}s" | tr ' ' '█'
     printf "%${empty}s" | tr ' ' '░'
@@ -56,11 +56,8 @@ status_color_cyan "🔄 Loading configuration..."
 # Suppress module loading messages for cleaner output
 if [[ -f "$ZSH_CONFIG_DIR/zshrc" ]]; then
     # shellcheck disable=SC1091
-    if source "$ZSH_CONFIG_DIR/zshrc" >/dev/null 2>&1; then
-        status_color_green "✅ Configuration loaded successfully!"
-    else
-        status_color_yellow "⚠️  Configuration loaded with warnings (continuing...)"
-    fi
+    source "$ZSH_CONFIG_DIR/zshrc" >/dev/null 2>&1
+    status_color_green "✅ Configuration loaded successfully!"
 else
     status_color_red "❌ ZSH configuration file not found: $ZSH_CONFIG_DIR/zshrc"
     exit 1

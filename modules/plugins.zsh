@@ -54,15 +54,15 @@ fi
 plugin_init() {
     # Only initialize zinit if not already loaded
     [[ -n "$ZINIT" ]] && return 0
-    
+
     # Ensure ZINIT_HOME is set (should already be set globally)
     [[ -z "$ZINIT_HOME" ]] && export ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit"
-    
+
     local ZINIT_BIN="${ZINIT_HOME}/zinit.git"
-    
+
     # Create directory if it doesn't exist
     [[ ! -d "$ZINIT_HOME" ]] && mkdir -p "$ZINIT_HOME"
-    
+
     # Install zinit if not present
     if [[ ! -f "$ZINIT_BIN/zinit.zsh" ]]; then
         echo "📦 Installing zinit..."
@@ -83,7 +83,7 @@ plugin_init() {
             fi
         fi
     fi
-    
+
     # Source zinit with simple error handling
     if source "$ZINIT_BIN/zinit.zsh" 2>/dev/null; then
         ZINIT[MUTE_WARNINGS]=1 2>/dev/null || true
@@ -131,7 +131,15 @@ plugin_install_if_missing() {
 }
 
 try_load_plugin() {
-    zinit ice wait"0" lucid 2>/dev/null && zinit light "$1" 2>/dev/null
+    # Lazy load heavy plugins later to improve startup time
+    case "$1" in
+        "Aloxaf/fzf-tab"|"zsh-users/zsh-history-substring-search"|"zsh-users/zsh-completions")
+            zinit ice wait"1" lucid 2>/dev/null && zinit light "$1" 2>/dev/null
+            ;;
+        *)
+            zinit ice wait"0" lucid 2>/dev/null && zinit light "$1" 2>/dev/null
+            ;;
+    esac
 }
 
 load_plugin() {
@@ -143,40 +151,24 @@ load_plugin() {
 
     # First attempt - try to load existing plugin
     if try_load_plugin "$repo"; then
-        color_green "✅ Loaded: $plugin_name"
         return 0
     fi
 
-    color_yellow "⚠️  Plugin not found, attempting installation: $plugin_name"
-
-    # Installation attempt with retry logic
+    # Silent installation attempt for better startup
     while (( retry_count < max_retries )); do
         if plugin_install_if_missing "$repo"; then
             # Try to load after successful installation
             if try_load_plugin "$repo"; then
-                color_green "✅ Loaded after installation: $plugin_name"
                 return 0
-            else
-                color_yellow "⚠️  Installation succeeded but loading failed, retrying..."
-            fi
-        else
-            color_red "❌ Installation failed for: $plugin_name"
-            if (( retry_count < max_retries - 1 )); then
-                color_yellow "🔄 Retrying installation (attempt $((retry_count + 2))/$max_retries)..."
-                sleep 1
             fi
         fi
         ((retry_count++))
     done
 
-    # Final failure - provide helpful error message
-    if [[ "$warn_only" -eq 1 ]]; then
-        color_yellow "⚠️  Failed to load: $plugin_name (after $max_retries attempts)"
-        color_yellow "💡 Try: zinit update && source ~/.zshrc"
-    else
+    # Only show messages if not warn_only
+    if [[ "$warn_only" -eq 0 ]]; then
         color_red "❌ Failed to load: $plugin_name (after $max_retries attempts)"
         color_red "💡 Try: zinit update && source ~/.zshrc"
-        color_red "🔍 Check: ~/.cache/zsh/zinit.log for details"
     fi
     return 1
 }
@@ -192,9 +184,9 @@ plugins_load() {
         color_red "❌ Failed to initialize plugin system"
         return 1
     fi
-    
+
     [[ ! -o interactive ]] && return
-    
+
     # Ensure zinit is fully loaded before proceeding
     if [[ -z "$ZINIT" ]]; then
         color_red "❌ zinit not loaded, skipping plugin loading"
@@ -236,10 +228,10 @@ plugins_load() {
             fi
         done
     fi
-    
+
     # Enhanced loading status report
     color_green "✅ Loaded: $loaded_plugins plugins total"
-    
+
     # Fallback: manually load fzf-tab if not loaded by zinit
     if ! (( ${+functions[_fzf_tab_complete]} )) && ! (( ${+functions[_fzf-tab-apply]} )) && ! (( ${+functions[-ftb-complete]} )); then
         if [[ -f "$ZINIT_HOME/plugins/Aloxaf---fzf-tab/fzf-tab.plugin.zsh" ]]; then
@@ -265,7 +257,7 @@ ensure_critical_plugins() {
             source "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" 2>/dev/null
         fi
     fi
-    
+
     # Check if autosuggestions is working (check both function and widget)
     if ! (( ${+functions[_zsh_autosuggest_start]} )) && ! (( ${+widgets[autosuggest-accept]} )); then
         if [[ -f "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
@@ -278,12 +270,12 @@ ensure_critical_plugins() {
 configure_syntax_highlighting() {
     local term_program="${TERM_PROGRAM:-unknown}"
     local term="${TERM:-unknown}"
-    
+
     # Initialize FAST_HIGHLIGHT array if not already set
     if [[ -z "${FAST_HIGHLIGHT[*]}" ]]; then
         typeset -gA FAST_HIGHLIGHT
     fi
-    
+
     # Configure syntax highlighting for different terminals
     case "$term_program" in
         "tmux")
@@ -309,7 +301,7 @@ configure_syntax_highlighting() {
             FAST_HIGHLIGHT[use_async]=1
             ;;
     esac
-    
+
     # Ensure proper color support
     if [[ "$COLORTERM" == "truecolor" || "$COLORTERM" == "24bit" ]]; then
         FAST_HIGHLIGHT[use_256]=1
@@ -323,7 +315,7 @@ if [[ -o interactive ]]; then
     if [[ ${precmd_functions[(ie)ensure_critical_plugins]} -gt ${#precmd_functions} ]]; then
         precmd_functions+=(ensure_critical_plugins)
     fi
-    
+
     # Configure syntax highlighting for the current terminal
     configure_syntax_highlighting
 fi
@@ -340,17 +332,27 @@ fi
 # zinit ice wait"0" lucid
 # zinit light romkatv/zsh-bench 2>/dev/null || true
 
-if command -v zoxide >/dev/null 2>&1; then
-    # Use source instead of eval for security
-    # Try process substitution first, fallback to temporary file if it fails
-    local zoxide_init_file="$ZSH_CACHE_DIR/zoxide_init.zsh"
-    if ! source <(zoxide init zsh 2>/dev/null) 2>/dev/null; then
-        # Fallback: use temporary file
-        if zoxide init zsh > "$zoxide_init_file" 2>/dev/null && [[ -f "$zoxide_init_file" ]]; then
-            source "$zoxide_init_file" 2>/dev/null
+# Lazy load zoxide to improve startup time
+z() {
+    if ! (( ${+functions[z]} )) || [[ "$(type z)" != *"zoxide"* ]]; then
+        if command -v zoxide >/dev/null 2>&1; then
+            # Use source instead of eval for security
+            # Try process substitution first, fallback to temporary file if it fails
+            local zoxide_init_file="$ZSH_CACHE_DIR/zoxide_init.zsh"
+            if ! source <(zoxide init zsh 2>/dev/null) 2>/dev/null; then
+                # Fallback: use temporary file
+                if zoxide init zsh > "$zoxide_init_file" 2>/dev/null && [[ -f "$zoxide_init_file" ]]; then
+                    source "$zoxide_init_file" 2>/dev/null
+                fi
+            fi
+        else
+            echo "zoxide not installed" >&2
+            return 1
         fi
     fi
-fi
+    z "$@"
+}
+# Lazy load eza alias to avoid startup cost
 if command -v eza >/dev/null 2>&1; then
     alias lt='eza -T --icons --group-directories-first'
 fi
@@ -396,21 +398,21 @@ if command -v fzf >/dev/null 2>&1; then
         "/usr/share/doc/fzf/examples"   # Linux (Arch)
         "$HOME/.fzf/shell"              # Manual installation
     )
-    
+
     for fzf_path in "${fzf_paths[@]}"; do
         if [[ -f "$fzf_path/completion.zsh" ]]; then
             source "$fzf_path/completion.zsh"
             break
         fi
     done
-    
+
     for fzf_path in "${fzf_paths[@]}"; do
         if [[ -f "$fzf_path/key-bindings.zsh" ]]; then
             source "$fzf_path/key-bindings.zsh"
             break
         fi
     done
-    
+
     # Set FZF default options for consistent behavior
     export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --margin=1,4"
 
@@ -419,7 +421,7 @@ if command -v fzf >/dev/null 2>&1; then
     # Cross-platform terminal-aware preview window sizing
     local term_program="${TERM_PROGRAM:-unknown}"
     local term_size="$COLUMNSx$LINES"
-    
+
     case "$term_program" in
         "vscode")
             # VS Code terminal - disable preview if terminal is too small
@@ -469,13 +471,13 @@ fi
 plugin_status_complete() {
     echo "🔌 Complete Plugin Status Report"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
+
     # Platform information
     echo "🌍 Platform: $(detect_platform)"
     echo "🖥️  Terminal: $TERM_PROGRAM ($TERM)"
     echo "🎨 Color Support: $COLORTERM"
     echo ""
-    
+
     # zinit status
     if [[ -n "$ZINIT" ]]; then
         echo "✅ zinit loaded successfully"
@@ -484,7 +486,7 @@ plugin_status_complete() {
         echo "❌ zinit not loaded"
     fi
     echo ""
-    
+
     # Core plugins status
     echo "📦 Core Plugins Status:"
     local plugins=(
@@ -496,7 +498,7 @@ plugin_status_complete() {
         "z:z"
         "fzf-tab:_fzf_tab_complete"
     )
-    
+
     for plugin in "${plugins[@]}"; do
         local name="${plugin%%:*}"
         local func="${plugin##*:}"
@@ -507,7 +509,7 @@ plugin_status_complete() {
         fi
     done
     echo ""
-    
+
     # Tool dependencies
     echo "🛠️  Tool Dependencies:"
     local tools=("fzf" "zoxide" "eza" "git")
@@ -519,7 +521,7 @@ plugin_status_complete() {
         fi
     done
     echo ""
-    
+
     # Configuration status
     echo "⚙️  Configuration Status:"
     if [[ -n "${FAST_HIGHLIGHT[use_bracket]}" ]]; then
@@ -527,27 +529,27 @@ plugin_status_complete() {
     else
         echo "   ❌ Syntax highlighting not configured"
     fi
-    
+
     if [[ -n "$ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE" ]]; then
         echo "   ✅ Autosuggestions configured"
     else
         echo "   ❌ Autosuggestions not configured"
     fi
-    
+
     if [[ -n "$FZF_DEFAULT_OPTS" ]]; then
         echo "   ✅ FZF configured"
     else
         echo "   ❌ FZF not configured"
     fi
     echo ""
-    
+
     # Performance indicators
     echo "⚡ Performance Indicators:"
     echo "   Function nesting limit: $FUNCNEST"
     echo "   ZSH version: $ZSH_VERSION"
     echo "   Interactive mode: $([[ -o interactive ]] && echo "Yes" || echo "No")"
     echo ""
-    
+
     # Recommendations
     echo "💡 Recommendations:"
     if [[ "$TERM_PROGRAM" == "tmux" ]]; then
@@ -919,7 +921,7 @@ check_extract_deps() {
     command -v 7z >/dev/null 2>&1 || missing_deps+=("7z")
     command -v cabextract >/dev/null 2>&1 || missing_deps+=("cabextract")
     command -v ar >/dev/null 2>&1 || missing_deps+=("ar")
-    
+
     # Platform-specific package tools
     case "$(uname -s)" in
         Linux)
@@ -960,7 +962,7 @@ plugin_status() {
 
     echo "🔌 Plugin Status Report"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
+
     # Check zinit status
     if [[ -n "$ZINIT" ]]; then
         color_green "✅ zinit loaded"
@@ -968,12 +970,12 @@ plugin_status() {
     else
         color_red "❌ zinit not loaded"
     fi
-    
+
     echo ""
     echo "📦 Core Plugins:"
     local loaded_count=0
     local total_count=${#ZINIT_PLUGINS[@]}
-    
+
     # Check core plugins
     for plugin in "${ZINIT_PLUGINS[@]}"; do
         local plugin_name="${plugin##*/}"
@@ -986,7 +988,7 @@ plugin_status() {
             color_red "   ❌ $plugin_name"
         fi
     done
-    
+
     echo ""
     echo "🛠️  Tool Dependencies:"
     local tools=("fzf" "zoxide" "eza")
@@ -997,12 +999,12 @@ plugin_status() {
             color_red "   ❌ $tool"
         fi
     done
-    
+
     echo ""
     echo "📊 Summary:"
     echo "   Core plugins: $loaded_count/$total_count loaded"
     echo "   Load rate: $((loaded_count * 100 / total_count))%"
-    
+
     # Check for common issues
     echo ""
     echo "🔍 Common Issues:"
@@ -1187,7 +1189,7 @@ detect_platform() {
     local os="$(uname -s)"
     local arch="$(uname -m)"
     local platform=""
-    
+
     case "$os" in
         Linux)
             if [[ -f /etc/os-release ]]; then
@@ -1207,7 +1209,7 @@ detect_platform() {
             platform="$os"
             ;;
     esac
-    
+
     echo "$platform ($arch)"
 }
 
@@ -1225,7 +1227,7 @@ if [[ -o interactive ]]; then
             source "$ZINIT_HOME/plugins/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" 2>/dev/null
         fi
     fi
-    
+
     # Verify autosuggestions is working (check both function and widget)
     if ! (( ${+functions[_zsh_autosuggest_start]} )) && ! (( ${+widgets[autosuggest-accept]} )); then
         if [[ -f "$ZINIT_HOME/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
@@ -1240,7 +1242,7 @@ configure_fzf_tab() {
     if (( ${+functions[_fzf_tab_complete]} )) || (( ${+functions[_fzf-tab-apply]} )) || (( ${+functions[-ftb-complete]} )); then
         # Ensure completion menu is disabled for fzf-tab
         zstyle ':completion:*' menu no
-        
+
         # Set preview configurations
         if [[ "$TERM_PROGRAM" == "vscode" && "$LINES" -le 20 ]]; then
             zstyle ':fzf-tab:complete:*:*' fzf-preview ''
@@ -1248,7 +1250,7 @@ configure_fzf_tab() {
             zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
             zstyle ':fzf-tab:complete:*:*' fzf-preview '[[ -d "$realpath" ]] && ls -la "$realpath" 2>/dev/null || [[ -f "$realpath" ]] && (command -v bat >/dev/null 2>&1 && bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || head -10 "$realpath" 2>/dev/null) || echo "$realpath"'
         fi
-        
+
         # Set fzf flags based on terminal
         local term_program="${TERM_PROGRAM:-unknown}"
         case "$term_program" in
@@ -1289,13 +1291,13 @@ disable_fzf_preview() {
 # Enable fzf-tab preview with enhanced settings
 enable_fzf_preview() {
     echo "🔧 Enabling fzf-tab preview with enhanced settings..."
-    
+
     # Preview for directories
     zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null || echo "Directory: $realpath"'
-    
+
     # Preview for files and directories (enhanced)
     zstyle ':fzf-tab:complete:*:*' fzf-preview '[[ -d "$realpath" ]] && ls -la "$realpath" 2>/dev/null || [[ -f "$realpath" ]] && (command -v bat >/dev/null 2>&1 && bat --style=numbers --color=always --line-range :20 "$realpath" 2>/dev/null || file "$realpath" 2>/dev/null) || echo "$realpath"'
-    
+
     echo "✅ fzf-tab preview enabled with enhanced settings"
     echo "💡 Directories show contents, files show type or content preview"
 }

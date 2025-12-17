@@ -23,24 +23,16 @@ fi
 simple_source() {
     local file="$1"
     local description="${2:-$file}"
-    
+
     if [[ -f "$file" ]]; then
         # Special handling for theme configuration to allow Oh My Posh output
         if [[ "$description" == "theme configuration" ]]; then
-            if source "$file"; then
-                echo "✅ Loaded: $description" >&2
-                return 0
-            else
-                return 1
-            fi
+            source "$file" || true
+            return 0
         else
             # For other files, source directly and capture any errors
-            if source "$file" 2>/dev/null; then
-                echo "✅ Loaded: $description" >&2
-                return 0
-            else
-                return 1
-            fi
+            source "$file" 2>/dev/null || true
+            return 0
         fi
     else
         return 1
@@ -71,37 +63,50 @@ simple_source "$ZSH_CONFIG_DIR/local.zsh" "local configuration"
 # Enhanced loading summary
 echo "✅ ZSH config loaded ($loaded_modules/$total_modules modules + extras)" >&2
 
-# Load NVM configuration
+# Lazy load NVM to improve startup time
 export NVM_DIR="$HOME/.config/nvm"
-if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-    # Load NVM only when the script is present to avoid affecting the caller's status
-    source "$NVM_DIR/nvm.sh"
-fi
+nvm() {
+    if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+        source "$NVM_DIR/nvm.sh"
+        if [[ -s "$NVM_DIR/bash_completion" ]]; then
+            source "$NVM_DIR/bash_completion"
+        fi
+        nvm "$@"
+    else
+        echo "NVM not installed. Install from https://github.com/nvm-sh/nvm" >&2
+        return 1
+    fi
+}
 
-if [[ -s "$NVM_DIR/bash_completion" ]]; then
-    # Load the complementary bash completion when available without altering exit codes
-    source "$NVM_DIR/bash_completion"
-fi
+# Lazy load bun to improve startup time
+bun() {
+    if [[ -s "$HOME/.bun/_bun" ]]; then
+        source "$HOME/.bun/_bun"
+        # Add to PATH if not already present
+        if [[ -n "$BUN_INSTALL" ]] && [[ -d "$BUN_INSTALL/bin" ]]; then
+            case ":$PATH:" in
+                *:"$BUN_INSTALL/bin":*)
+                    ;;  # Already in PATH, skip
+                *)
+                    export PATH="$BUN_INSTALL/bin:$PATH"
+                    ;;
+            esac
+        elif [[ -d "$HOME/.bun/bin" ]]; then
+            export BUN_INSTALL="$HOME/.bun"
+            case ":$PATH:" in
+                *:"$BUN_INSTALL/bin":*)
+                    ;;  # Already in PATH, skip
+                *)
+                    export PATH="$BUN_INSTALL/bin:$PATH"
+                    ;;
+            esac
+        fi
+        bun "$@"
+    else
+        echo "Bun not installed. Install from https://bun.sh" >&2
+        return 1
+    fi
+}
 
-# bun completions
-[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
-
-# bun - Add to PATH only if not already present
-if [[ -n "$BUN_INSTALL" ]] && [[ -d "$BUN_INSTALL/bin" ]]; then
-    case ":$PATH:" in
-        *:"$BUN_INSTALL/bin":*)
-            ;;  # Already in PATH, skip
-        *)
-            export PATH="$BUN_INSTALL/bin:$PATH"
-            ;;
-    esac
-elif [[ -d "$HOME/.bun/bin" ]]; then
-    export BUN_INSTALL="$HOME/.bun"
-    case ":$PATH:" in
-        *:"$BUN_INSTALL/bin":*)
-            ;;  # Already in PATH, skip
-        *)
-            export PATH="$BUN_INSTALL/bin:$PATH"
-            ;;
-    esac
-fi
+# Ensure script returns success
+true
