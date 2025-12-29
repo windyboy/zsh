@@ -247,12 +247,9 @@ change_theme() {
     fi
 
     # Use fzf to select theme with preview (try JSON first, then YAML)
-    selected_theme=$(echo "$themes_list" | fzf \
-        --prompt="Select theme: " \
-        --preview="if [ -f \"$themes_dir/{}.omp.json\" ]; then oh-my-posh print primary --config \"$themes_dir/{}.omp.json\" 2>/dev/null; elif [ -f \"$themes_dir/{}.omp.yaml\" ]; then oh-my-posh print primary --config \"$themes_dir/{}.omp.yaml\" 2>/dev/null; else echo \"Preview not available\"; fi" \
-        --preview-window=right:50%:wrap \
-        --height=40% \
-        --border)
+    local preview_cmd
+    preview_cmd="if [ -f \"$themes_dir/{}.omp.json\" ]; then oh-my-posh print primary --config \"$themes_dir/{}.omp.json\" 2>/dev/null; elif [ -f \"$themes_dir/{}.omp.yaml\" ]; then oh-my-posh print primary --config \"$themes_dir/{}.omp.yaml\" 2>/dev/null; else echo \"Preview not available\"; fi"
+    selected_theme=$(printf '%s\n' "$themes_list" | fzf --prompt="Select theme: " --preview="$preview_cmd" --preview-window=right:50%:wrap --height=40% --border)
 
     if [[ -n "$selected_theme" ]]; then
         echo "Switching to theme: $selected_theme"
