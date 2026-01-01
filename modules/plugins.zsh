@@ -693,10 +693,10 @@ check_plugin_conflicts() {
             local seen_function="${seen##*:}"
 
             if [[ "$key" == "$seen_key" && "$function" != "$seen_function" ]]; then
-                if [[ "$conflicts_found" == false ]]; then
+                [[ "$conflicts_found" == false ]] && {
                     echo "❌ Key binding conflicts found:"
                     conflicts_found=true
-                fi
+                }
                 echo "   • $key: $seen_function vs $function"
             fi
         done
@@ -704,9 +704,7 @@ check_plugin_conflicts() {
         seen_keys+=("$key:$function")
     done
 
-    if [[ "$conflicts_found" == false ]]; then
-        color_green "✅ No key binding conflicts found"
-    fi
+    [[ "$conflicts_found" == false ]] && color_green "✅ No key binding conflicts found"
 
     # Check for alias conflicts
     local alias_conflicts=$(alias | cut -d= -f1 | sed 's/^alias //g' | sort | uniq -d)
@@ -1028,23 +1026,9 @@ plugins_health_check() {
     # Zinit status
     echo ""
     echo "🧰 Zinit Status:"
-    if [[ -n "$ZINIT" ]]; then
-        color_green "   ✅ zinit loaded"
-    else
-        color_red "   ❌ zinit not loaded"
-    fi
-
-    if [[ -d "$ZINIT_HOME" ]]; then
-        color_green "   ✅ ZINIT_HOME exists: $ZINIT_HOME"
-    else
-        color_red "   ❌ ZINIT_HOME missing: $ZINIT_HOME"
-    fi
-
-    if [[ -f "$ZINIT_HOME/zinit.git/zinit.zsh" ]]; then
-        color_green "   ✅ zinit installation complete"
-    else
-        color_red "   ❌ zinit installation incomplete"
-    fi
+    [[ -n "$ZINIT" ]] && color_green "   ✅ zinit loaded" || color_red "   ❌ zinit not loaded"
+    [[ -d "$ZINIT_HOME" ]] && color_green "   ✅ ZINIT_HOME exists: $ZINIT_HOME" || color_red "   ❌ ZINIT_HOME missing: $ZINIT_HOME"
+    [[ -f "$ZINIT_HOME/zinit.git/zinit.zsh" ]] && color_green "   ✅ zinit installation complete" || color_red "   ❌ zinit installation incomplete"
 
     # Plugin counts
     echo ""
@@ -1143,26 +1127,20 @@ plugins_health_check() {
         done
     fi
 
-    if (( conflicts_found == 0 )); then
-        color_green "   ✅ No key binding conflicts detected"
-    fi
+    (( conflicts_found == 0 )) && color_green "   ✅ No key binding conflicts detected"
 
     # Recommendations
     echo ""
     echo "💡 Recommendations:"
-    if (( loaded_plugins < total_plugins )); then
-        color_yellow "   • Run 'zinit update' to ensure all plugins are installed"
-    fi
-
-    if (( plugin_count > 15 )); then
+    (( loaded_plugins < total_plugins )) && color_yellow "   • Run 'zinit update' to ensure all plugins are installed"
+    (( plugin_count > 15 )) && {
         color_yellow "   • Consider disabling unused optional plugins"
         color_yellow "   • Use lazy loading for heavy plugins"
-    fi
-
-    if (( conflicts_found > 0 )); then
+    }
+    (( conflicts_found > 0 )) && {
         color_red "   • Resolve key binding conflicts manually"
         color_red "   • Use 'bindkey -r <key>' to unbind conflicting keys"
-    fi
+    }
 
     # Summary
     echo ""
