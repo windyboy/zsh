@@ -2,26 +2,41 @@
 
 ## Build/Lint/Test Commands
 
-### Testing
+### Testing (Run Single Test)
 - **All tests**: `./test.sh all`
-- **Unit tests**: `./test.sh unit`
-- **Integration tests**: `./test.sh integration`
-- **Performance tests**: `./test.sh performance`
-- **Plugin tests**: `./test.sh plugins`
-- **Validation tests**: `./test.sh validation`
-- **Conflict tests**: `./test.sh conflicts`
-- **Security tests**: `./test.sh security`
+- **Single test type**: `./test.sh unit|integration|performance|plugins|validation|conflicts|security`
 
 ### Validation & Health Checks
-- **Project health check**: `./check-project.sh`
-- **Configuration validation**: `./validate.sh`
-- **Status check**: `./status.sh`
-- **Syntax validation**: `zsh -n <file>`
+- **Project health**: `./check-project.sh`
+- **Configuration**: `./validate.sh`
+- **Status**: `./status.sh`
+- **Syntax**: `zsh -n <file>`
 
 ### CI/CD
-- **Linting**: ShellCheck (via GitHub Actions)
-- **Security scanning**: TruffleHog (via GitHub Actions)
-- **Cross-platform testing**: Ubuntu & macOS (via GitHub Actions)
+- **Linting**: ShellCheck (GitHub Actions)
+- **Security**: TruffleHog (GitHub Actions)
+- **Testing**: Ubuntu & macOS (GitHub Actions)
+
+## Architecture & Codebase Structure
+
+### Directory Layout
+- **`modules/`** - Core configuration modules (core.zsh, aliases.zsh, plugins.zsh, completion.zsh, keybindings.zsh, path.zsh, utils.zsh, colors.zsh, navigation.zsh, lib/)
+- **`themes/`** - Oh My Posh theme management
+- **`plugins/`** - Plugin registry files (core.list, optional.list)
+- **`scripts/`** - Installation and utility scripts
+- **`completions/`** - ZSH completion definitions
+- **`env/`** - Environment variable management
+
+### Core Modules
+- **core.zsh** - Base environment, directories, history
+- **plugins.zsh** - Plugin management via zinit
+- **completion.zsh** - ZSH completion system setup
+- **aliases.zsh** - Command aliases
+- **keybindings.zsh** - Vi/Emacs key bindings
+- **utils.zsh** - Utility functions (mkcd, trash, extract)
+- **path.zsh** - PATH management and cleanup
+- **colors.zsh** - Color definitions for output
+- **navigation.zsh** - Directory navigation helpers
 
 ## Code Style Guidelines
 
