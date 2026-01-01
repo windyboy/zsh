@@ -34,7 +34,7 @@ else
 fi
 
 # Ensure basic completion functions are available
-autoload -Uz _files _directories _cd _ls _cp _mv _rm _complete _ignored _approximate _match
+autoload -Uz _files _directories _cd _ls _cp _mv _rm _approximate _match
 
 # -------------------- Basic Completion Styles --------------------
 zstyle ':completion:*' completer _complete _match _approximate
