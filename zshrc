@@ -78,35 +78,5 @@ nvm() {
     fi
 }
 
-# Lazy load bun to improve startup time
-bun() {
-    if [[ -s "$HOME/.bun/_bun" ]]; then
-        source "$HOME/.bun/_bun"
-        # Add to PATH if not already present
-        if [[ -n "$BUN_INSTALL" ]] && [[ -d "$BUN_INSTALL/bin" ]]; then
-            case ":$PATH:" in
-                *:"$BUN_INSTALL/bin":*)
-                    ;;  # Already in PATH, skip
-                *)
-                    export PATH="$BUN_INSTALL/bin:$PATH"
-                    ;;
-            esac
-        elif [[ -d "$HOME/.bun/bin" ]]; then
-            export BUN_INSTALL="$HOME/.bun"
-            case ":$PATH:" in
-                *:"$BUN_INSTALL/bin":*)
-                    ;;  # Already in PATH, skip
-                *)
-                    export PATH="$BUN_INSTALL/bin:$PATH"
-                    ;;
-            esac
-        fi
-        bun "$@"
-    else
-        echo "Bun not installed. Install from https://bun.sh" >&2
-        return 1
-    fi
-}
-
 # Ensure script returns success
 true
