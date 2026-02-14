@@ -5,11 +5,11 @@
 # =============================================================================
 
 # Performance Thresholds (Constants)
-typeset -gr ZSH_MAX_FUNCTIONS=200      # Maximum recommended functions
-typeset -gr ZSH_MAX_ALIASES=100        # Maximum recommended aliases
-typeset -gr ZSH_MAX_MEMORY_MB=10       # Maximum memory usage in MB
-typeset -gr ZSH_MAX_STARTUP_SEC=2      # Maximum startup time in seconds
-typeset -gr ZSH_CACHE_TTL=86400        # Cache TTL in seconds (24 hours)
+(( ${+ZSH_MAX_FUNCTIONS} ))   || typeset -g ZSH_MAX_FUNCTIONS=200      # Maximum recommended functions
+(( ${+ZSH_MAX_ALIASES} ))     || typeset -g ZSH_MAX_ALIASES=100        # Maximum recommended aliases
+(( ${+ZSH_MAX_MEMORY_MB} ))    || typeset -g ZSH_MAX_MEMORY_MB=10       # Maximum memory usage in MB
+(( ${+ZSH_MAX_STARTUP_SEC} ))  || typeset -g ZSH_MAX_STARTUP_SEC=2      # Maximum startup time in seconds
+(( ${+ZSH_CACHE_TTL} ))        || typeset -g ZSH_CACHE_TTL=86400        # Cache TTL in seconds (24 hours)
 
 # Color output tools - colors module should be loaded before core
 # source "$ZSH_CONFIG_DIR/modules/colors.zsh"  # Moved to zshrc loading order
