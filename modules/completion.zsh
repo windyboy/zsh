@@ -35,7 +35,7 @@ local cache_age=0
 if [[ -f "$COMPLETION_CACHE_FILE" ]]; then
     local cache_mtime=$(stat -f %m "$COMPLETION_CACHE_FILE" 2>/dev/null || stat -c %Y "$COMPLETION_CACHE_FILE" 2>/dev/null)
     local now=$(date +%s 2>/dev/null)
-    if [[ -n "$cache_mtime" && -n "$now" ]]; then
+    if [[ "$cache_mtime" =~ ^[0-9]+$ ]] && [[ "$now" =~ ^[0-9]+$ ]]; then
         cache_age=$((now - cache_mtime))
     fi
 fi
