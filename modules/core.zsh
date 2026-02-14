@@ -4,25 +4,15 @@
 # Description: Core functionality, validation, and performance monitoring
 # =============================================================================
 
+# Performance Thresholds (Constants)
+typeset -gr ZSH_MAX_FUNCTIONS=200      # Maximum recommended functions
+typeset -gr ZSH_MAX_ALIASES=100        # Maximum recommended aliases
+typeset -gr ZSH_MAX_MEMORY_MB=10       # Maximum memory usage in MB
+typeset -gr ZSH_MAX_STARTUP_SEC=2      # Maximum startup time in seconds
+typeset -gr ZSH_CACHE_TTL=86400        # Cache TTL in seconds (24 hours)
+
 # Color output tools - colors module should be loaded before core
 # source "$ZSH_CONFIG_DIR/modules/colors.zsh"  # Moved to zshrc loading order
-
-# Module specific wrappers (with safe fallback)
-core_color_red() {
-    if (( ${+functions[color_red]} )); then
-        color_red "$@"
-    else
-        echo "$@"
-    fi
-}
-
-core_color_green() {
-    if (( ${+functions[color_green]} )); then
-        color_green "$@"
-    else
-        echo "$@"
-    fi
-}
 
 # Shared validation helpers
 source "$ZSH_CONFIG_DIR/modules/lib/validation.zsh"
@@ -87,9 +77,6 @@ alias rm='safe_rm' cp='cp -i' mv='mv -i'
 
 # Secure umask
 umask 022
-
-# -------------------- Module Loading Status --------------------
-export ZSH_MODULES_LOADED=""
 
 # -------------------- Directory Initialization --------------------
 core_init_dirs() {
@@ -295,22 +282,45 @@ perf() {
     local func_count=$(declare -F 2>/dev/null | wc -l 2>/dev/null)
     local alias_count=$(alias 2>/dev/null | wc -l 2>/dev/null)
     local memory_kb=$(ps -p $$ -o rss 2>/dev/null | awk 'NR==2 {gsub(/ /, "", $1); print $1}')
-    local memory_mb=$(echo "scale=1; ${memory_kb:-0} / 1024" | bc 2>/dev/null || echo "0")
+    local memory_mb=$(printf "%.1f" $(( ${memory_kb:-0} / 1024.0 )))
     local history_lines=$(wc -l < "$HISTFILE" 2>/dev/null || echo "0")
     local uptime=$(ps -p $$ -o etime 2>/dev/null | awk 'NR==2 {print $1}')
 
-    # Calculate startup time
-    local start_time=$(date +%s.%N)
-    source "$ZSH_CONFIG_DIR/zshrc" >/dev/null 2>&1
-    local end_time=$(date +%s.%N)
-    local startup_time=$(echo "$end_time - $start_time" | bc 2>/dev/null || echo "0")
+    # Calculate performance metrics
+    zmodload zsh/datetime
+    local func_count=${#functions}
+    local alias_count=${#aliases}
+    
+    # Use memory info from ps (already cached if possible, but here we keep it simple)
+    local memory_kb=$(ps -p $$ -o rss 2>/dev/null | awk 'NR==2 {gsub(/ /, "", $1); print $1}')
+    local memory_mb=$(printf "%.1f" $(( ${memory_kb:-0} / 1024.0 )))
 
-    # Calculate performance score
+    # Use a faster way to get "startup time" - we can't accurately re-measure 
+    # without re-sourcing, so we should report the LAST known startup time 
+    # or use a very lightweight check. For now, let's just use the metrics we have.
+    local startup_time="${ZSH_STARTUP_TIME:-0}"
+
+    # Calculate performance score using zsh native arithmetic
     local score=100
-    [[ $func_count -gt 200 ]] && ((score -= 10))
-    [[ $alias_count -gt 100 ]] && ((score -= 10))
-    [[ $(echo "$memory_mb > 10" | bc 2>/dev/null || echo "0") -eq 1 ]] && ((score -= 20))
-    [[ $(echo "$startup_time > 2" | bc 2>/dev/null || echo "0") -eq 1 ]] && ((score -= 20))
+    (( func_count > $ZSH_MAX_FUNCTIONS )) && (( score -= 10 ))
+    (( alias_count > $ZSH_MAX_ALIASES )) && (( score -= 10 ))
+    (( $(printf "%.0f" $memory_mb) > ZSH_MAX_MEMORY_MB )) && (( score -= 20 ))
+    
+    # Simple report
+    echo "🚀 ZSH Performance Metrics"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    printf "  Functions: %d\n" "$func_count"
+    printf "  Aliases:   %d\n" "$alias_count"
+    printf "  Memory:    %s MB\n" "$memory_mb"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    if (( score >= 90 )); then
+        color_green "✅ Performance: Excellent ($score/100)"
+    elif (( score >= 70 )); then
+        color_yellow "⚠️  Performance: Good ($score/100)"
+    else
+        color_red "❌ Performance: Needs Optimization ($score/100)"
+    fi
 
     local module_dir="$ZSH_CONFIG_DIR/modules"
 
@@ -378,7 +388,7 @@ perf() {
                 done
 
                 if (( total_memory_kb > 0 )); then
-                    local total_memory_mb=$(echo "scale=1; ${total_memory_kb} / 1024" | bc 2>/dev/null || echo "0")
+                    local total_memory_mb=$(printf "%.1f" $(( total_memory_kb / 1024.0 )))
                     echo
                     printf "  %s %-18s %5s KB (%s MB)\n" "📊" "Total Loaded" "$total_memory_kb" "$total_memory_mb"
                 fi
@@ -494,10 +504,10 @@ perf() {
 
             # Recommendations
             echo "Recommendations:"
-            [[ $func_count -gt 200 ]] && echo "  ⚠️  Consider reducing function count (current: $func_count, recommended: <200)"
-            [[ $alias_count -gt 100 ]] && echo "  ⚠️  Consider reducing alias count (current: $alias_count, recommended: <100)"
-            [[ $(echo "$memory_mb > 10" | bc 2>/dev/null || echo "0") -eq 1 ]] && echo "  ⚠️  Consider optimizing memory usage (current: ${memory_mb}MB, recommended: <10MB)"
-            [[ $(echo "$startup_time > 2" | bc 2>/dev/null || echo "0") -eq 1 ]] && echo "  ⚠️  Consider optimizing startup time (current: ${startup_time}s, recommended: <2s)"
+            [[ $func_count -gt $ZSH_MAX_FUNCTIONS ]] && echo "  ⚠️  Consider reducing function count (current: $func_count, recommended: <$ZSH_MAX_FUNCTIONS)"
+            [[ $alias_count -gt $ZSH_MAX_ALIASES ]] && echo "  ⚠️  Consider reducing alias count (current: $alias_count, recommended: <$ZSH_MAX_ALIASES)"
+            (( $(printf "%.0f" $memory_mb) > ZSH_MAX_MEMORY_MB )) && echo "  ⚠️  Consider optimizing memory usage (current: ${memory_mb}MB, recommended: <${ZSH_MAX_MEMORY_MB}MB)"
+            (( $(printf "%.0f" $startup_time) > ZSH_MAX_STARTUP_SEC )) && echo "  ⚠️  Consider optimizing startup time (current: ${startup_time}s, recommended: <${ZSH_MAX_STARTUP_SEC}s)"
             [[ $score -ge 90 ]] && echo "  ✅ Performance is excellent!" || echo "  🔧 Consider implementing optimization recommendations"
         } > "$profile_file"
 
@@ -514,7 +524,7 @@ perf() {
         echo
 
         # Function optimization
-        [[ $func_count -gt 200 ]] && {
+        [[ $func_count -gt $ZSH_MAX_FUNCTIONS ]] && {
             color_yellow "🔧 Function Optimization:"
             echo "  • Current: $func_count functions"
             echo "  • Recommended: <200 functions"
@@ -524,7 +534,7 @@ perf() {
         }
 
         # Alias optimization
-        [[ $alias_count -gt 100 ]] && {
+        [[ $alias_count -gt $ZSH_MAX_ALIASES ]] && {
             color_yellow "🔧 Alias Optimization:"
             echo "  • Current: $alias_count aliases"
             echo "  • Recommended: <100 aliases"
@@ -534,7 +544,7 @@ perf() {
         }
 
         # Memory optimization
-        [[ $(echo "$memory_mb > 10" | bc 2>/dev/null || echo "0") -eq 1 ]] && {
+        (( $(printf "%.0f" $memory_mb) > ZSH_MAX_MEMORY_MB )) && {
             color_yellow "🔧 Memory Optimization:"
             echo "  • Current: ${memory_mb}MB"
             echo "  • Recommended: <10MB"
@@ -544,7 +554,7 @@ perf() {
         }
 
         # Startup time optimization
-        [[ $(echo "$startup_time > 2" | bc 2>/dev/null || echo "0") -eq 1 ]] && {
+        (( $(printf "%.0f" $startup_time) > ZSH_MAX_STARTUP_SEC )) && {
             color_yellow "🔧 Startup Time Optimization:"
             echo "  • Current: ${startup_time}s"
             echo "  • Recommended: <2s"
@@ -631,4 +641,4 @@ version() {
 }
 
 # Mark module as loaded
-export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED core"
+ZSH_MODULES_LOADED+=(core)

@@ -66,20 +66,32 @@ validation_add() {
 validation_attempt_fix() {
     local description="$1"
     local command="$2"
+    local -a cmd_parts=("${(z)command}")
+    local base_cmd="${cmd_parts[1]}"
 
     [[ "$__VALIDATION_FIX_MODE" == "true" ]] || return 1
 
     validation_add info "Attempting to fix: $description"
-    if [[ "$command" =~ ^(mkdir|chmod|chown|ln|cp|mv|rm)\  ]]; then
-        if eval "$command" 2>/dev/null; then
-            validation_add success "Fixed: $description"
-            return 0
-        fi
-        validation_add warning "Failed to fix: $description"
-        return 1
-    fi
+    
+    # Secure whitelist check instead of eval
+    case "$base_cmd" in
+        mkdir|chmod|ln|rm)
+            if "$base_cmd" "${cmd_parts[@]:1}" 2>/dev/null; then
+                validation_add success "Fixed: $description"
+                return 0
+            fi
+            ;;
+        git)
+            if [[ "${cmd_parts[2]}" == "clone" ]]; then
+                 if git "${cmd_parts[@]:1}" 2>/dev/null; then
+                    validation_add success "Fixed: $description"
+                    return 0
+                fi
+            fi
+            ;;
+    esac
 
-    validation_add warning "Skipping potentially unsafe command: $command"
+    validation_add warning "Failed to fix or skipping potentially unsafe command: $command"
     return 1
 }
 
@@ -208,17 +220,16 @@ validation_run() {
         validation_add success "Memory usage: ${memory_mb}MB"
     fi
 
-    # 9. Startup time
-    validation_add info "Checking startup time..."
-    local start_time end_time startup_time
-    start_time=$(date +%s.%N)
-    source "$ZSH_CONFIG_DIR/zshrc" >/dev/null 2>&1
-    end_time=$(date +%s.%N)
-    startup_time=$(echo "$end_time - $start_time" | bc 2>/dev/null || echo "0")
-    if [[ $(echo "$startup_time > 2" | bc 2>/dev/null || echo "0") -eq 1 ]]; then
-        validation_add warning "Slow startup time: ${startup_time}s (recommended: <2s)"
+    # 9. Startup metrics (Reporting last known instead of re-measuring)
+    validation_add info "Checking startup metrics..."
+    if [[ -n "$ZSH_STARTUP_TIME" ]]; then
+        if [[ $(echo "$ZSH_STARTUP_TIME > 2" | bc 2>/dev/null || echo "0") -eq 1 ]]; then
+            validation_add warning "Slow startup time: ${ZSH_STARTUP_TIME}s (recommended: <2s)"
+        else
+            validation_add success "Startup time: ${ZSH_STARTUP_TIME}s"
+        fi
     else
-        validation_add success "Startup time: ${startup_time}s"
+        validation_add info "Startup time not measured (ZSH_STARTUP_TIME not set)"
     fi
 
     # 10. Syntax validation

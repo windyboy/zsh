@@ -11,7 +11,11 @@ if [[ -z "$HOME" ]]; then
 fi
 
 # Set ZSH configuration root directory (compatible with direct calls)
-export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
+# Note: zshenv should have already set this via typeset -grx
+if [[ -z "$ZSH_CONFIG_DIR" ]]; then
+    export ZSH_CONFIG_DIR="$HOME/.config/zsh"
+    echo "[zshrc] Warning: ZSH_CONFIG_DIR was not set by zshenv, using default" >&2
+fi
 
 # Minimum required version
 autoload -Uz is-at-least
@@ -25,22 +29,23 @@ simple_source() {
     local description="${2:-$file}"
 
     if [[ -f "$file" ]]; then
-        # Special handling for theme configuration to allow Oh My Posh output
-        if [[ "$description" == "theme configuration" ]]; then
-            source "$file" || true
-            return 0
-        else
-            # For other files, source directly and capture any errors
-            source "$file" 2>/dev/null || true
-            return 0
-        fi
+        # Load file and report errors instead of silencing them
+        source "$file" || {
+            echo "❌ Error: Failed to load $description" >&2
+            return 1
+        }
+        return 0
     else
         return 1
     fi
 }
 
 # Load environment variables first (core environment setup)
-simple_source "$ZSH_CONFIG_DIR/zshenv" "environment variables"
+# Note: zshenv is normally loaded by ZSH itself via ZDOTDIR.
+# Only source it manually if it wasn't auto-loaded (e.g., ZDOTDIR changed).
+if [[ -z "$ZSH_ENV_LOADED" ]]; then
+    simple_source "$ZSH_CONFIG_DIR/zshenv" "environment variables"
+fi
 
 # Load core modules (order cannot be changed)
 local loaded_modules=0
@@ -61,7 +66,9 @@ simple_source "$ZSH_CONFIG_DIR/themes/prompt.zsh" "theme configuration"
 simple_source "$ZSH_CONFIG_DIR/local.zsh" "local configuration"
 
 # Enhanced loading summary
-echo "✅ ZSH config loaded ($loaded_modules/$total_modules modules + extras)" >&2
+zmodload zsh/datetime
+export ZSH_STARTUP_TIME=$(printf "%.3f" $(( EPOCHREALTIME - ZSH_STARTUP_START )))
+echo "✅ ZSH config loaded in ${ZSH_STARTUP_TIME}s (${#ZSH_MODULES_LOADED[@]} modules)" >&2
 
 # Lazy load NVM to improve startup time
 export NVM_DIR="$HOME/.config/nvm"
@@ -80,3 +87,9 @@ nvm() {
 
 # Ensure script returns success
 true
+
+# opencode
+export PATH=$HOME/.opencode/bin:$PATH
+
+. "$HOME/.local/share/../bin/env" 2>/dev/null || true
+

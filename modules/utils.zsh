@@ -49,7 +49,8 @@ alias path-reload='source ~/.config/zsh/modules/path.zsh'
 diskusage() { df -h | grep -E '^/dev/' | awk '{print $1, $2, $3, $4, $5, $6}'; }
 memusage() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        vm_stat | perl -ne '/page size of (\\d+)/ and $size=$1; /Pages free: (\\d+)/ and printf "Free: %.1f MB\\n", $1 * $size / 1048576'
+        local mem_bytes=$(sysctl -n hw.memsize)
+        printf "Total Memory: %.1f GB\n" $(( mem_bytes / 1024.0 / 1024.0 / 1024.0 ))
         top -l 1 -s 0 | grep PhysMem
     else
         free -h
@@ -314,4 +315,4 @@ fzf_widgets() {
 # Custom functions can be added in the custom/ directory
 
 # Mark module as loaded
-export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED utils"
+ZSH_MODULES_LOADED+=(utils)

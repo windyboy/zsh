@@ -1,22 +1,36 @@
 #!/usr/bin/env zsh
 # =============================================================================
 # Completion Module - Completion System Configuration
-# Description: Only high-frequency, essential, minimal completion configuration with clear comments and unified naming.
 # =============================================================================
 
 # Color output tools
 source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 
-# Module specific wrappers
-comp_color_red()   { color_red "$@"; }
-comp_color_green() { color_green "$@"; }
+# -------------------- fpath Setup --------------------
+# Set fpath before compinit (The proper ZSH way)
+[[ -d "$ZSH_CONFIG_DIR/completions" ]] && fpath=("$ZSH_CONFIG_DIR/completions" $fpath)
 
-# -------------------- Completion Cache --------------------
+# Handle tool completions via fpath/autoload
+for tool in bun deno docker; do
+    local cache_file="$ZSH_CACHE_DIR/_$tool"
+    if command -v $tool >/dev/null 2>&1; then
+        if [[ ! -f "$cache_file" ]]; then
+            case $tool in
+                bun) bun completions > "$cache_file" 2>/dev/null ;;
+                deno) deno completions zsh > "$cache_file" 2>/dev/null ;;
+                docker) docker completion zsh > "$cache_file" 2>/dev/null ;;
+            esac
+        fi
+    fi
+done
+
+[[ -d "$ZSH_CACHE_DIR" ]] && fpath=("$ZSH_CACHE_DIR" $fpath)
+
+# -------------------- compinit Initialization --------------------
 COMPLETION_CACHE_FILE="$ZSH_CACHE_DIR/zcompdump"
 autoload -Uz compinit
 
-# Initialize completion system
-# Check cache file age using stat (more reliable than find -mtime)
+# Check cache file age
 local cache_age=0
 if [[ -f "$COMPLETION_CACHE_FILE" ]]; then
     local cache_mtime=$(stat -f %m "$COMPLETION_CACHE_FILE" 2>/dev/null || stat -c %Y "$COMPLETION_CACHE_FILE" 2>/dev/null)
@@ -90,88 +104,45 @@ zstyle ':completion:*:(ssh|scp|rsync):*:hosts-host' ignored-patterns '*(.|:)*' l
 
 # -------------------- man Completion --------------------
 zstyle ':completion:*:manuals' separate-sections true
-# Remove conflicting insert-tab setting for manuals
 
-# -------------------- Custom/Tool Completion --------------------
-if [[ -d "$ZSH_CONFIG_DIR/completions" ]]; then
-    for completion in "$ZSH_CONFIG_DIR/completions"/_*(N); do
-        [[ -f "$completion" ]] && source "$completion"
-    done
-fi
-if command -v bun >/dev/null 2>&1; then
-    [[ ! -f "$ZSH_CACHE_DIR/_bun" ]] && bun completions > "$ZSH_CACHE_DIR/_bun" 2>/dev/null
-    [[ -f "$ZSH_CACHE_DIR/_bun" ]] && source "$ZSH_CACHE_DIR/_bun"
-fi
-if command -v deno >/dev/null 2>&1; then
-    [[ ! -f "$ZSH_CACHE_DIR/_deno" ]] && deno completions zsh > "$ZSH_CACHE_DIR/_deno" 2>/dev/null
-    [[ -f "$ZSH_CACHE_DIR/_deno" ]] && source "$ZSH_CACHE_DIR/_deno"
-fi
-if command -v docker >/dev/null 2>&1; then
-    [[ ! -f "$ZSH_CACHE_DIR/_docker" ]] && docker completion zsh > "$ZSH_CACHE_DIR/_docker" 2>/dev/null
-    [[ -f "$ZSH_CACHE_DIR/_docker" ]] && source "$ZSH_CACHE_DIR/_docker"
-fi
+# -------------------- Tool Integration --------------------
 if command -v eza >/dev/null 2>&1; then
-    # Use ls completion for eza to support aliases like 'ls=eza'
     compdef _ls eza
 fi
 
 # -------------------- Tab Enhancement --------------------
-# Ensure tab completion works properly
 bindkey '^I' complete-word
 bindkey '^[[Z' reverse-menu-complete
 zstyle ':completion:*' accept-exact '*(N)'
-# Show completions immediately instead of inserting a literal tab on the first
-# press. This avoids confusion where pressing Tab appears to do nothing when
-# completions are available.
 zstyle ':completion:*' insert-tab false
 
 # VS Code Terminal Specific Fixes
 if [[ "$TERM_PROGRAM" == "vscode" ]]; then
-    # Only apply VS Code specific fixes if fzf-tab is not available
     if ! (( ${+functions[_fzf_tab_complete]} )) && ! (( ${+functions[_fzf-tab-apply]} )) && ! (( ${+functions[-ftb-complete]} )); then
         zstyle ':completion:*' menu yes select=1
         zstyle ':completion:*' force-list always
     fi
-    # Ensure completions are shown immediately
     zstyle ':completion:*' list-prompt ''
     zstyle ':completion:*' select-prompt ''
-    # Alternative completion trigger for VS Code
     bindkey '^ ' complete-word 2>/dev/null || true
 fi
-# fzf-tab configuration is handled in plugins.zsh to avoid conflicts
 
-# -------------------- Common Functions --------------------
+# -------------------- Utility Functions --------------------
 completion_status() {
-    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: completion_status" && return 0
     local errors=0
-    (( ${+_comps} )) && comp_color_green "✅ Completion system initialized (${#_comps} functions)" || { comp_color_red "❌ Completion system not initialized"; ((errors++)); }
-    [[ -f "$COMPLETION_CACHE_FILE" ]] && comp_color_green "✅ Completion cache exists" || { comp_color_red "❌ Completion cache missing"; ((errors++)); }
-    
-    # Test actual completion functionality instead of checking specific function names
-    if (( ${+_comps} )); then
-        comp_color_green "✅ File completion available"
-        comp_color_green "✅ Command completion available"
-        comp_color_green "✅ Directory completion available"
-    else
-        comp_color_red "❌ Basic completions missing"
-        ((errors++))
-    fi
-    
-    (( errors == 0 )) && comp_color_green "Completion system working normally" || comp_color_red "Completion system has $errors issues"
+    (( ${+_comps} )) && color_green "✅ Completion system initialized (${#_comps} functions)" || { color_red "❌ Completion system not initialized"; ((errors++)); }
+    [[ -f "$COMPLETION_CACHE_FILE" ]] && color_green "✅ Completion cache exists" || { color_red "❌ Completion cache missing"; ((errors++)); }
+    (( errors == 0 )) && color_green "Completion system working normally" || color_red "Completion system has $errors issues"
     return $errors
 }
+
 rebuild_completion() {
-    [[ "$1" == "-h" || "$1" == "--help" ]] && echo "Usage: rebuild_completion" && return 0
-    [[ -f "$COMPLETION_CACHE_FILE" ]] && rm "$COMPLETION_CACHE_FILE"
-    [[ -f "${COMPLETION_CACHE_FILE}.zwc" ]] && rm "${COMPLETION_CACHE_FILE}.zwc"
+    rm -f "$COMPLETION_CACHE_FILE" "${COMPLETION_CACHE_FILE}.zwc"
     autoload -Uz compinit
     compinit -d "$COMPLETION_CACHE_FILE"
     [[ -f "$COMPLETION_CACHE_FILE" ]] && zcompile "$COMPLETION_CACHE_FILE"
-    comp_color_green "✅ Completion cache rebuilt"
+    color_green "✅ Completion cache rebuilt"
 }
 
-# -------------------- Reserved Custom Area --------------------
-# Custom completions can be added in the custom/ directory
-
 # Mark module as loaded
-export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED completion"
+ZSH_MODULES_LOADED+=(completion)

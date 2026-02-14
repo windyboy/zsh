@@ -336,14 +336,9 @@ config validate   # Validate configuration
 config test       # Run test suite
 
 # Direct script access (alternative)
-./status.sh       # Check current status
-./backup/         # Backup configuration
-./backup/restore.sh # Restore configuration
-
-# Enhanced script options (v5.3.0+)
-./check-project.sh --config custom.conf  # Use custom configuration
-./install-plugins.sh list                # List available plugins
-./quick-install.sh                      # Configurable installation
+./install.sh      # Full installation & setup
+./update.sh       # Update all components
+./test.sh         # Run complete test suite
 ```
 
 ### Testing and Validation
@@ -354,10 +349,7 @@ config test       # Run complete test suite
 config validate   # Validate configuration
 
 # Direct script access (alternative)
-./test.sh unit    # Run unit tests
-./test.sh performance # Run performance tests
-./test.sh all     # Run complete test suite
-./check-project.sh # Project health check
+./test.sh         # Run all tests
 ```
 
 ### Updates and Maintenance

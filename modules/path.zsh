@@ -7,4 +7,4 @@
 # This module only provides PATH management functions and utilities
 
 # Mark module as loaded
-export ZSH_MODULES_LOADED="$ZSH_MODULES_LOADED path"
+ZSH_MODULES_LOADED+=(path)
