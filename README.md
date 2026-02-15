@@ -231,7 +231,7 @@ config env
 #### Configuration Notes
 - **Template File**: `env/templates/environment.env.template` - Do not modify directly
 - **Local Configuration**: `env/local/environment.env` - Can be freely modified
-- **Auto-loading**: Configuration files are automatically loaded, no additional steps required
+- **Auto-loading**: `env/local/environment.env` is automatically loaded during `zshrc` startup (when the file exists)
 
 ## 🎯 Usage
 

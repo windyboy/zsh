@@ -47,6 +47,13 @@ if [[ -z "$ZSH_ENV_LOADED" ]]; then
     simple_source "$ZSH_CONFIG_DIR/zshenv" "environment variables"
 fi
 
+# Load user local environment overrides when available
+if [[ -z "$ZSH_LOCAL_ENV_LOADED" ]]; then
+    if simple_source "$ZSH_CONFIG_DIR/env/local/environment.env" "local environment variables"; then
+        export ZSH_LOCAL_ENV_LOADED=1
+    fi
+fi
+
 # Load core modules (order cannot be changed)
 local loaded_modules=0
 local module_list=(colors core navigation path plugins completion aliases keybindings utils)
@@ -92,4 +99,3 @@ true
 export PATH=$HOME/.opencode/bin:$PATH
 
 . "$HOME/.local/share/../bin/env" 2>/dev/null || true
-

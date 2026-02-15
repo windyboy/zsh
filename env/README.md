@@ -70,10 +70,10 @@ ${EDITOR:-code} local/environment.env
 Configuration files are loaded automatically without additional operations. The system loads in the following order:
 
 1. `zshenv` - Core environment variables
-2. `env/local/environment.env` - User environment configuration (if exists)
+2. `env/local/environment.env` - User environment configuration (if exists, sourced by `zshrc`)
 3. `modules/` - Feature modules (including plugin and theme configurations)
 
-**Important Note:** If an old `env/development.zsh` file exists, the system will prioritize loading it instead of `environment.env`. It's recommended to use the migration script to handle old configurations.
+**Important Note:** Current startup logic loads `env/local/environment.env`. Old files like `env/development.zsh` are not part of the default startup path.
 
 ## Configuration Description
 
@@ -100,24 +100,23 @@ Main configuration items:
 **Problem:** After editing `environment.env` and reloading configuration, changes don't take effect.
 
 **Possible Causes:**
-1. Old `env/development.zsh` file exists, system prioritizes loading it
+1. `environment.env` is missing or variable is not exported (for example, missing `export VOLC_API_KEY=...`)
 2. Configuration file syntax error
 3. File permission issues
 
 **Solutions:**
 ```bash
-# 1. Check if old configuration file exists
-ls -la ~/.config/zsh/env/development.zsh
+# 1. Verify file exists and variable uses export
+grep -n 'VOLC_API_KEY' ~/.config/zsh/env/local/environment.env
 
-# 2. If exists, use migration script to handle
-cd ~/.config/zsh/env
-./migrate-env.sh
+# 2. Validate syntax
+zsh -n ~/.config/zsh/env/local/environment.env
 
-# 3. Or manually delete old file (already backed up)
-rm ~/.config/zsh/env/development.zsh
-
-# 4. Reload configuration
+# 3. Reload configuration
 source ~/.config/zsh/zshrc
+
+# 4. Verify in a new interactive shell
+zsh -ic 'print -r -- ${VOLC_API_KEY:-<unset>}'
 
 # 5. Verify environment variables
 echo "GOPATH: $GOPATH"
