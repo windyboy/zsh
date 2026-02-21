@@ -4,6 +4,7 @@
 # Version: 5.3.1 - Enhanced with Testing and Monitoring
 # =============================================================================
 
+setopt no_xtrace 2>/dev/null
 # Validate critical environment variables
 if [[ -z "$HOME" ]]; then
     echo "[zshrc] Error: HOME environment variable is not set" >&2
@@ -66,7 +67,8 @@ for mod in "${module_list[@]}"; do
     fi
 done
 
-# Load theme configuration
+# Load theme configuration (ensure no xtrace to avoid candidate='' output)
+setopt no_xtrace 2>/dev/null
 simple_source "$ZSH_CONFIG_DIR/themes/prompt.zsh" "theme configuration"
 
 # Load local personalization configuration (optional)
