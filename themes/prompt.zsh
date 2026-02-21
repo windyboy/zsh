@@ -85,6 +85,7 @@ _clean_prompt() {
 
 # Initialize prompt system
 _init_prompt_system() {
+    setopt local_options no_xtrace 2>/dev/null
     # Register cleanup hook
     autoload -Uz add-zsh-hook 2>/dev/null
     add-zsh-hook precmd _clean_prompt 2>/dev/null
@@ -112,29 +113,25 @@ _init_prompt_system() {
         fi
 
         if [[ -n "$saved_theme" ]]; then
-            local -a ordered=()
-            ordered+=("$saved_theme")
-            local theme
-            for theme in "${preferred_themes[@]}"; do
-                [[ "$theme" == "$saved_theme" ]] && continue
-                ordered+=("$theme")
-            done
-            preferred_themes=("${ordered[@]}")
+            preferred_themes=("$saved_theme" "${(@)preferred_themes:#$saved_theme}")
         fi
 
         # Find first valid theme
         local theme_file=""
-        for theme in "${preferred_themes[@]}"; do
-            local candidate
-            candidate="$(_posh_locate_theme_file "$theme" "$themes_dir")" || continue
-            if _validate_theme_file "$candidate"; then
-                theme_file="$candidate"
-                break
-            elif [[ -f "$candidate" ]]; then
-                [[ "${ZSH_DEBUG:-0}" == "1" ]] && echo "Removing invalid theme: $candidate" >&2
-                rm -f "$candidate"
-            fi
-        done
+        if [[ -d "$themes_dir" ]]; then
+            for theme in "${preferred_themes[@]}"; do
+                local candidate
+                candidate="$(_posh_locate_theme_file "$theme" "$themes_dir")"
+                [[ -z "$candidate" ]] && continue
+                if _validate_theme_file "$candidate"; then
+                    theme_file="$candidate"
+                    break
+                elif [[ -f "$candidate" ]]; then
+                    [[ "${ZSH_DEBUG:-0}" == "1" ]] && echo "Removing invalid theme: $candidate" >&2
+                    rm -f "$candidate"
+                fi
+            done
+        fi
 
         # Configure and initialize
         export OMP_DEBUG=0
