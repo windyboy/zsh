@@ -86,6 +86,11 @@ _clean_prompt() {
 # Initialize prompt system
 _init_prompt_system() {
     setopt local_options no_xtrace 2>/dev/null
+    local restore_xtrace=0
+    if [[ "${options[xtrace]}" == "on" ]]; then
+        restore_xtrace=1
+        unsetopt xtrace
+    fi
     # Register cleanup hook
     autoload -Uz add-zsh-hook 2>/dev/null
     add-zsh-hook precmd _clean_prompt 2>/dev/null
@@ -157,6 +162,8 @@ _init_prompt_system() {
         PROMPT='%F{green}%n@%m%f:%F{cyan}%~%f${vcs_info_msg_0_} %# '
         RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
     fi
+
+    (( restore_xtrace )) && setopt xtrace
 }
 
 # Initialize the prompt system
