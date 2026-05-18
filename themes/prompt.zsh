@@ -117,10 +117,9 @@ _init_prompt_system() {
         fi
 
         # Find first valid theme
-        local theme_file=""
+        local theme_file="" candidate
         if [[ -d "$themes_dir" ]]; then
             for theme in "${preferred_themes[@]}"; do
-                local candidate
                 candidate="$(_posh_locate_theme_file "$theme" "$themes_dir")"
                 [[ -z "$candidate" ]] && continue
                 if _validate_theme_file "$candidate"; then
