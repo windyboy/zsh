@@ -49,6 +49,11 @@ typeset -g POSH_THEME_PREF_FILE="${POSH_THEME_PREF_FILE:-$ZSH_CONFIG_DIR/themes/
 _posh_resolve_theme_name() {
     local name="$1"
     [[ -z "$name" ]] && return 1
+    # Prevent path traversal and shell metacharacters in theme names.
+    # Accept only plain theme tokens with optional .omp.(json|yaml) suffix.
+    if [[ ! "$name" =~ '^[A-Za-z0-9._-]+(\.omp\.(json|yaml))?$' ]]; then
+        return 1
+    fi
     if [[ "$name" == *.omp.json || "$name" == *.omp.yaml ]]; then
         echo "$name"
     else
@@ -110,11 +115,11 @@ _init_prompt_system() {
         )
         local saved_theme=""
         if [[ -n "${ZSH_POSH_THEME:-}" ]]; then
-            saved_theme="$(_posh_resolve_theme_name "$ZSH_POSH_THEME")"
+            saved_theme="$(_posh_resolve_theme_name "$ZSH_POSH_THEME")" || saved_theme=""
         elif [[ -f "$POSH_THEME_PREF_FILE" ]]; then
             local pref_content
             pref_content="$(head -n1 "$POSH_THEME_PREF_FILE" 2>/dev/null | tr -d '[:space:]')"
-            [[ -n "$pref_content" ]] && saved_theme="$(_posh_resolve_theme_name "$pref_content")"
+            [[ -n "$pref_content" ]] && saved_theme="$(_posh_resolve_theme_name "$pref_content")" || saved_theme=""
         fi
 
         if [[ -n "$saved_theme" ]]; then
