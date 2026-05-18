@@ -49,6 +49,11 @@ typeset -g POSH_THEME_PREF_FILE="${POSH_THEME_PREF_FILE:-$ZSH_CONFIG_DIR/themes/
 _posh_resolve_theme_name() {
     local name="$1"
     [[ -z "$name" ]] && return 1
+    # Prevent path traversal and shell metacharacters in theme names.
+    # Accept only plain theme tokens with optional .omp.(json|yaml) suffix.
+    case "$name" in
+        (*[!A-Za-z0-9._-]* | *..* | .* | *.) return 1 ;;
+    esac
     if [[ "$name" == *.omp.json || "$name" == *.omp.yaml ]]; then
         echo "$name"
     else
@@ -86,6 +91,11 @@ _clean_prompt() {
 # Initialize prompt system
 _init_prompt_system() {
     setopt local_options no_xtrace 2>/dev/null
+    local restore_xtrace=0
+    if [[ "${options[xtrace]}" == "on" ]]; then
+        restore_xtrace=1
+        unsetopt xtrace
+    fi
     # Register cleanup hook
     autoload -Uz add-zsh-hook 2>/dev/null
     add-zsh-hook precmd _clean_prompt 2>/dev/null
@@ -105,11 +115,11 @@ _init_prompt_system() {
         )
         local saved_theme=""
         if [[ -n "${ZSH_POSH_THEME:-}" ]]; then
-            saved_theme="$(_posh_resolve_theme_name "$ZSH_POSH_THEME")"
+            saved_theme="$(_posh_resolve_theme_name "$ZSH_POSH_THEME")" || saved_theme=""
         elif [[ -f "$POSH_THEME_PREF_FILE" ]]; then
             local pref_content
             pref_content="$(head -n1 "$POSH_THEME_PREF_FILE" 2>/dev/null | tr -d '[:space:]')"
-            [[ -n "$pref_content" ]] && saved_theme="$(_posh_resolve_theme_name "$pref_content")"
+            [[ -n "$pref_content" ]] && saved_theme="$(_posh_resolve_theme_name "$pref_content")" || saved_theme=""
         fi
 
         if [[ -n "$saved_theme" ]]; then
@@ -156,6 +166,8 @@ _init_prompt_system() {
         PROMPT='%F{green}%n@%m%f:%F{cyan}%~%f${vcs_info_msg_0_} %# '
         RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
     fi
+
+    (( restore_xtrace )) && setopt xtrace
 }
 
 # Initialize the prompt system
