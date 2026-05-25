@@ -397,6 +397,7 @@ jobs:
         ignore_names: |
           zshrc
           zshenv
+          test.sh
           *.zsh
           *.zwc
         
