@@ -117,14 +117,16 @@ _init_prompt_system() {
         )
         local saved_theme=""
         if [[ -n "${ZSH_POSH_THEME:-}" ]]; then
-            saved_theme="$(_posh_resolve_theme_name "$ZSH_POSH_THEME")" || saved_theme=""
+            if ! saved_theme="$(_posh_resolve_theme_name "$ZSH_POSH_THEME")"; then
+                saved_theme=""
+            fi
         elif [[ -f "$POSH_THEME_PREF_FILE" ]]; then
             local pref_content
             pref_content="$(head -n1 "$POSH_THEME_PREF_FILE" 2>/dev/null | tr -d '[:space:]')"
             if [[ -n "$pref_content" ]]; then
-                saved_theme="$(_posh_resolve_theme_name "$pref_content")"
-            else
-                saved_theme=""
+                if ! saved_theme="$(_posh_resolve_theme_name "$pref_content")"; then
+                    saved_theme=""
+                fi
             fi
         fi
 
