@@ -98,11 +98,6 @@ _clean_prompt() {
 # Initialize prompt system
 _init_prompt_system() {
     setopt local_options no_xtrace 2>/dev/null
-    local restore_xtrace=0
-    if [[ "${options[xtrace]}" == "on" ]]; then
-        restore_xtrace=1
-        unsetopt xtrace
-    fi
     # Register cleanup hook
     autoload -Uz add-zsh-hook 2>/dev/null
     add-zsh-hook precmd _clean_prompt 2>/dev/null
@@ -126,7 +121,11 @@ _init_prompt_system() {
         elif [[ -f "$POSH_THEME_PREF_FILE" ]]; then
             local pref_content
             pref_content="$(head -n1 "$POSH_THEME_PREF_FILE" 2>/dev/null | tr -d '[:space:]')"
-            [[ -n "$pref_content" ]] && saved_theme="$(_posh_resolve_theme_name "$pref_content")" || saved_theme=""
+            if [[ -n "$pref_content" ]]; then
+                saved_theme="$(_posh_resolve_theme_name "$pref_content")"
+            else
+                saved_theme=""
+            fi
         fi
 
         if [[ -n "$saved_theme" ]]; then
@@ -174,8 +173,6 @@ _init_prompt_system() {
         PROMPT='%F{green}%n@%m%f:%F{cyan}%~%f${vcs_info_msg_0_} %# '
         RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
     fi
-
-    (( restore_xtrace )) && setopt xtrace
 }
 
 # Initialize the prompt system
