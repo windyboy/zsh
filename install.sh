@@ -45,7 +45,8 @@ setup_config() {
     mkdir -p "$ZSH_CONFIG_DIR"
     
     # Symlink or Copy files
-    local script_dir="$(cd "$(dirname "$0")" && pwd)"
+    local script_dir
+    script_dir="$(cd "$(dirname "$0")" && pwd)"
     if [[ "$script_dir" != "$ZSH_CONFIG_DIR" ]]; then
         cp -rv "$script_dir"/* "$ZSH_CONFIG_DIR/"
     fi

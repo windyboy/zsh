@@ -30,8 +30,15 @@ _validate_theme_file() {
         # Validate YAML format (basic check - check if yq or python yaml available)
         if command -v yq >/dev/null 2>&1; then
             yq eval . "$theme_file" >/dev/null 2>&1 || return 1
-        elif command -v python3 >/dev/null 2>&1; then
-            python3 -c "import yaml; yaml.safe_load(open('''$theme_file'''))" >/dev/null 2>&1 || return 1
+        elif command -v python3 >/dev/null 2>&1 && \
+            python3 -c "import importlib.util,sys;sys.exit(0 if importlib.util.find_spec('yaml') else 1)" >/dev/null 2>&1; then
+            python3 - "$theme_file" >/dev/null 2>&1 <<'PY' || return 1
+import sys
+import yaml
+
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    yaml.safe_load(f)
+PY
         else
             # Basic validation: file size check only if no validator available
             [[ $(wc -c < "$theme_file") -ge 100 ]] || return 1
@@ -49,10 +56,15 @@ typeset -g POSH_THEME_PREF_FILE="${POSH_THEME_PREF_FILE:-$ZSH_CONFIG_DIR/themes/
 _posh_resolve_theme_name() {
     local name="$1"
     [[ -z "$name" ]] && return 1
+    # Prevent path traversal and shell metacharacters in theme names.
+    # Accept only plain theme tokens with optional .omp.(json|yaml) suffix.
+    case "$name" in
+        (*[!A-Za-z0-9._-]* | *..* | .* | *.) return 1 ;;
+    esac
     if [[ "$name" == *.omp.json || "$name" == *.omp.yaml ]]; then
-        echo "$name"
+        print -r -- "$name"
     else
-        echo "${name}.omp.json"
+        print -r -- "${name}.omp.json"
     fi
 }
 
@@ -70,7 +82,7 @@ _posh_locate_theme_file() {
     for candidate_name in "${candidates[@]}"; do
         candidate_path="$themes_dir/$candidate_name"
         if [[ -f "$candidate_path" ]]; then
-            echo "$candidate_path"
+            print -r -- "$candidate_path"
             return 0
         fi
     done
@@ -105,11 +117,17 @@ _init_prompt_system() {
         )
         local saved_theme=""
         if [[ -n "${ZSH_POSH_THEME:-}" ]]; then
-            saved_theme="$(_posh_resolve_theme_name "$ZSH_POSH_THEME")"
+            if ! saved_theme="$(_posh_resolve_theme_name "$ZSH_POSH_THEME")"; then
+                saved_theme=""
+            fi
         elif [[ -f "$POSH_THEME_PREF_FILE" ]]; then
             local pref_content
             pref_content="$(head -n1 "$POSH_THEME_PREF_FILE" 2>/dev/null | tr -d '[:space:]')"
-            [[ -n "$pref_content" ]] && saved_theme="$(_posh_resolve_theme_name "$pref_content")"
+            if [[ -n "$pref_content" ]]; then
+                if ! saved_theme="$(_posh_resolve_theme_name "$pref_content")"; then
+                    saved_theme=""
+                fi
+            fi
         fi
 
         if [[ -n "$saved_theme" ]]; then

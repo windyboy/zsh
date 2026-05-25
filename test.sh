@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 # =============================================================================
 # Simplified ZSH Test Suite
 # =============================================================================
@@ -24,9 +24,11 @@ test_syntax() {
 # 2. Variable Check
 test_vars() {
     log_test "Core Variables"
-    source ./zshenv
-    [[ -n "$ZSH_CONFIG_DIR" ]] || log_fail "ZSH_CONFIG_DIR"
-    [[ -n "$ZINIT_HOME" ]] || log_fail "ZINIT_HOME"
+    zsh -c '
+        source ./zshenv
+        [[ -n "$ZSH_CONFIG_DIR" ]] || exit 1
+        [[ -n "$ZINIT_HOME" ]] || exit 1
+    ' || log_fail "Core variables"
     log_pass
 }
 
