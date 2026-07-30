@@ -37,17 +37,17 @@ setup_config() {
     # Create .zshenv link in $HOME if not exists
     if [[ ! -e "$HOME/.zshenv" ]]; then
         ln -s "$ZSH_CONFIG_DIR/zshenv" "$HOME/.zshenv"
-        log_success "Created ~/.zshenv symlink"
+        log_success "Created $HOME/.zshenv symlink"
     elif [[ -L "$HOME/.zshenv" && "$(readlink "$HOME/.zshenv")" == "$ZSH_CONFIG_DIR/zshenv" ]]; then
-        log_success "~/.zshenv already points to this configuration"
+        log_success "$HOME/.zshenv already points to this configuration"
     else
-        log_error "~/.zshenv already exists; review it before replacing it."
+        log_error "$HOME/.zshenv already exists; review it before replacing it."
     fi
 }
 
 # 3. Finalize
 finalize() {
-    log_success "Installation complete! Please restart your terminal or run: source ~/.zshenv && source \$ZDOTDIR/zshrc"
+    log_success "Installation complete! Please restart your terminal or run: source $HOME/.zshenv && source \$ZDOTDIR/zshrc"
 }
 
 # Main Execution
