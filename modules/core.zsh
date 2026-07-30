@@ -304,10 +304,13 @@ perf() {
 
 # Version information
 version() {
-    echo "📦 ZSH Configuration Version 5.3.0 (Enhanced Modular)"
-    echo "Key Features: Modular architecture, comprehensive testing, performance optimization"
+    local version_file="$ZSH_CONFIG_DIR/VERSION"
+    local current_version="unknown"
+    [[ -r "$version_file" ]] && current_version="$(<"$version_file")"
+    echo "📦 ZSH Configuration Version $current_version (Enhanced Modular)"
+    echo "Key Features: Modular configuration and optional integrations"
     echo "Modules: core/security/navigation/aliases/plugins/completion/keybindings/utils"
-    echo "Interface: Professional monitoring and validation system"
+    echo "Interface: Shell functions for reload, validation, status, and performance"
 }
 
 # Mark module as loaded

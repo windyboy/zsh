@@ -2,10 +2,11 @@
 set -euo pipefail
 # =============================================================================
 # Unified ZSH Installer
-# Version: 5.3.1
+# Version: loaded from VERSION
 # =============================================================================
 
-VERSION="5.3.1"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VERSION="$(<"$SCRIPT_DIR/VERSION")"
 ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 
 # Colors for output
@@ -18,7 +19,7 @@ NC='\033[0m'
 log_info()    { echo -e "${BLUE}ℹ️  $*${NC}"; }
 log_success() { echo -e "${GREEN}✅ $*${NC}"; }
 log_warn()    { echo -e "${YELLOW}⚠️  $*${NC}"; }
-log_error()   { echo -e "${RED}❌ $*${NC}"; exit 1; }
+log_error()   { echo -e "${RED}❌ $*${NC}" >&2; exit 1; }
 
 # 1. Prerequisite Checks
 check_requirements() {
@@ -27,38 +28,24 @@ check_requirements() {
     command -v git >/dev/null 2>&1 || log_error "Git is not installed."
 }
 
-# 2. Dependency Installation
-install_dependencies() {
-    log_info "Installing dependencies..."
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        if command -v brew >/dev/null 2>&1; then
-            brew install fzf bat eza zoxide fd ripgrep 2>/dev/null || true
-        fi
-    elif command -v apt >/dev/null 2>&1; then
-        sudo apt update && sudo apt install -y fzf bat eza zoxide fd-find ripgrep || true
-    fi
-}
-
-# 3. Setup Configuration
+# 2. Setup Configuration
 setup_config() {
     log_info "Setting up configuration at $ZSH_CONFIG_DIR"
-    mkdir -p "$ZSH_CONFIG_DIR"
-    
-    # Symlink or Copy files
-    local script_dir
-    script_dir="$(cd "$(dirname "$0")" && pwd)"
-    if [[ "$script_dir" != "$ZSH_CONFIG_DIR" ]]; then
-        cp -rv "$script_dir"/* "$ZSH_CONFIG_DIR/"
-    fi
+    [[ "$SCRIPT_DIR" == "$ZSH_CONFIG_DIR" ]] || log_error "Clone the repository to $ZSH_CONFIG_DIR before running install.sh."
+    [[ -f "$ZSH_CONFIG_DIR/zshenv" && -f "$ZSH_CONFIG_DIR/zshrc" ]] || log_error "Configuration files are missing from $ZSH_CONFIG_DIR."
 
     # Create .zshenv link in $HOME if not exists
-    if [[ ! -L "$HOME/.zshenv" && ! -f "$HOME/.zshenv" ]]; then
+    if [[ ! -e "$HOME/.zshenv" ]]; then
         ln -s "$ZSH_CONFIG_DIR/zshenv" "$HOME/.zshenv"
         log_success "Created ~/.zshenv symlink"
+    elif [[ -L "$HOME/.zshenv" && "$(readlink "$HOME/.zshenv")" == "$ZSH_CONFIG_DIR/zshenv" ]]; then
+        log_success "~/.zshenv already points to this configuration"
+    else
+        log_error "~/.zshenv already exists; review it before replacing it."
     fi
 }
 
-# 4. Finalize
+# 3. Finalize
 finalize() {
     log_success "Installation complete! Please restart your terminal or run: source ~/.zshenv && source \$ZDOTDIR/zshrc"
 }
@@ -67,7 +54,7 @@ finalize() {
 echo -e "${BLUE}ZSH Configuration Installer v${VERSION}${NC}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+[[ $# -eq 0 ]] || log_error "Usage: $0"
 check_requirements
-install_dependencies
 setup_config
 finalize

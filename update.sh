@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # ZSH Configuration Update Script
-# Version: 5.3.1 - Automatic Update System
+# Version: loaded from VERSION
 # =============================================================================
 # shellcheck disable=SC2015,SC2162
 
@@ -26,7 +26,7 @@ warning() { with_timestamp _warning_plain "$@"; }
 error()   { with_timestamp _error_plain "$@"; }
 
 # Version information
-VERSION="5.3.1"
+VERSION="$(<"$SCRIPT_DIR/VERSION")"
 BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Configuration
@@ -210,21 +210,6 @@ update_optional_tools() {
     fi
 }
 
-# Update themes
-update_themes() {
-    log "Updating themes..."
-    
-    if [[ -f "./install-themes.sh" ]]; then
-        if bash ./install-themes.sh --all 2>/dev/null; then
-            success "Themes updated"
-        else
-            warning "Theme update failed - you can update manually with: ./install-themes.sh --all"
-        fi
-    else
-        warning "install-themes.sh not found"
-    fi
-}
-
 # Clean up old backups
 cleanup_old_backups() {
     log "Cleaning up old backups..."
@@ -261,11 +246,10 @@ show_summary() {
     echo "    • zinit plugin manager"
     echo "    • oh-my-posh theme engine"
     echo "    • optional tools (fzf, zoxide, eza)"
-    echo "    • themes collection"
     echo
     echo "  💡 Next steps:"
     echo "    • Restart your terminal"
-    echo "    • Run './status.sh' to verify updates"
+    echo "    • Start a new shell to verify updates"
     echo "    • Run './test.sh' to test configuration"
 }
 
@@ -354,10 +338,6 @@ main() {
     fi
     
     update_optional_tools
-    
-    if ! update_themes; then
-        ((update_failures++))
-    fi
     
     # Cleanup
     cleanup_old_backups
