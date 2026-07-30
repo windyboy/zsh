@@ -182,11 +182,7 @@ config() {
         
         # System management commands
         status)
-            if [[ -f "$ZSH_CONFIG_DIR/status.sh" ]]; then
-                "$ZSH_CONFIG_DIR/status.sh"
-            else
-                color_red "❌ Status script not found"
-            fi
+            status
             return 0
             ;;
         reload)

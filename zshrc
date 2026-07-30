@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # =============================================================================
 # Main ZSH Configuration - Simplified Modular Loader
-# Version: 5.3.1 - Enhanced with Testing and Monitoring
+# Version: loaded from VERSION
 # =============================================================================
 
 setopt no_xtrace 2>/dev/null

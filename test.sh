@@ -15,9 +15,16 @@ log_fail() { color_red "FAILED"; exit 1; }
 # 1. Syntax Check
 test_syntax() {
     log_test "Syntax"
-    for f in zshrc zshenv modules/*.zsh; do
+    zsh -n zshrc zshenv || log_fail "main configuration"
+    [[ -d modules && -d themes ]] || log_fail "module or theme directory missing"
+
+    local zsh_files
+    zsh_files="$(find modules themes -type f -name '*.zsh' -print)" || log_fail "could not list Zsh files"
+    while IFS= read -r f; do
+        [[ -n "$f" ]] || continue
         zsh -n "$f" || log_fail "$f"
-    done
+    done <<< "$zsh_files"
+    bash -n install.sh release.sh test.sh update.sh || log_fail "shell scripts"
     log_pass
 }
 
@@ -42,9 +49,39 @@ test_modules() {
     log_pass
 }
 
-# Main
-echo "🚀 Running ZSH Regression Tests..."
-test_syntax
-test_vars
-test_modules
-echo "✨ All tests passed!"
+test_installer_contract() {
+    log_test "Installer contract"
+    [[ -s VERSION ]] || log_fail "VERSION file missing"
+    if ./install.sh --unexpected >/dev/null 2>&1; then
+        log_fail "installer accepted an unsupported argument"
+    fi
+    if "$0" unknown >/dev/null 2>&1; then
+        log_fail "test runner accepted an unknown group"
+    fi
+    log_pass
+}
+
+run_all() {
+    echo "🚀 Running ZSH regression tests..."
+    test_syntax
+    test_vars
+    test_modules
+    test_installer_contract
+    echo "✨ All tests passed!"
+}
+
+case "${1:-all}" in
+    all) run_all ;;
+    syntax) test_syntax ;;
+    environment) test_vars ;;
+    modules) test_modules ;;
+    installer) test_installer_contract ;;
+    --help|-h)
+        echo "Usage: $0 [all|syntax|environment|modules|installer]"
+        ;;
+    *)
+        color_red "Unknown test group: $1"
+        echo "Usage: $0 [all|syntax|environment|modules|installer]" >&2
+        exit 2
+        ;;
+esac
