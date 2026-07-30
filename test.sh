@@ -49,6 +49,27 @@ test_modules() {
     log_pass
 }
 
+test_documentation() {
+    log_test "Documentation"
+
+    local project_version
+    project_version="$(<VERSION)"
+    [[ -n "$project_version" ]] || log_fail "VERSION file is empty"
+    grep -Fqx "# Zsh Configuration v$project_version" README.md || log_fail "README version does not match VERSION"
+
+    local command
+    for command in reload validate status perf version config; do
+        grep -Eq "^${command}\\(\\)" modules/core.zsh modules/utils.zsh || log_fail "documented command missing: $command"
+    done
+
+    for command in mkcd up backup ff fd grepc posh_theme posh_themes change_theme; do
+        grep -REq "^${command}\\(\\)" modules themes || log_fail "documented helper missing: $command"
+    done
+
+    [[ -f REFERENCE.md && -f CHANGELOG.md ]] || log_fail "README documentation link target missing"
+    log_pass
+}
+
 test_installer_contract() {
     log_test "Installer contract"
     [[ -s VERSION ]] || log_fail "VERSION file missing"
@@ -66,6 +87,7 @@ run_all() {
     test_syntax
     test_vars
     test_modules
+    test_documentation
     test_installer_contract
     echo "✨ All tests passed!"
 }

@@ -38,7 +38,7 @@ Run `./install.sh` from a clone located at `${ZSH_CONFIG_DIR:-$HOME/.config/zsh}
 
 ## Useful helpers
 
-`mkcd`, `up`, `backup`, `ff`, `fd`, `grepc`, `extract`, `posh_theme`, `posh_themes`, and `change_theme` are implemented in the modules and theme loader. Use `function_name --help` where supported.
+`mkcd`, `up`, `backup`, `ff`, `fd`, `grepc`, `posh_theme`, `posh_themes`, and `change_theme` are implemented in the modules and theme loader. Use `function_name --help` where supported.
 
 ## Project version
 

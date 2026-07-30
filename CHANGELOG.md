@@ -5,7 +5,6 @@
 - Aligned the repository with its supported lightweight workflow.
 - Added `VERSION` as the canonical version source.
 - Made the installer and test command contracts explicit.
-- Archived obsolete review and refactoring reports under `docs/history/`.
 
 ## 5.3.1
 
