@@ -6,7 +6,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-VERSION_FILE="$SCRIPT_DIR/VERSION"
+cd "$SCRIPT_DIR"
+VERSION_FILE="VERSION"
+[[ -r "$VERSION_FILE" ]] || { echo "VERSION file is missing or unreadable: $SCRIPT_DIR/$VERSION_FILE" >&2; exit 1; }
 CURRENT_VERSION="$(<"$VERSION_FILE")"
 
 usage() {
@@ -37,6 +39,7 @@ done
 
 [[ -n "$new_version" ]] || { echo "Current version: $CURRENT_VERSION"; usage >&2; exit 2; }
 [[ "$new_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid semantic version: $new_version" >&2; exit 2; }
+[[ "$new_version" != "$CURRENT_VERSION" ]] || { echo "Version $new_version is already current" >&2; exit 2; }
 git rev-parse --is-inside-work-tree >/dev/null
 [[ -z "$(git status --porcelain)" ]] || { echo "Working tree is not clean" >&2; exit 1; }
 

@@ -6,7 +6,7 @@ set -euo pipefail
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-VERSION="$(<"$SCRIPT_DIR/VERSION")"
+VERSION_FILE="$SCRIPT_DIR/VERSION"
 ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 
 # Colors for output
@@ -20,6 +20,9 @@ log_info()    { echo -e "${BLUE}ℹ️  $*${NC}"; }
 log_success() { echo -e "${GREEN}✅ $*${NC}"; }
 log_warn()    { echo -e "${YELLOW}⚠️  $*${NC}"; }
 log_error()   { echo -e "${RED}❌ $*${NC}" >&2; exit 1; }
+
+[[ -r "$VERSION_FILE" ]] || log_error "VERSION file is missing or unreadable: $VERSION_FILE"
+VERSION="$(<"$VERSION_FILE")"
 
 # 1. Prerequisite Checks
 check_requirements() {

@@ -16,9 +16,14 @@ log_fail() { color_red "FAILED"; exit 1; }
 test_syntax() {
     log_test "Syntax"
     zsh -n zshrc zshenv || log_fail "main configuration"
+    [[ -d modules && -d themes ]] || log_fail "module or theme directory missing"
+
+    local zsh_files
+    zsh_files="$(find modules themes -type f -name '*.zsh' -print)" || log_fail "could not list Zsh files"
     while IFS= read -r f; do
+        [[ -n "$f" ]] || continue
         zsh -n "$f" || log_fail "$f"
-    done < <(find modules themes -type f -name '*.zsh' -print)
+    done <<< "$zsh_files"
     bash -n install.sh release.sh test.sh update.sh || log_fail "shell scripts"
     log_pass
 }

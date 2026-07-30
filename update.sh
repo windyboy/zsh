@@ -26,7 +26,9 @@ warning() { with_timestamp _warning_plain "$@"; }
 error()   { with_timestamp _error_plain "$@"; }
 
 # Version information
-VERSION="$(<"$SCRIPT_DIR/VERSION")"
+VERSION_FILE="$SCRIPT_DIR/VERSION"
+[[ -r "$VERSION_FILE" ]] || { error "VERSION file is missing or unreadable: $VERSION_FILE"; exit 1; }
+VERSION="$(<"$VERSION_FILE")"
 BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Configuration
