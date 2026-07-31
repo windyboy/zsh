@@ -5,6 +5,12 @@
 # =============================================================================
 
 setopt no_xtrace 2>/dev/null
+
+# Start a fresh, shell-local timer for every zshrc load.  Do not inherit a
+# parent shell's timing state when launching nested shells.
+zmodload zsh/datetime
+typeset +gx ZSH_STARTUP_START=$EPOCHREALTIME
+
 # Validate critical environment variables
 if [[ -z "$HOME" ]]; then
     echo "[zshrc] Error: HOME environment variable is not set" >&2
@@ -74,8 +80,7 @@ simple_source "$ZSH_CONFIG_DIR/themes/prompt.zsh" "theme configuration"
 # Load local personalization configuration (optional)
 simple_source "$ZSH_CONFIG_DIR/local.zsh" "local configuration"
 
-# Enhanced loading summary
-zmodload zsh/datetime
+# Enhanced loading summary. Export so perf/validation helpers can read it.
 export ZSH_STARTUP_TIME=$(printf "%.3f" $(( EPOCHREALTIME - ZSH_STARTUP_START )))
 echo "✅ ZSH config loaded in ${ZSH_STARTUP_TIME}s (${#ZSH_MODULES_LOADED[@]} modules)" >&2
 

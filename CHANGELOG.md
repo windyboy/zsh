@@ -5,6 +5,8 @@
 - Aligned the repository with its supported lightweight workflow.
 - Added `VERSION` as the canonical version source.
 - Made the installer and test command contracts explicit.
+- Removed obsolete `docs/history/` review and refactoring archives (Git history retains them).
+- Dropped in-repo `TODO.md` in favor of Linear.
 
 ## 5.3.1
 

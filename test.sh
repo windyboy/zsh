@@ -39,6 +39,21 @@ test_vars() {
     log_pass
 }
 
+test_startup_timing() {
+    log_test "Startup timing"
+    env HOME=/tmp/zsh-config-test-home PATH=/usr/bin:/bin ZSH_CONFIG_DIR="$PWD" zsh -dfc '
+        export ZSH_ENV_LOADED=1 ZSH_STARTUP_START=1
+        source ./zshenv
+        export -p | grep -q "ZSH_ENV_LOADED" && exit 1
+
+        export ZSH_ENV_LOADED=1 ZSH_STARTUP_START=1
+        source ./zshrc >/dev/null 2>&1
+        export -p | grep -q "ZSH_STARTUP_START" && exit 1
+        (( ${ZSH_STARTUP_TIME%.*} >= 0 && ${ZSH_STARTUP_TIME%.*} < 60 ))
+    ' || log_fail "stale startup timestamp"
+    log_pass
+}
+
 # 3. Module Check
 test_modules() {
     log_test "Modules"
@@ -86,6 +101,7 @@ run_all() {
     echo "🚀 Running ZSH regression tests..."
     test_syntax
     test_vars
+    test_startup_timing
     test_modules
     test_documentation
     test_installer_contract
@@ -95,7 +111,10 @@ run_all() {
 case "${1:-all}" in
     all) run_all ;;
     syntax) test_syntax ;;
-    environment) test_vars ;;
+    environment)
+        test_vars
+        test_startup_timing
+        ;;
     modules) test_modules ;;
     installer) test_installer_contract ;;
     --help|-h)
