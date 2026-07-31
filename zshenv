@@ -30,9 +30,6 @@ export VISUAL="${VISUAL:-$EDITOR}"
 # Initialize module tracking
 typeset -gax ZSH_MODULES_LOADED=()
 
-# Record startup time for performance monitoring
-zmodload zsh/datetime
-export ZSH_STARTUP_START=$EPOCHREALTIME
-
-# Mark environment as loaded to prevent duplicate loading
-export ZSH_ENV_LOADED=1
+# Shell-local load guard: do not export so nested shells re-run zshenv cleanly
+# instead of inheriting a parent's ZSH_ENV_LOADED=1.
+typeset +gx ZSH_ENV_LOADED=1

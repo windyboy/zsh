@@ -55,7 +55,6 @@ Unknown test groups fail deliberately. `zsh -n <file>` remains useful for a targ
 
 - [REFERENCE.md](REFERENCE.md) — runtime commands and configuration reference
 - [CHANGELOG.md](CHANGELOG.md) — release history and maintenance notes
-- [docs/history](docs/history/) — archived review and refactoring reports
 
 ## License
 
