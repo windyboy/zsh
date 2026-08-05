@@ -31,33 +31,115 @@ check_requirements() {
     command -v git >/dev/null 2>&1 || log_error "Git is not installed."
 }
 
+# Warn about orphaned dotfiles that ZDOTDIR redirection will ignore.
+# Non-destructive: never modifies these files.
+warn_orphaned_dotfiles() {
+    local orphaned=()
+    local f
+    for f in .zshrc .zprofile .zlogin; do
+        [[ -e "$HOME/$f" ]] && orphaned+=("$f")
+    done
+    [[ ${#orphaned[@]} -eq 0 ]] && return 0
+
+    log_warn "ZDOTDIR redirection will ignore these existing files in $HOME:"
+    local name
+    for name in "${orphaned[@]}"; do
+        log_warn "  ~/$name"
+    done
+    log_warn "Back them up if you want to keep them, e.g.:"
+    log_warn "  mv ~/.zshrc ~/.zshrc.pre-zsh-config"
+}
+
+# Link ~/.zshenv to this configuration, honoring HOME/ZSH_CONFIG_DIR overrides.
+# Returns:
+#   0 - symlink created or already correct
+#   1 - existing ~/.zshenv does not match this config (requires consent)
+link_zshenv() {
+    local dest="$HOME/.zshenv"
+    local target="$ZSH_CONFIG_DIR/zshenv"
+
+    if [[ ! -e "$dest" ]]; then
+        ln -s "$target" "$dest"
+        log_success "Created $dest symlink"
+        return 0
+    fi
+
+    if [[ -L "$dest" && "$(readlink "$dest")" == "$target" ]]; then
+        log_success "$dest already points to this configuration"
+        return 0
+    fi
+
+    log_warn "$dest already exists and does not point to this configuration."
+    return 1
+}
+
+# Back up an existing ~/.zshenv to ~/.zshenv.bak.<timestamp>, then link.
+backup_and_link_zshenv() {
+    local dest="$HOME/.zshenv"
+    local backup="$dest.bak.$(date +%Y%m%d%H%M%S)"
+    mv "$dest" "$backup"
+    log_info "Backed up existing $dest to $backup"
+    ln -s "$ZSH_CONFIG_DIR/zshenv" "$dest"
+    log_success "Created $dest symlink"
+}
+
 # 2. Setup Configuration
 setup_config() {
     log_info "Setting up configuration at $ZSH_CONFIG_DIR"
     [[ "$SCRIPT_DIR" == "$ZSH_CONFIG_DIR" ]] || log_error "Clone the repository to $ZSH_CONFIG_DIR before running install.sh."
     [[ -f "$ZSH_CONFIG_DIR/zshenv" && -f "$ZSH_CONFIG_DIR/zshrc" ]] || log_error "Configuration files are missing from $ZSH_CONFIG_DIR."
 
-    # Create .zshenv link in $HOME if not exists
-    if [[ ! -e "$HOME/.zshenv" ]]; then
-        ln -s "$ZSH_CONFIG_DIR/zshenv" "$HOME/.zshenv"
-        log_success "Created $HOME/.zshenv symlink"
-    elif [[ -L "$HOME/.zshenv" && "$(readlink "$HOME/.zshenv")" == "$ZSH_CONFIG_DIR/zshenv" ]]; then
-        log_success "$HOME/.zshenv already points to this configuration"
-    else
-        log_error "$HOME/.zshenv already exists; review it before replacing it."
+    warn_orphaned_dotfiles
+
+    if link_zshenv; then
+        return 0
     fi
+
+    if [[ "$FORCE" -eq 1 ]]; then
+        backup_and_link_zshenv
+        return 0
+    fi
+
+    log_error "$HOME/.zshenv already exists and does not point to this configuration. Re-run with --force to back it up and link."
 }
 
 # 3. Finalize
 finalize() {
-    log_success "Installation complete! Please restart your terminal or run: source $HOME/.zshenv && source \$ZDOTDIR/zshrc"
+    log_success "Installation complete."
+    log_success "Created: $HOME/.zshenv -> $ZSH_CONFIG_DIR/zshenv"
+    log_info "Start a new shell to load the configuration: exec zsh"
 }
 
-# Main Execution
-echo -e "${BLUE}ZSH Configuration Installer v${VERSION}${NC}"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+# Argument parsing
+FORCE=0
+usage() {
+    echo "Usage: $0 [--force]"
+    echo
+    echo "Options:"
+    echo "  -f, --force   Back up an existing ~/.zshenv and link anyway"
+    echo "  -h, --help    Show this help message"
+}
 
-[[ $# -eq 0 ]] || log_error "Usage: $0"
-check_requirements
-setup_config
-finalize
+parse_args() {
+    for arg in "$@"; do
+        case "$arg" in
+            --force|-f) FORCE=1 ;;
+            --help|-h) usage; exit 0 ;;
+            *) usage >&2; log_error "Unknown argument: $arg" ;;
+        esac
+    done
+}
+
+main() {
+    echo -e "${BLUE}ZSH Configuration Installer v${VERSION}${NC}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    check_requirements
+    setup_config
+    finalize
+}
+
+# Only run when executed directly, so functions can be sourced for tests.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    parse_args "$@"
+    main
+fi

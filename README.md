@@ -20,11 +20,13 @@ cd ~/.config/zsh
 exec zsh
 ```
 
-The installer verifies Zsh and Git, then creates `~/.zshenv` only when it does not already exist. It never overwrites an existing `~/.zshenv` or installs system packages.
+The installer verifies Zsh and Git, then creates a `~/.zshenv` symlink pointing at this configuration only when one does not already exist. If `~/.zshenv` already exists and does not point here, the installer stops without modifying it; run `./install.sh --force` to back it up to `~/.zshenv.bak.<timestamp>` and replace it. It never installs system packages.
+
+Before linking, the installer warns about any existing `~/.zshrc`, `~/.zprofile`, or `~/.zlogin`: after ZDOTDIR redirection these files are ignored, so back them up if you want to keep them. After a successful install, restart your terminal or run `exec zsh`.
 
 ## Configuration
 
-`zshenv` sets XDG paths and `ZDOTDIR`; `zshrc` loads modules, an optional `env/local/environment.env`, and optional `local.zsh` personalizations.
+`zshenv` sets XDG paths and `ZDOTDIR`; `zshrc` loads modules, an optional `env/local/environment.env`, optional `local.zsh` personalizations, and an optional per-host file.
 
 Main areas:
 
@@ -32,6 +34,17 @@ Main areas:
 - `themes/prompt.zsh` — Oh My Posh integration with a fallback prompt
 - `plugins/core.list` and `plugins/optional.list` — plugin registry inputs
 - `env/templates/environment.env.template` — optional local environment template
+- `env/templates/local.zsh.template` — starting point for a machine-specific `local.zsh`
+
+### Framework vs per-machine configuration
+
+The tracked files (`zshenv`, `zshrc`, `modules/`, `themes/`) are the shared framework: `git pull` (or `./update.sh`) keeps every machine in sync. Keep machine-specific settings out of the tracked files so they are not pushed to other servers:
+
+- `local.zsh` — personal shell customizations (aliases, functions, exports). Not tracked by git; copy it from `env/templates/local.zsh.template`.
+- `env/local/environment.env` — machine-specific environment exports. Not tracked by git; create it with `env/init-env.sh`.
+- `env/local/hosts/<hostname>.env` — per-host overrides, sourced only on the matching host. Not tracked by git.
+
+This separation is what makes the same repo usable across multiple servers: the framework updates everywhere, while each machine keeps its own settings.
 
 See [REFERENCE.md](REFERENCE.md) for the available shell functions and configuration files.
 

@@ -26,13 +26,18 @@ Plugin loading is handled by `modules/plugins.zsh`; there are no `plugins`, `plu
 
 ## Installation
 
-Run `./install.sh` from a clone located at `${ZSH_CONFIG_DIR:-$HOME/.config/zsh}`. It verifies prerequisites and installs only the `~/.zshenv` symlink when safe. It does not install packages or overwrite existing user configuration.
+Run `./install.sh` from a clone located at `${ZSH_CONFIG_DIR:-$HOME/.config/zsh}`. It verifies prerequisites (Zsh and Git) and links `~/.zshenv` to the config's `zshenv` so ZDOTDIR redirection loads this repo's `zshrc`. It does not install packages.
+
+- Before linking, it warns about any existing `~/.zshrc`, `~/.zprofile`, or `~/.zlogin` that ZDOTDIR redirection will ignore, and suggests a backup command. It never modifies those files.
+- By default it never overwrites an existing `~/.zshenv`. Re-run with `--force` to back it up to `~/.zshenv.bak.<timestamp>` and link anyway.
+- After installing, start a new shell to load the configuration: `exec zsh`.
 
 ## Environment overrides
 
 - `ZSH_CONFIG_DIR`, `ZSH_CACHE_DIR`, `ZSH_DATA_DIR`, and `ZINIT_HOME` are initialized in `zshenv`.
 - `env/local/environment.env`, when present, is sourced by `zshrc`.
-- `local.zsh`, when present, is sourced last for personal shell customizations.
+- `local.zsh`, when present, is sourced last for personal shell customizations. It is not tracked by git; copy `env/templates/local.zsh.template` to create it.
+- `env/local/hosts/<hostname>.env`, when present, is sourced on that host for per-server overrides. It is not tracked by git.
 - `ZSH_ENABLE_OPTIONAL_PLUGINS=1` enables entries in `plugins/optional.list`.
 - `ZSH_POSH_THEME` selects an Oh My Posh theme.
 

@@ -46,14 +46,18 @@ create_backup() {
         return 1
     fi
     
-    # Backup current configuration
-    if [[ -f "$HOME/.zshrc" ]]; then
-        cp "$HOME/.zshrc" "$BACKUP_DIR/"
-    fi
-    
-    if [[ -f "$HOME/.zshenv" ]]; then
-        cp "$HOME/.zshenv" "$BACKUP_DIR/"
-    fi
+    # Backup the dotfiles this config manages or redirects around.
+    # ~/.zshenv is the symlink install.sh creates. ~/.zshrc, ~/.zprofile and
+    # ~/.zlogin are backed up defensively: after ZDOTDIR redirection they are
+    # ignored by the shell, but a user may have pre-existing versions worth
+    # preserving. The ~/.zshrc backup is legacy/defensive since install.sh
+    # never creates it.
+    local dotfile
+    for dotfile in .zshenv .zshrc .zprofile .zlogin; do
+        if [[ -f "$HOME/$dotfile" ]]; then
+            cp "$HOME/$dotfile" "$BACKUP_DIR/"
+        fi
+    done
     
     if [[ -d "$ZSH_CONFIG_DIR" ]]; then
         cp -r "$ZSH_CONFIG_DIR" "$BACKUP_DIR/"

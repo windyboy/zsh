@@ -1,0 +1,37 @@
+#!/usr/bin/env zsh
+# =============================================================================
+# Local Configuration - User Customizations (TEMPLATE)
+# =============================================================================
+# This file is a starting point for your machine-specific local.zsh.
+#
+# To use it on a machine:
+#   cp "$ZSH_CONFIG_DIR/env/templates/local.zsh.template" "$ZSH_CONFIG_DIR/local.zsh"
+#
+# local.zsh is NOT tracked by git (see .gitignore). It is sourced last by
+# zshrc, so anything you put here is personal to this machine and will not be
+# pushed to other servers when you `git pull` the framework.
+#
+# Keep shared/framework changes in the tracked files (zshrc, modules/, themes/).
+# Keep per-machine changes here and in env/local/environment.env.
+
+# Personal aliases
+# alias myalias='command'
+
+# Personal functions
+# myfunction() {
+#     # Your code here
+# }
+
+# Personal environment variables
+export EDITOR='nvim'
+export VISUAL='nvim'
+
+# Machine-specific configurations
+case "$(uname)" in
+    Darwin)
+        export BROWSER="open"
+        ;;
+    Linux)
+        export BROWSER="xdg-open"
+        ;;
+esac

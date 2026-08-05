@@ -80,6 +80,15 @@ simple_source "$ZSH_CONFIG_DIR/themes/prompt.zsh" "theme configuration"
 # Load local personalization configuration (optional)
 simple_source "$ZSH_CONFIG_DIR/local.zsh" "local configuration"
 
+# Load per-host personalization (optional): env/local/hosts/<hostname>.env
+# Lets a single framework repo carry different settings per server without
+# committing machine-specific config. Only activates if the host file exists.
+local host_name="${HOST:-$(hostname 2>/dev/null)}"
+local host_env_file="$ZSH_CONFIG_DIR/env/local/hosts/${host_name}.env"
+if [[ -f "$host_env_file" ]]; then
+    simple_source "$host_env_file" "host environment ($host_name)"
+fi
+
 # Enhanced loading summary. Export so perf/validation helpers can read it.
 export ZSH_STARTUP_TIME=$(printf "%.3f" $(( EPOCHREALTIME - ZSH_STARTUP_START )))
 echo "✅ ZSH config loaded in ${ZSH_STARTUP_TIME}s (${#ZSH_MODULES_LOADED[@]} modules)" >&2
