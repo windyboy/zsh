@@ -185,6 +185,53 @@ test_installer_contract() {
     log_pass
 }
 
+test_update_script() {
+    log_test "Update script"
+    bash -n update.sh || log_fail "update.sh syntax"
+
+    # 1. update.sh uses set -euo pipefail (W1N-43)
+    head -6 update.sh | grep -q "set -euo pipefail" || log_fail "update.sh missing set -euo pipefail"
+
+    # 2. zinit path derivation agrees across runtime / updater / validator (W1N-41)
+    local updater_path validator_path runtime_path
+    updater_path="$(sed -n 's/^ZINIT_DIR=//p' update.sh)"
+    validator_path="$(grep -F 'zinit_dir=' modules/lib/validation.zsh)"
+    runtime_path='${ZINIT_HOME:-$HOME/.local/share/zinit}/zinit.git'
+    [[ "$updater_path" == *"$runtime_path"* ]] || log_fail "update.sh zinit path not derived from ZINIT_HOME"
+    [[ "$validator_path" == *"$runtime_path"* ]] || log_fail "validation.zsh zinit path not derived from ZINIT_HOME"
+    grep -q '\.local/share/zsh/zinit' update.sh modules/lib/validation.zsh && log_fail "stale zinit path still present"
+    grep -q '\.local/share/zsh/zinit' modules/plugins.zsh zshenv && log_fail "stale zinit path in runtime files"
+
+    # 3. self-update plumbing (W1N-42): function, flag, main wiring
+    grep -q '^update_framework()' update.sh || log_fail "update_framework function missing"
+    grep -q -- '--skip-self' update.sh || log_fail "--skip-self flag missing"
+    grep -q 'update_framework' update.sh || log_fail "update_framework not wired into main"
+
+    # 4. dead os-branch collapsed (W1N-44)
+    grep -q 'install_path="/usr/local/bin/oh-my-posh"' update.sh || log_fail "install_path not collapsed to single assignment"
+    grep -q 'install_path=""' update.sh && log_fail "dead install_path initializer still present"
+
+    # 5. update_zinit uses a tracking-branch pull, not a hardcoded branch name
+    grep -q 'git -C "$ZINIT_DIR" pull --ff-only' update.sh || log_fail "update_zinit does not use tracking-branch pull"
+    grep -q 'origin/master' update.sh && log_fail "update_zinit still hardcodes origin/master"
+
+    log_pass
+}
+
+test_machine_specific_moved() {
+    log_test "Machine-specific moved out"
+    # W1N-45: zshrc must not contain the opencode PATH or the odd ../bin/env hack
+    grep -q 'opencode/bin' zshrc && log_fail "opencode PATH still in shared zshrc"
+    grep -q '\.local/share/../bin/env' zshrc && log_fail "../bin/env hack still in shared zshrc"
+
+    # The local override file must exist (gitignored) and carry both
+    [[ -f env/local/environment.env ]] || log_fail "env/local/environment.env missing"
+    grep -q 'opencode/bin' env/local/environment.env || log_fail "opencode PATH not in local override"
+    grep -q '\.local/bin/env' env/local/environment.env || log_fail "bin/env source not in local override"
+    git check-ignore -q env/local/environment.env || log_fail "env/local/environment.env is not gitignored"
+    log_pass
+}
+
 run_all() {
     echo "🚀 Running ZSH regression tests..."
     test_syntax
@@ -194,6 +241,8 @@ run_all() {
     test_modules
     test_documentation
     test_installer_contract
+    test_update_script
+    test_machine_specific_moved
     echo "✨ All tests passed!"
 }
 
@@ -207,6 +256,7 @@ case "${1:-all}" in
         ;;
     modules) test_modules ;;
     installer) test_installer_contract ;;
+    update) test_update_script ; test_machine_specific_moved ;;
     --help|-h)
         echo "Usage: $0 [all|syntax|environment|modules|installer]"
         ;;

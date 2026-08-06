@@ -163,7 +163,7 @@ validation_run() {
         validation_add success "zinit plugin manager available"
     else
         validation_add warning "zinit plugin manager not found"
-        local zinit_dir="$HOME/.local/share/zsh/zinit/zinit.git"
+        local zinit_dir="${ZINIT_HOME:-$HOME/.local/share/zinit}/zinit.git"
         validation_attempt_fix "Install zinit" "git clone https://github.com/zdharma-continuum/zinit.git \"$zinit_dir\""
     fi
 

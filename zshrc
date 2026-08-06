@@ -110,8 +110,3 @@ nvm() {
 
 # Ensure script returns success
 true
-
-# opencode
-export PATH=$HOME/.opencode/bin:$PATH
-
-. "$HOME/.local/share/../bin/env" 2>/dev/null || true

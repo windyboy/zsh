@@ -62,7 +62,10 @@ Unknown test groups fail deliberately. `zsh -n <file>` remains useful for a targ
 
 ## Maintenance
 
-`./update.sh` remains available for updating installed optional components. Review its output carefully: it may download software, use package managers, or create backups.
+`./update.sh` updates the framework repo itself (`git pull --ff-only`) and any installed optional components. Review its output carefully: it may download software, use package managers, or create backups.
+
+- `./update.sh --skip-self` (or `-S`) updates components but skips the framework repo pull. Set `ZSH_UPDATE_SELF_SKIP=1` for the same effect.
+- `./update.sh --skip-backup` skips the defensive backup.
 
 ## Documentation
 

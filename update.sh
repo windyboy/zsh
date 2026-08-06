@@ -3,6 +3,7 @@
 # ZSH Configuration Update Script
 # Version: loaded from VERSION
 # =============================================================================
+set -euo pipefail
 # shellcheck disable=SC2015,SC2162
 
 # Shared logging with timestamp wrappers
@@ -33,7 +34,7 @@ BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Configuration
 ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
-ZINIT_DIR="$HOME/.local/share/zsh/zinit/zinit.git"
+ZINIT_DIR="${ZINIT_HOME:-$HOME/.local/share/zinit}/zinit.git"
 BACKUP_DIR="$HOME/.config/zsh/backup/$(date +%Y%m%d_%H%M%S)"
 
 
@@ -69,43 +70,18 @@ create_backup() {
 # Update zinit
 update_zinit() {
     log "Updating zinit..."
-    
-    if [[ ! -d "$ZINIT_DIR" ]]; then
+
+    if [[ ! -d "$ZINIT_DIR/.git" ]]; then
         error "Zinit not found. Please run install.sh first."
         return 1
     fi
-    
-    cd "$ZINIT_DIR" || {
-        error "Cannot access zinit directory"
-        return 1
-    }
-    
-    # Fetch latest changes
-    if ! git fetch origin; then
-        error "Failed to fetch zinit updates"
-        return 1
-    fi
-    
-    # Get current and latest versions
-    local current_commit
-    local latest_commit
-    current_commit=$(git rev-parse HEAD)
-    latest_commit=$(git rev-parse origin/master)
-    
-    if [[ "$current_commit" == "$latest_commit" ]]; then
-        success "Zinit is already up to date"
-        return 0
-    fi
-    
-    # Update to latest version
-    if ! git reset --hard origin/master; then
+
+    if ! git -C "$ZINIT_DIR" pull --ff-only --quiet; then
         error "Failed to update zinit"
         return 1
     fi
-    
-    success "Zinit updated successfully"
-    log "Previous version: ${current_commit:0:8}"
-    log "New version: ${latest_commit:0:8}"
+
+    success "Zinit is up to date"
 }
 
 # Update oh-my-posh
@@ -163,13 +139,7 @@ update_oh_my_posh() {
         return 1
     fi
     
-    local install_path
-    install_path=""
-    if [[ "$os" == "darwin" ]]; then
-        install_path="/usr/local/bin/oh-my-posh"
-    else
-        install_path="/usr/local/bin/oh-my-posh"
-    fi
+    local install_path="/usr/local/bin/oh-my-posh"
     
     if ! sudo mv "$temp_file" "$install_path"; then
         error "Failed to install oh-my-posh"
@@ -179,6 +149,22 @@ update_oh_my_posh() {
     local new_version
     new_version=$(oh-my-posh version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
     success "oh-my-posh updated: $current_version → $new_version"
+}
+
+# Update the framework repo itself
+update_framework() {
+    if [[ "$SKIP_SELF" -eq 1 ]]; then
+        log "Skipping framework self-update (--skip-self)"
+        return 0
+    fi
+
+    log "Updating framework repo..."
+    if ! git -C "$SCRIPT_DIR" pull --ff-only --quiet; then
+        warning "Framework self-update failed (repo dirty or network issue)"
+        log "Run manually: git -C \"$SCRIPT_DIR\" pull --ff-only"
+        return 1
+    fi
+    success "Framework repo is up to date"
 }
 
 # Update optional tools
@@ -262,6 +248,7 @@ show_summary() {
 # Parse command line arguments
 INTERACTIVE_MODE=0
 SKIP_BACKUP=0
+SKIP_SELF="${ZSH_UPDATE_SELF_SKIP:-0}"
 
 for arg in "$@"; do
     case "$arg" in
@@ -270,6 +257,9 @@ for arg in "$@"; do
             ;;
         --skip-backup|-s)
             SKIP_BACKUP=1
+            ;;
+        --skip-self|-S)
+            SKIP_SELF=1
             ;;
         --force|-f)
             # Force update functionality - currently not implemented
@@ -282,6 +272,7 @@ for arg in "$@"; do
             echo "Options:"
             echo "  -i, --interactive    Interactive mode with prompts"
             echo "  -s, --skip-backup    Skip creating backup"
+            echo "  -S, --skip-self      Skip updating the framework repo itself"
             echo "  -f, --force          Force update even if already up to date"
             echo "  -h, --help           Show this help message"
             echo "  -v, --version        Show version information"
@@ -290,6 +281,7 @@ for arg in "$@"; do
             echo "  $0                   # Normal update"
             echo "  $0 --interactive     # Interactive update"
             echo "  $0 --skip-backup     # Update without backup"
+            echo "  $0 --skip-self       # Update tools but not the framework repo"
             exit 0
             ;;
         --version|-v)
@@ -334,13 +326,17 @@ main() {
     
     # Update components
     local update_failures=0
-    
+
+    if ! update_framework; then
+        update_failures=$((update_failures + 1))
+    fi
+
     if ! update_zinit; then
-        ((update_failures++))
+        update_failures=$((update_failures + 1))
     fi
     
     if ! update_oh_my_posh; then
-        ((update_failures++))
+        update_failures=$((update_failures + 1))
     fi
     
     update_optional_tools
