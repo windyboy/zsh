@@ -1,4 +1,4 @@
-# Zsh Configuration v5.3.1
+# Zsh Configuration v5.4.0
 
 A personal, modular Zsh configuration for macOS, Linux, and WSL.
 

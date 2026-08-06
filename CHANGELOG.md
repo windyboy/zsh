@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.4.0
 
 - Fixed a flaky/hanging shell startup: the dump-rebuild path called plain `compinit`, whose compaudit prompt (triggered whenever any fpath entry has a world-writable parent, e.g. a cache dir under `/tmp`) was silenced by `2>/dev/null` yet still blocked on stdin — appearing as a frozen shell — and, on abort/EOF, compinit unfunctions itself and compdef, surfacing as the misleading `command not found: compinit`. The rebuild now uses `compinit -u -d` (never prompts); a contract test guards it.
 - Hygiene cleanup: removed dead counters (`loaded_modules`/`total_modules`) in zshrc and unset loop/host temp variables (top-level `local` leaks into the global namespace); deleted the unused `ZSH_CACHE_TTL`; deleted the `config_sync` TODO placeholder; deleted the empty `path` module and its `path-reload` alias (re-sourcing it re-appended to `ZSH_MODULES_LOADED`); the startup banner is now opt-in via `ZSH_PROFILE=1` instead of writing to stderr on every interactive shell; `zconf` and the Alt+E binding honor `$EDITOR` instead of hardcoding `code`; made `colors.zsh` idempotent (completion/plugins/utils all source it, tripling its `ZSH_MODULES_LOADED` entry); deleted the never-validated `release.sh` (zero tags existed) — releases are now documented as manual annotated tags in README.
