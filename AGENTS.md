@@ -24,3 +24,17 @@
 - Use `$ZSH_CONFIG_DIR` and XDG paths rather than hard-coded user paths.
 - Do not add scripts or documentation for capabilities that are not implemented and tested.
 - Run the applicable test command after editing.
+
+## Agent skills
+
+### Issue tracker
+
+Issues 在 Linear 中跟踪，通过 Linear MCP 创建和更新。See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+默认 triage 标签（needs-triage、needs-info、ready-for-agent、ready-for-human、wontfix）。See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context：仓库根目录一个 `CONTEXT.md` + `docs/adr/`。See `docs/agents/domain.md`.
