@@ -4,7 +4,13 @@
 # =============================================================================
 
 # System
-alias ls='ls -G'
+# ls color flag differs by platform: BSD ls (macOS) colors with -G, while on
+# GNU ls -G means --no-group (hides the group column) and color needs --color.
+if [[ "$OSTYPE" == darwin* ]]; then
+    alias ls='ls -G'
+else
+    alias ls='ls --color=auto'
+fi
 alias ll='ls -lh'
 alias la='ls -A'
 alias grep='grep --color=auto'
@@ -15,7 +21,7 @@ alias d='docker'
 alias dc='docker-compose'
 
 # Config
-alias zconf='code $ZSH_CONFIG_DIR'
+alias zconf='${EDITOR:-code} $ZSH_CONFIG_DIR'
 alias zreload='source $ZSH_CONFIG_DIR/zshrc'
 
 ZSH_MODULES_LOADED+=(aliases)

@@ -183,77 +183,15 @@ jobs:
       shell: zsh {0}
       run: |
         echo "🧪 Running test suite..."
-        
+
         # Set up environment for testing
         export ZSH_CONFIG_DIR="$HOME/.config/zsh"
         export ZSH_TEST_MODE=1
         export CI=true
-        
-        # Run the comprehensive test suite
-        if ~/.config/zsh/test.sh all; then
-          echo "✅ All tests passed"
-        else
-          echo "⚠️ Some tests failed, but continuing..."
-          echo "Debug: Test script exit code: $?"
-        fi
-        
-    - name: Run status check (if available)
-      shell: zsh {0}
-      run: |
-        echo "📊 Running status check..."
-        
-        # Set up environment for testing
-        export ZSH_CONFIG_DIR="$HOME/.config/zsh"
-        export ZSH_TEST_MODE=1
-        
-        # Check if status script exists and is executable
-        if [[ -x ~/.config/zsh/status.sh ]]; then
-          if ~/.config/zsh/status.sh --verbose 2>/dev/null; then
-            echo "✅ Status check passed"
-          else
-            echo "⚠️ Status check failed, but continuing..."
-            echo "Debug: Status script exit code: $?"
-          fi
-        else
-          echo "⚠️ Status script not found, skipping..."
-        fi
-        
-    - name: Run project health check (if available)
-      shell: zsh {0}
-      run: |
-        echo "🔍 Running project health check..."
-        
-        # Set up environment for testing
-        export ZSH_CONFIG_DIR="$HOME/.config/zsh"
-        export ZSH_TEST_MODE=1
-        
-        # Check if health check script exists and is executable
-        if [[ -x ~/.config/zsh/check-project.sh ]]; then
-          if ~/.config/zsh/check-project.sh 2>/dev/null; then
-            echo "✅ Project health check passed"
-          else
-            echo "⚠️ Project health check failed, but continuing..."
-            echo "Debug: Health check script exit code: $?"
-          fi
-        else
-          echo "⚠️ Health check script not found, skipping..."
-        fi
-        
-    - name: Test plugin installation (if available)
-      shell: zsh {0}
-      run: |
-        echo "🔌 Testing plugin installation..."
-        
-        # Check if plugin script exists and is executable
-        if [[ -x ~/.config/zsh/install-plugins.sh ]]; then
-          if ~/.config/zsh/install-plugins.sh install 2>/dev/null; then
-            echo "✅ Plugin installation test passed"
-          else
-            echo "⚠️ Plugin installation failed, but continuing..."
-          fi
-        else
-          echo "⚠️ Plugin installation script not found, skipping..."
-        fi
+
+        # Run the comprehensive test suite; any failure fails the build
+        ~/.config/zsh/test.sh all
+        echo "✅ All tests passed"
         
     - name: Validate documentation
       shell: bash
@@ -294,8 +232,8 @@ jobs:
         # Check script permissions
         chmod +x ~/.config/zsh/*.sh 2>/dev/null || true
         
-        # Verify key script permissions
-        scripts=("install.sh" "status.sh" "test.sh")
+        # Verify key script permissions (only scripts that exist in the repo)
+        scripts=("install.sh" "test.sh" "update.sh")
         for script in "${scripts[@]}"; do
           if [[ -f ~/.config/zsh/$script ]]; then
             if [[ -x ~/.config/zsh/$script ]]; then
@@ -342,40 +280,6 @@ jobs:
           exit 1
         fi
         
-    - name: Generate test report
-      shell: bash
-      run: |
-        echo "📊 Generating test report..."
-        
-        # Create test report
-        {
-          echo "# ZSH Configuration Test Report"
-          echo "Generated: $(date)"
-          echo "OS: $RUNNER_OS"
-          echo "ZSH Version: $ZSH_VERSION"
-          echo
-          echo "## Test Results"
-          echo "- ✅ Syntax validation: PASSED"
-          echo "- ✅ Basic configuration test: PASSED"
-          echo "- ✅ Documentation validation: PASSED"
-          echo "- ✅ File permissions: PASSED"
-          echo "- ✅ Performance benchmark: PASSED"
-          echo
-          echo "## Optional Tests"
-          echo "- ⚠️ Test suite: SKIPPED (if not available)"
-          echo "- ⚠️ Status check: SKIPPED (if not available)"
-          echo "- ⚠️ Project health: SKIPPED (if not available)"
-          echo "- ⚠️ Plugin installation: SKIPPED (if not available)"
-        } > test-report.md
-        
-        echo "✅ Test report generated"
-        
-    - name: Upload test report
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-report-${{ matrix.os }}
-        path: test-report.md
-        
   security:
     name: Security Scan
     runs-on: ubuntu-latest
@@ -383,7 +287,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+      with:
+        fetch-depth: 0  # Full history so the trufflehog git scan covers everything
     - name: Run ShellCheck
       uses: ludeeus/action-shellcheck@master
       with:
@@ -397,15 +302,12 @@ jobs:
         ignore_names: |
           zshrc
           zshenv
-          test.sh
           *.zsh
           *.zwc
-        
     - name: Check for secrets
       uses: trufflesecurity/trufflehog@v3.63.7
       with:
-        extra_args: --only-verified --fail --exclude-paths .git,backup,*.zwc,*.zcompdump,.zsh_history,.zsh_sessions
-      continue-on-error: true
+        extra_args: --only-verified --fail
       
     - name: Security scan summary
       run: |

@@ -51,7 +51,16 @@ PY
     return 0
 }
 
-typeset -g POSH_THEME_PREF_FILE="${POSH_THEME_PREF_FILE:-$ZSH_CONFIG_DIR/themes/theme-preference}"
+# The preference file lives in the untracked cache dir, not the tracked repo:
+# posh_theme rewrites it, and a dirty tracked file breaks git pull --ff-only.
+typeset -g POSH_THEME_PREF_FILE="${POSH_THEME_PREF_FILE:-${ZSH_CACHE_DIR:-$ZSH_CONFIG_DIR}/theme-preference}"
+
+# One-time migration from the old in-repo location (tracked before 5.3.2).
+if [[ "$POSH_THEME_PREF_FILE" != "$ZSH_CONFIG_DIR/themes/theme-preference" ]] \
+    && [[ -f "$ZSH_CONFIG_DIR/themes/theme-preference" && ! -f "$POSH_THEME_PREF_FILE" ]]; then
+    mkdir -p "${POSH_THEME_PREF_FILE:h}" 2>/dev/null
+    mv "$ZSH_CONFIG_DIR/themes/theme-preference" "$POSH_THEME_PREF_FILE" 2>/dev/null
+fi
 
 _posh_resolve_theme_name() {
     local name="$1"
@@ -205,7 +214,7 @@ posh_theme() {
     stored_name="${stored_name%.omp.yaml}"
     print -r -- "$stored_name" >"$POSH_THEME_PREF_FILE"
     echo "Saved theme preference: $stored_name"
-    echo "Reload with: source ~/.zshrc"
+    echo "Reload with: zreload"
 }
 
 # List available themes
@@ -268,7 +277,7 @@ change_theme() {
     if [[ -n "$selected_theme" ]]; then
         echo "Switching to theme: $selected_theme"
         posh_theme "$selected_theme"
-        echo "Theme changed! Run 'source ~/.zshrc' to apply."
+        echo "Theme changed! Run 'zreload' to apply."
     else
         echo "No theme selected."
     fi

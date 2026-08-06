@@ -15,7 +15,12 @@ log_fail() { color_red "FAILED"; exit 1; }
 # 1. Syntax Check
 test_syntax() {
     log_test "Syntax"
-    zsh -n zshrc zshenv || log_fail "main configuration"
+    # Check each file individually: `zsh -n a b` only parses `a` (b becomes a
+    # positional parameter), so a single multi-file call silently skips files.
+    local f
+    for f in zshrc zshenv; do
+        zsh -n "$f" || log_fail "$f"
+    done
     [[ -d modules && -d themes ]] || log_fail "module or theme directory missing"
 
     local zsh_files
@@ -24,7 +29,9 @@ test_syntax() {
         [[ -n "$f" ]] || continue
         zsh -n "$f" || log_fail "$f"
     done <<< "$zsh_files"
-    bash -n install.sh release.sh test.sh update.sh || log_fail "shell scripts"
+    for f in install.sh test.sh update.sh; do
+        bash -n "$f" || log_fail "$f"
+    done
     log_pass
 }
 
@@ -78,10 +85,30 @@ test_per_host_config() {
 # 3. Module Check
 test_modules() {
     log_test "Modules"
-    # Mock source to just check existence
-    for m in colors core navigation plugins completion aliases keybindings; do
-        [[ -f "./modules/$m.zsh" ]] || log_fail "$m module missing"
+    # zshrc's module_list is the authoritative registry; verify both directions:
+    # every listed module has a file, and every file in modules/ is listed.
+    local names f base
+    names="$(sed -n 's/.*module_list=(\([^)]*\)).*/\1/p' zshrc)"
+    [[ -n "$names" ]] || log_fail "could not extract module_list from zshrc"
+    # shellcheck disable=SC2086  # word splitting of the module names is intended
+    for base in $names; do
+        [[ -f "./modules/$base.zsh" ]] || log_fail "$base module missing"
     done
+    for f in modules/*.zsh; do
+        base="$(basename "$f" .zsh)"
+        [[ " $names " == *" $base "* ]] || log_fail "$base.zsh exists but is not loaded by zshrc"
+    done
+
+    # safe_rm's ownership check relies on zstat's `uid` element; a previous
+    # version used the nonexistent `+owner`, silently disabling the check.
+    zsh -fc 'zmodload -F zsh/stat b:zstat 2>/dev/null; f="$(mktemp)"; [[ "$(zstat +uid -- "$f")" == "$EUID" ]]; rc=$?; rm -f "$f"; exit "$rc"' \
+        || log_fail "zstat +uid does not report the caller EUID (safe_rm ownership check broken)"
+
+    # completion.zsh must run compinit with -u: a promptable compinit blocks on
+    # stdin at startup (invisibly, if silenced) and, on abort/EOF, unfunctions
+    # compinit and compdef ("command not found: compinit").
+    grep -q 'compinit -u -d' modules/completion.zsh \
+        || log_fail "completion.zsh compinit must use -u (never prompt at startup)"
     log_pass
 }
 
@@ -112,6 +139,17 @@ test_documentation() {
     fi
     git check-ignore -q local.zsh || log_fail "local.zsh is not gitignored"
     git check-ignore -q env/local/hosts/somehost.env || log_fail "per-host env dir is not gitignored"
+
+    # Machine-local state must stay untracked and ignored: .zsh_history is
+    # private, and posh_theme rewrites theme-preference (a dirty tracked file
+    # would break update.sh's git pull --ff-only self-update).
+    local state_file
+    for state_file in .zsh_history themes/theme-preference; do
+        if git ls-files --error-unmatch "$state_file" >/dev/null 2>&1; then
+            log_fail "$state_file must not be tracked by git"
+        fi
+        git check-ignore -q "$state_file" || log_fail "$state_file is not gitignored"
+    done
     log_pass
 }
 
@@ -125,63 +163,59 @@ test_installer_contract() {
         log_fail "test runner accepted an unknown group"
     fi
 
-    # Sandboxed link logic test: run against a temp HOME so the real one is
-    # never touched. install.sh guards main(), so sourcing exposes its
-    # functions without executing the installer.
-    local sandbox saved_home saved_config
+    # Sandboxed link logic test: run in a subshell against a temp HOME so the
+    # real one is never touched, and install.sh's `set -euo pipefail` cannot
+    # leak into the test runner process. install.sh guards main(), so sourcing
+    # exposes its functions without executing the installer.
+    local sandbox sandbox_rc
     sandbox="$(mktemp -d)"
-    saved_home="$HOME"
-    saved_config="${ZSH_CONFIG_DIR:-}"
+    (
+        # shellcheck disable=SC1091
+        source ./install.sh
+        set +e  # install.sh enables errexit; disable for explicit rc checks
 
-    # shellcheck disable=SC1091
-    source ./install.sh
-    set +e  # install.sh enables errexit; disable for explicit rc checks
+        HOME="$sandbox"
+        ZSH_CONFIG_DIR="$PWD"
+        export HOME ZSH_CONFIG_DIR
 
-    HOME="$sandbox"
-    ZSH_CONFIG_DIR="$PWD"
-    export HOME ZSH_CONFIG_DIR
+        # (1)+(3) absent ~/.zshenv -> symlink created
+        link_zshenv
+        local rc=$?
+        if [[ $rc -ne 0 ]]; then
+            log_fail "link_zshenv failed when ~/.zshenv is absent"
+        fi
+        [[ -L "$sandbox/.zshenv" ]] || log_fail "~/.zshenv symlink not created"
+        [[ "$(readlink "$sandbox/.zshenv")" == "$PWD/zshenv" ]] || log_fail "~/.zshenv symlink target is wrong"
 
-    # (1)+(3) absent ~/.zshenv -> symlink created
-    link_zshenv
-    local rc=$?
-    if [[ $rc -ne 0 ]]; then
-        log_fail "link_zshenv failed when ~/.zshenv is absent"
-    fi
-    [[ -L "$sandbox/.zshenv" ]] || log_fail "~/.zshenv symlink not created"
-    [[ "$(readlink "$sandbox/.zshenv")" == "$PWD/zshenv" ]] || log_fail "~/.zshenv symlink target is wrong"
+        # (4) existing non-matching ~/.zshenv is NOT overwritten without consent
+        rm "$sandbox/.zshenv"
+        printf 'existing user config\n' > "$sandbox/.zshenv"
+        link_zshenv
+        rc=$?
+        if [[ $rc -eq 0 ]]; then
+            log_fail "link_zshenv overwrote an existing non-matching ~/.zshenv without consent"
+        fi
+        grep -q 'existing user config' "$sandbox/.zshenv" || log_fail "existing ~/.zshenv was modified without consent"
 
-    # (4) existing non-matching ~/.zshenv is NOT overwritten without consent
-    rm "$sandbox/.zshenv"
-    printf 'existing user config\n' > "$sandbox/.zshenv"
-    link_zshenv
-    rc=$?
-    if [[ $rc -eq 0 ]]; then
-        log_fail "link_zshenv overwrote an existing non-matching ~/.zshenv without consent"
-    fi
-    grep -q 'existing user config' "$sandbox/.zshenv" || log_fail "existing ~/.zshenv was modified without consent"
+        # (4b) --force path backs up and links
+        backup_and_link_zshenv
+        [[ -L "$sandbox/.zshenv" ]] || log_fail "--force did not create the ~/.zshenv symlink"
+        local backup
+        backup="$(ls -d "$sandbox"/.zshenv.bak.* 2>/dev/null | head -n1)"
+        [[ -n "$backup" && -f "$backup" ]] || log_fail "--force did not create a timestamped backup"
+        grep -q 'existing user config' "$backup" || log_fail "backup does not preserve the original content"
 
-    # (4b) --force path backs up and links
-    backup_and_link_zshenv
-    [[ -L "$sandbox/.zshenv" ]] || log_fail "--force did not create the ~/.zshenv symlink"
-    local backup
-    backup="$(ls -d "$sandbox"/.zshenv.bak.* 2>/dev/null | head -n1)"
-    [[ -n "$backup" && -f "$backup" ]] || log_fail "--force did not create a timestamped backup"
-    grep -q 'existing user config' "$backup" || log_fail "backup does not preserve the original content"
-
-    # (5) ZDOTDIR redirection resolves the config zshrc
-    local zdotdir_zshrc
-    zdotdir_zshrc="$(ZDOTDIR="$PWD" zsh -dfc 'print -r -- "$ZDOTDIR/.zshrc"')"
-    [[ "$zdotdir_zshrc" == "$PWD/.zshrc" ]] || log_fail "ZDOTDIR does not point at the config zshrc"
-    [[ -f "$zdotdir_zshrc" ]] || log_fail "config zshrc is not resolvable via ZDOTDIR"
-
-    # Restore environment and clean up
-    HOME="$saved_home"
-    if [[ -n "$saved_config" ]]; then
-        ZSH_CONFIG_DIR="$saved_config"
-    else
-        unset ZSH_CONFIG_DIR
-    fi
+        # (5) ZDOTDIR redirection resolves the config zshrc
+        local zdotdir_zshrc
+        zdotdir_zshrc="$(ZDOTDIR="$PWD" zsh -dfc 'print -r -- "$ZDOTDIR/.zshrc"')"
+        [[ "$zdotdir_zshrc" == "$PWD/.zshrc" ]] || log_fail "ZDOTDIR does not point at the config zshrc"
+        [[ -f "$zdotdir_zshrc" ]] || log_fail "config zshrc is not resolvable via ZDOTDIR"
+    )
+    sandbox_rc=$?
     rm -rf "$sandbox"
+    if [[ $sandbox_rc -ne 0 ]]; then
+        exit 1  # log_fail inside the subshell already reported the reason
+    fi
     log_pass
 }
 
@@ -207,13 +241,23 @@ test_update_script() {
     grep -q -- '--skip-self' update.sh || log_fail "--skip-self flag missing"
     grep -q 'update_framework' update.sh || log_fail "update_framework not wired into main"
 
-    # 4. dead os-branch collapsed (W1N-44)
-    grep -q 'install_path="/usr/local/bin/oh-my-posh"' update.sh || log_fail "install_path not collapsed to single assignment"
+    # 4. oh-my-posh: install path derives from the existing binary (never a
+    # hardcoded /usr/local/bin), downloads are SHA256-verified, brew-managed
+    # installs go through brew
+    grep -q 'install_path="/usr/local/bin/oh-my-posh"' update.sh && log_fail "oh-my-posh install path is hardcoded to /usr/local/bin"
+    grep -q 'install_path="$(readlink -f "$(command -v oh-my-posh)"' update.sh || log_fail "oh-my-posh install path not derived from the existing binary"
+    grep -q 'checksums.txt' update.sh || log_fail "oh-my-posh download is not SHA256-verified"
+    grep -q 'brew list --versions oh-my-posh' update.sh || log_fail "brew-managed oh-my-posh branch missing"
     grep -q 'install_path=""' update.sh && log_fail "dead install_path initializer still present"
 
     # 5. update_zinit uses a tracking-branch pull, not a hardcoded branch name
     grep -q 'git -C "$ZINIT_DIR" pull --ff-only' update.sh || log_fail "update_zinit does not use tracking-branch pull"
     grep -q 'origin/master' update.sh && log_fail "update_zinit still hardcodes origin/master"
+
+    # 6. backup paths derive from ZSH_CONFIG_DIR, not hardcoded ~/.config/zsh
+    grep -q 'BACKUP_DIR="$ZSH_CONFIG_DIR/backup' update.sh || log_fail "BACKUP_DIR not derived from ZSH_CONFIG_DIR"
+    grep -q 'backup_root="$HOME/.config/zsh' update.sh && log_fail "backup_root still hardcodes ~/.config/zsh"
+    grep -q 'install.sh first' update.sh && log_fail "update_zinit error still points at install.sh (which never installed zinit)"
 
     log_pass
 }
@@ -224,10 +268,15 @@ test_machine_specific_moved() {
     grep -q 'opencode/bin' zshrc && log_fail "opencode PATH still in shared zshrc"
     grep -q '\.local/share/../bin/env' zshrc && log_fail "../bin/env hack still in shared zshrc"
 
-    # The local override file must exist (gitignored) and carry both
-    [[ -f env/local/environment.env ]] || log_fail "env/local/environment.env missing"
-    grep -q 'opencode/bin' env/local/environment.env || log_fail "opencode PATH not in local override"
-    grep -q '\.local/bin/env' env/local/environment.env || log_fail "bin/env source not in local override"
+    # env/local/environment.env is gitignored machine-local config: it only
+    # exists on machines that created it (not CI or fresh clones). When it
+    # does exist, verify the moved hacks actually live there.
+    if [[ -f env/local/environment.env ]]; then
+        grep -q 'opencode/bin' env/local/environment.env || log_fail "opencode PATH not in local override"
+        grep -q '\.local/bin/env' env/local/environment.env || log_fail "bin/env source not in local override"
+    else
+        echo -n "(no local env file, content checks skipped) "
+    fi
     git check-ignore -q env/local/environment.env || log_fail "env/local/environment.env is not gitignored"
     log_pass
 }
@@ -258,11 +307,11 @@ case "${1:-all}" in
     installer) test_installer_contract ;;
     update) test_update_script ; test_machine_specific_moved ;;
     --help|-h)
-        echo "Usage: $0 [all|syntax|environment|modules|installer]"
+        echo "Usage: $0 [all|syntax|environment|modules|installer|update]"
         ;;
     *)
         color_red "Unknown test group: $1"
-        echo "Usage: $0 [all|syntax|environment|modules|installer]" >&2
+        echo "Usage: $0 [all|syntax|environment|modules|installer|update]" >&2
         exit 2
         ;;
 esac

@@ -1,8 +1,10 @@
-# Core plugins managed via zinit (owner/repo)
+# Core plugin registry, parsed by modules/plugins.zsh (one spec per line).
+# owner/repo entries load via `zinit light` (turbo wait"0"); OMZP::/OMZL::
+# entries load via `zinit snippet` (wait"1"). Blank lines and comments are
+# ignored. Plugins only load when ZSH_ENABLE_PLUGINS=1 (off by default).
 zdharma-continuum/fast-syntax-highlighting
 zsh-users/zsh-autosuggestions
 zsh-users/zsh-completions
 zsh-users/zsh-history-substring-search
-le0me55i/zsh-extract
-rupa/z
 Aloxaf/fzf-tab
+OMZP::extract

@@ -26,22 +26,25 @@ plugins_load() {
     plugin_init || return 1
     [[ ! -o interactive ]] && return 0
 
-    # 1. Critical plugins (Async but fast)
-    local -a plugins=(
-        zdharma-continuum/fast-syntax-highlighting
-        zsh-users/zsh-autosuggestions
-        zsh-users/zsh-completions
-        zsh-users/zsh-history-substring-search
-        Aloxaf/fzf-tab
-    )
+    # plugins/core.list is the declarative registry: one spec per line.
+    # owner/repo entries load via `zinit light` (turbo wait"0"), OMZP::/OMZL::
+    # entries via `zinit snippet` (wait"1").
+    local registry="$ZSH_CONFIG_DIR/plugins/core.list"
+    if [[ ! -f "$registry" ]]; then
+        color_yellow "⚠️ plugin registry missing: $registry"
+        return 1
+    fi
 
-    for p in "${plugins[@]}"; do
-        zinit ice wait"0" lucid
-        zinit light "$p"
-    done
-
-    # 2. Tools & Snippets
-    zinit ice wait"1" lucid; zinit snippet OMZP::extract
+    local spec
+    while IFS= read -r spec; do
+        [[ -z "${spec//[[:space:]]/}" || "$spec" == \#* ]] && continue
+        case "$spec" in
+            OMZP::*|OMZL::*)
+                zinit ice wait"1" lucid; zinit snippet "$spec" ;;
+            *)
+                zinit ice wait"0" lucid; zinit light "$spec" ;;
+        esac
+    done < "$registry"
 }
 
 # -------------------- Tool Configs --------------------

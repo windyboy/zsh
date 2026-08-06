@@ -22,7 +22,8 @@ export HISTSIZE=50000
 export SAVEHIST=50000
 
 # Terminal Settings
-export TERM=xterm-256color
+# TERM is intentionally not set: the terminal emulator declares it, and
+# overriding it here breaks tmux/kitty/SSH sessions.
 export COLORTERM=truecolor
 export EDITOR="${EDITOR:-code}"
 export VISUAL="${VISUAL:-$EDITOR}"

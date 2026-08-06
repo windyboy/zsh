@@ -7,7 +7,7 @@ A personal, modular Zsh configuration for macOS, Linux, and WSL.
 - Zsh 5.8 or newer
 - Git
 
-Optional integrations such as zinit, oh-my-posh, fzf, zoxide, and eza are detected at runtime. Install them with your preferred package manager if you want those features.
+Optional integrations such as oh-my-posh, fzf, zoxide, and eza are detected at runtime. Install them with your preferred package manager if you want those features. Plugins via zinit are opt-in: set `ZSH_ENABLE_PLUGINS=1` in `env/local/environment.env` to load the entries in `plugins/core.list` (off by default).
 
 ## Install
 
@@ -32,7 +32,7 @@ Main areas:
 
 - `modules/` — shell behaviour, aliases, navigation, plugins, completion, and utilities
 - `themes/prompt.zsh` — Oh My Posh integration with a fallback prompt
-- `plugins/core.list` and `plugins/optional.list` — plugin registry inputs
+- `plugins/core.list` — plugin registry parsed by `modules/plugins.zsh`
 - `env/templates/environment.env.template` — optional local environment template
 - `env/templates/local.zsh.template` — starting point for a machine-specific `local.zsh`
 
@@ -56,6 +56,7 @@ See [REFERENCE.md](REFERENCE.md) for the available shell functions and configura
 ./test.sh environment
 ./test.sh modules
 ./test.sh installer
+./test.sh update
 ```
 
 Unknown test groups fail deliberately. `zsh -n <file>` remains useful for a targeted syntax check.
@@ -66,6 +67,14 @@ Unknown test groups fail deliberately. `zsh -n <file>` remains useful for a targ
 
 - `./update.sh --skip-self` (or `-S`) updates components but skips the framework repo pull. Set `ZSH_UPDATE_SELF_SKIP=1` for the same effect.
 - `./update.sh --skip-backup` skips the defensive backup.
+
+## Release
+
+Releases are manual annotated git tags — there is no release script:
+
+1. Move the `Unreleased` section of [CHANGELOG.md](CHANGELOG.md) under a new `## vX.Y.Z` heading and bump `VERSION` to `X.Y.Z`.
+2. Commit: `git commit -am "release: vX.Y.Z"`.
+3. Tag and push: `git tag -a vX.Y.Z -m "vX.Y.Z" && git push --follow-tags`.
 
 ## Documentation
 

@@ -9,7 +9,6 @@
 (( ${+ZSH_MAX_ALIASES} ))     || typeset -g ZSH_MAX_ALIASES=100        # Maximum recommended aliases
 (( ${+ZSH_MAX_MEMORY_MB} ))    || typeset -g ZSH_MAX_MEMORY_MB=10       # Maximum memory usage in MB
 (( ${+ZSH_MAX_STARTUP_SEC} ))  || typeset -g ZSH_MAX_STARTUP_SEC=2      # Maximum startup time in seconds
-(( ${+ZSH_CACHE_TTL} ))        || typeset -g ZSH_CACHE_TTL=86400        # Cache TTL in seconds (24 hours)
 
 # Color output tools - colors module should be loaded before core
 # source "$ZSH_CONFIG_DIR/modules/colors.zsh"  # Moved to zshrc loading order
@@ -23,7 +22,7 @@ safe_rm() {
     (( $# )) || { echo "Usage: rm <path> [...]"; return 1 }
 
     local -a reasons=()
-    local target abs_target confirm owner
+    local target abs_target confirm file_uid
     zmodload -F zsh/stat b:zstat 2>/dev/null
 
     for target in "$@"; do
@@ -34,8 +33,10 @@ safe_rm() {
         [[ "$abs_target" != "$HOME"/* && "$abs_target" != "$HOME" ]] && reasons+=("outside home: $target")
         [[ "$abs_target" != "$PWD"/* && "$abs_target" != "$PWD" ]] && reasons+=("outside current directory: $target")
 
-        if zstat -H owner +owner "$target" 2>/dev/null; then
-            [[ "$owner" != "$USER" ]] && reasons+=("owner $owner ≠ $USER: $target")
+        # zstat's element for ownership is `uid` (`+owner` does not exist and
+        # silently turned this into dead code); compare against the effective uid.
+        if file_uid="$(zstat +uid -- "$target" 2>/dev/null)"; then
+            [[ -n "$file_uid" && "$file_uid" != "$EUID" ]] && reasons+=("owned by uid $file_uid (you are uid $EUID): $target")
         fi
     done
 
@@ -220,11 +221,16 @@ status() {
 # Performance check
 perf() {
     local -A opts
-    zparseopts -D -E -A opts h -help modules memory startup m -monitor p -profile o -optimize history
+    local had_options=$(( $# > 0 ))
+    # Long-option specs need a leading dash to match `--name`; without it the
+    # option is silently ignored. -F reports unknown options instead of
+    # swallowing them, and any leftover argument is an error.
+    zparseopts -D -F -A opts h -help -modules -memory -startup m -monitor p -profile o -optimize || return 2
+    (( $# )) && { color_red "perf: unexpected argument(s): $*"; return 2 }
 
     if [[ -n "${opts[(i)-h]}" || -n "${opts[(i)--help]}" ]]; then
         echo "Usage: perf [options]"
-        echo "Options: --modules, --memory, --startup, --monitor (-m), --profile (-p), --optimize (-o), --history"
+        echo "Options: --modules, --memory, --startup, --monitor (-m), --profile (-p), --optimize (-o)"
         return 0
     fi
 
@@ -239,8 +245,9 @@ perf() {
     (( ${memory_mb%.*} > ZSH_MAX_MEMORY_MB )) && (( score -= 20 ))
     (( ${startup_time%.*} >= ZSH_MAX_STARTUP_SEC )) && (( score -= 20 ))
 
-    # Default report
-    if (( $# == 0 )); then
+    # Default report (only when no options were given; -D has already removed
+    # them from $@, so test the pre-parse count, not $@)
+    if (( ! had_options )); then
         echo "🚀 ZSH Performance: $score/100"
         printf "  %-12s %d (max %d)\n" "Functions:" "$func_count" "$ZSH_MAX_FUNCTIONS"
         printf "  %-12s %d (max %d)\n" "Aliases:" "$alias_count" "$ZSH_MAX_ALIASES"
@@ -270,6 +277,19 @@ perf() {
     if [[ -n "${opts[(i)--memory]}" ]]; then
         echo "💾 Memory Analysis"
         ps -p $$ -o rss,vsz,pmem,args 2>/dev/null
+    fi
+
+    # Startup timing: spawn fresh interactive shells and measure wall time
+    if [[ -n "${opts[(i)--startup]}" ]]; then
+        echo "⏱️ Interactive startup timing"
+        zmodload zsh/datetime
+        local i start end
+        for i in 1 2 3; do
+            start=$EPOCHREALTIME
+            zsh -i -c exit 2>/dev/null
+            end=$EPOCHREALTIME
+            printf "  run %d: %.3f s (threshold %d s)\n" "$i" $(( end - start )) "$ZSH_MAX_STARTUP_SEC"
+        done
     fi
 
     # Monitor mode
@@ -309,7 +329,7 @@ version() {
     [[ -r "$version_file" ]] && current_version="$(<"$version_file")"
     echo "📦 ZSH Configuration Version $current_version (Enhanced Modular)"
     echo "Key Features: Modular configuration and optional integrations"
-    echo "Modules: core/security/navigation/aliases/plugins/completion/keybindings/utils"
+    echo "Modules: colors/core/navigation/plugins/completion/aliases/keybindings/utils"
     echo "Interface: Shell functions for reload, validation, status, and performance"
 }
 

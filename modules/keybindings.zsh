@@ -12,7 +12,7 @@ bindkey '^[[B' down-line-or-history
 bindkey '^I' complete-word
 bindkey '^[[Z' reverse-menu-complete
 
-# Quick edit shortcut (Alt+E)
-bindkey -s '\ee' 'code .\n'
+# Quick edit shortcut (Alt+E) — uses $EDITOR, falling back to VS Code
+bindkey -s '\ee' '${EDITOR:-code} .\n'
 
 ZSH_MODULES_LOADED+=(keybindings)

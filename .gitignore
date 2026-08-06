@@ -11,5 +11,11 @@ env/local/*
 !env/local/.gitkeep
 local.zsh
 
+# Machine-local state: never track (privacy, and keeps git pull --ff-only clean)
+.zsh_history
+themes/theme-preference
+in-memoria.db*
+plans/
+
 # OS specific
 .DS_Store

@@ -41,7 +41,11 @@ if [[ -f "$COMPLETION_CACHE_FILE" ]]; then
 fi
 
 if [[ ! -f "$COMPLETION_CACHE_FILE" ]] || [[ $cache_age -gt 86400 ]]; then
-    compinit -d "$COMPLETION_CACHE_FILE" 2>/dev/null || compinit -C -d "$COMPLETION_CACHE_FILE"
+    # -u: silently use insecure directories — never prompt at startup. Without
+    # it, compinit's compaudit prompt is hidden by the shell's silence/redirect
+    # and blocks stdin; answering "n" (or EOF) makes compinit unfunction itself
+    # and compdef, surfacing later as "command not found: compinit".
+    compinit -u -d "$COMPLETION_CACHE_FILE"
     [[ -f "$COMPLETION_CACHE_FILE" ]] && zcompile "$COMPLETION_CACHE_FILE" 2>/dev/null
 else
     compinit -C -d "$COMPLETION_CACHE_FILE"
@@ -54,35 +58,21 @@ autoload -Uz _files _directories _cd _ls _cp _mv _rm _complete _ignored _approxi
 zstyle ':completion:*' completer _complete _match _approximate
 
 # Check if fzf-tab is available to avoid conflicts
-if (( ${+functions[_fzf_tab_complete]} )) || (( ${+functions[_fzf-tab-apply]} )) || (( ${+functions[-ftb-complete]} )); then
-    # fzf-tab is loaded, use minimal completion styles to avoid conflicts
-    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-    zstyle ':completion:*' group-name ''
-    zstyle ':completion:*' verbose yes
-    zstyle ':completion:*' use-cache yes
-    zstyle ':completion:*' cache-path "$ZSH_CACHE_DIR/completion"
-    zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-    zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
-    zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
-    zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
-else
-    # Standard completion without fzf-tab
-    zstyle ':completion:*' menu yes select=2
-    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-    zstyle ':completion:*' group-name ''
-    zstyle ':completion:*' verbose yes
-    zstyle ':completion:*' use-cache yes
-    zstyle ':completion:*' cache-path "$ZSH_CACHE_DIR/completion"
-    zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-    zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
-    zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
-    zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
-    
-    # Force menu to show (only when not using fzf-tab)
-    zstyle ':completion:*' force-list always
-    zstyle ':completion:*' auto-description 'specify: %d'
-fi
-
+# Standard completion styles. fzf-tab (when plugins are enabled) turbo-loads
+# after this module runs and wraps the completion UI, so a load-time detection
+# here can never see it; these styles are correct with or without it.
+zstyle ':completion:*' menu yes select=2
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*' use-cache yes
+zstyle ':completion:*' cache-path "$ZSH_CACHE_DIR/completion"
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
+zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
+zstyle ':completion:*' force-list always
+zstyle ':completion:*' auto-description 'specify: %d'
 # -------------------- File/Directory Completion --------------------
 zstyle ':completion:*' file-patterns '%p(D-/):directories %p(-/):directories %p(^-/):files %p(-/):directories'
 zstyle ':completion:*' squeeze-slashes true
@@ -118,10 +108,8 @@ zstyle ':completion:*' insert-tab false
 
 # VS Code Terminal Specific Fixes
 if [[ "$TERM_PROGRAM" == "vscode" ]]; then
-    if ! (( ${+functions[_fzf_tab_complete]} )) && ! (( ${+functions[_fzf-tab-apply]} )) && ! (( ${+functions[-ftb-complete]} )); then
-        zstyle ':completion:*' menu yes select=1
-        zstyle ':completion:*' force-list always
-    fi
+    zstyle ':completion:*' menu yes select=1
+    zstyle ':completion:*' force-list always
     zstyle ':completion:*' list-prompt ''
     zstyle ':completion:*' select-prompt ''
     bindkey '^ ' complete-word 2>/dev/null || true
@@ -139,7 +127,7 @@ completion_status() {
 rebuild_completion() {
     rm -f "$COMPLETION_CACHE_FILE" "${COMPLETION_CACHE_FILE}.zwc"
     autoload -Uz compinit
-    compinit -d "$COMPLETION_CACHE_FILE"
+    compinit -u -d "$COMPLETION_CACHE_FILE"
     [[ -f "$COMPLETION_CACHE_FILE" ]] && zcompile "$COMPLETION_CACHE_FILE"
     color_green "✅ Completion cache rebuilt"
 }

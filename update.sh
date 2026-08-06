@@ -35,7 +35,7 @@ BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 # Configuration
 ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 ZINIT_DIR="${ZINIT_HOME:-$HOME/.local/share/zinit}/zinit.git"
-BACKUP_DIR="$HOME/.config/zsh/backup/$(date +%Y%m%d_%H%M%S)"
+BACKUP_DIR="$ZSH_CONFIG_DIR/backup/$(date +%Y%m%d_%H%M%S)"
 
 
 
@@ -72,7 +72,8 @@ update_zinit() {
     log "Updating zinit..."
 
     if [[ ! -d "$ZINIT_DIR/.git" ]]; then
-        error "Zinit not found. Please run install.sh first."
+        error "Zinit not found. It is cloned automatically on the first interactive shell when ZSH_ENABLE_PLUGINS=1;"
+        error "start a new shell or run 'zsh -ic exit' to install it, then re-run this update."
         return 1
     fi
 
@@ -96,6 +97,17 @@ update_oh_my_posh() {
     local current_version
     current_version=$(oh-my-posh version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
     log "Current oh-my-posh version: $current_version"
+
+    # Prefer the package manager when it owns the installation.
+    if command -v brew >/dev/null 2>&1 && brew list --versions oh-my-posh >/dev/null 2>&1; then
+        log "oh-my-posh is brew-managed; upgrading via brew"
+        if brew upgrade oh-my-posh >/dev/null 2>&1; then
+            success "oh-my-posh updated via brew"
+        else
+            warning "brew upgrade oh-my-posh failed"
+        fi
+        return 0
+    fi
     
     # Detect OS and architecture
     local os
@@ -121,29 +133,70 @@ update_oh_my_posh() {
         return 0
     fi
     
-    # Download latest version
-    local download_url
-    local temp_file
+    # Download the latest binary together with the release checksums.
+    local download_url sums_url temp_file sums_file
     download_url="https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-${os}-${arch}"
-    temp_file="/tmp/oh-my-posh-latest"
-    
+    sums_url="https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/checksums.txt"
+    temp_file="$(mktemp)"
+    sums_file="$(mktemp)"
+
     log "Downloading latest oh-my-posh..."
-    if ! curl -L -o "$temp_file" "$download_url"; then
-        error "Failed to download oh-my-posh"
+    if ! curl -fsSL -o "$temp_file" "$download_url" || ! curl -fsSL -o "$sums_file" "$sums_url"; then
+        error "Failed to download oh-my-posh or its checksums"
+        rm -f "$temp_file" "$sums_file"
         return 1
     fi
-    
-    # Install new version
+
+    # Verify the checksum before installing anything: a sudo-installed binary
+    # without verification is a supply-chain hole.
+    local expected_sum actual_sum
+    expected_sum="$(awk -v f="posh-${os}-${arch}" '$2 == f {print $1}' "$sums_file")"
+    rm -f "$sums_file"
+    if [[ -z "$expected_sum" ]]; then
+        error "No checksum found for posh-${os}-${arch} in the release checksums"
+        rm -f "$temp_file"
+        return 1
+    fi
+    if command -v sha256sum >/dev/null 2>&1; then
+        actual_sum="$(sha256sum "$temp_file" | awk '{print $1}')"
+    elif command -v shasum >/dev/null 2>&1; then
+        actual_sum="$(shasum -a 256 "$temp_file" | awk '{print $1}')"
+    else
+        error "No SHA256 tool available; refusing to install an unverified binary"
+        rm -f "$temp_file"
+        return 1
+    fi
+    if [[ "$actual_sum" != "$expected_sum" ]]; then
+        error "Checksum mismatch for oh-my-posh (expected $expected_sum, got $actual_sum)"
+        rm -f "$temp_file"
+        return 1
+    fi
+    log "Checksum verified (sha256: ${actual_sum:0:12}...)"
+
     if ! chmod +x "$temp_file"; then
         error "Failed to make oh-my-posh executable"
+        rm -f "$temp_file"
         return 1
     fi
-    
-    local install_path="/usr/local/bin/oh-my-posh"
-    
-    if ! sudo mv "$temp_file" "$install_path"; then
-        error "Failed to install oh-my-posh"
-        return 1
+
+    # Update the existing binary in place (resolving symlinks) instead of
+    # hardcoding /usr/local/bin; sudo is only needed when the target
+    # directory is not user-writable.
+    local install_path target_dir
+    install_path="$(readlink -f "$(command -v oh-my-posh)" 2>/dev/null || command -v oh-my-posh)"
+    target_dir="$(dirname "$install_path")"
+
+    if [[ -w "$target_dir" ]]; then
+        if ! mv "$temp_file" "$install_path"; then
+            error "Failed to install oh-my-posh to $install_path"
+            return 1
+        fi
+    else
+        log "Installing to $install_path requires sudo"
+        if ! sudo mv "$temp_file" "$install_path"; then
+            error "Failed to install oh-my-posh to $install_path"
+            return 1
+        fi
     fi
     
     local new_version
@@ -206,7 +259,7 @@ update_optional_tools() {
 cleanup_old_backups() {
     log "Cleaning up old backups..."
     
-    local backup_root="$HOME/.config/zsh/backup"
+    local backup_root="$ZSH_CONFIG_DIR/backup"
     if [[ ! -d "$backup_root" ]]; then
         return 0
     fi
@@ -261,10 +314,6 @@ for arg in "$@"; do
         --skip-self|-S)
             SKIP_SELF=1
             ;;
-        --force|-f)
-            # Force update functionality - currently not implemented
-            warning "Force update option is not yet implemented"
-            ;;
         --help|-h)
             echo "ZSH Configuration Update Script v${VERSION}"
             echo "Usage: $0 [OPTIONS]"
@@ -273,7 +322,6 @@ for arg in "$@"; do
             echo "  -i, --interactive    Interactive mode with prompts"
             echo "  -s, --skip-backup    Skip creating backup"
             echo "  -S, --skip-self      Skip updating the framework repo itself"
-            echo "  -f, --force          Force update even if already up to date"
             echo "  -h, --help           Show this help message"
             echo "  -v, --version        Show version information"
             echo
@@ -288,6 +336,10 @@ for arg in "$@"; do
             echo "ZSH Configuration Update Script v${VERSION}"
             echo "Build Date: ${BUILD_DATE}"
             exit 0
+            ;;
+        *)
+            error "Unknown option: $arg (run '$0 --help' for usage)"
+            exit 1
             ;;
     esac
 done

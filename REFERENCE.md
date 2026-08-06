@@ -38,8 +38,8 @@ Run `./install.sh` from a clone located at `${ZSH_CONFIG_DIR:-$HOME/.config/zsh}
 - `env/local/environment.env`, when present, is sourced by `zshrc`.
 - `local.zsh`, when present, is sourced last for personal shell customizations. It is not tracked by git; copy `env/templates/local.zsh.template` to create it.
 - `env/local/hosts/<hostname>.env`, when present, is sourced on that host for per-server overrides. It is not tracked by git.
-- `ZSH_ENABLE_OPTIONAL_PLUGINS=1` enables entries in `plugins/optional.list`.
-- `ZSH_POSH_THEME` selects an Oh My Posh theme.
+- `ZSH_ENABLE_PLUGINS=1` enables zinit and loads the plugins listed in `plugins/core.list` (the registry parsed by `modules/plugins.zsh`). Plugins are off by default; set this in `env/local/environment.env`.
+- `ZSH_POSH_THEME` selects an Oh My Posh theme. `posh_theme` persists the choice to `$ZSH_CACHE_DIR/theme-preference` (per-machine, not tracked).
 
 ## Useful helpers
 
@@ -47,4 +47,4 @@ Run `./install.sh` from a clone located at `${ZSH_CONFIG_DIR:-$HOME/.config/zsh}
 
 ## Project version
 
-`VERSION` is the canonical version source. Runtime `version`, `install.sh`, and `release.sh` use it.
+`VERSION` is the canonical version source. Runtime `version` and `install.sh` use it.

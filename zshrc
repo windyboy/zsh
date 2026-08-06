@@ -18,7 +18,7 @@ if [[ -z "$HOME" ]]; then
 fi
 
 # Set ZSH configuration root directory (compatible with direct calls)
-# Note: zshenv should have already set this via typeset -grx
+# Note: zshenv should have already set this via typeset -gx
 if [[ -z "$ZSH_CONFIG_DIR" ]]; then
     export ZSH_CONFIG_DIR="$HOME/.config/zsh"
     echo "[zshrc] Warning: ZSH_CONFIG_DIR was not set by zshenv, using default" >&2
@@ -62,16 +62,12 @@ if [[ -z "$ZSH_LOCAL_ENV_LOADED" ]]; then
 fi
 
 # Load core modules (order cannot be changed)
-local loaded_modules=0
-local module_list=(colors core navigation path plugins completion aliases keybindings utils)
-local total_modules=${#module_list[@]}
+local module_list=(colors core navigation plugins completion aliases keybindings utils)
 
 for mod in "${module_list[@]}"; do
-    local modfile="$ZSH_CONFIG_DIR/modules/${mod}.zsh"
-    if simple_source "$modfile" "$mod module"; then
-        ((loaded_modules++))
-    fi
+    simple_source "$ZSH_CONFIG_DIR/modules/${mod}.zsh" "$mod module"
 done
+unset module_list mod
 
 # Load theme configuration (ensure no xtrace to avoid candidate='' output)
 setopt no_xtrace 2>/dev/null
@@ -88,10 +84,12 @@ local host_env_file="$ZSH_CONFIG_DIR/env/local/hosts/${host_name}.env"
 if [[ -f "$host_env_file" ]]; then
     simple_source "$host_env_file" "host environment ($host_name)"
 fi
+unset host_name host_env_file
 
 # Enhanced loading summary. Export so perf/validation helpers can read it.
 export ZSH_STARTUP_TIME=$(printf "%.3f" $(( EPOCHREALTIME - ZSH_STARTUP_START )))
-echo "✅ ZSH config loaded in ${ZSH_STARTUP_TIME}s (${#ZSH_MODULES_LOADED[@]} modules)" >&2
+# Startup banner is opt-in (set ZSH_PROFILE=1, e.g. in env/local); use `perf --startup` for real timing.
+[[ "${ZSH_PROFILE:-0}" == "1" ]] && echo "✅ ZSH config loaded in ${ZSH_STARTUP_TIME}s (${#ZSH_MODULES_LOADED[@]} modules)" >&2
 
 # Lazy load NVM to improve startup time
 export NVM_DIR="$HOME/.config/nvm"

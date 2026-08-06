@@ -29,6 +29,10 @@ check_requirements() {
     log_info "Checking prerequisites..."
     command -v zsh >/dev/null 2>&1 || log_error "ZSH is not installed."
     command -v git >/dev/null 2>&1 || log_error "Git is not installed."
+    # README requires Zsh 5.8+; enforce it at install time rather than
+    # letting an older shell fail later at runtime.
+    zsh -fc 'autoload -Uz is-at-least && is-at-least 5.8 "$ZSH_VERSION"' \
+        || log_error "ZSH 5.8 or newer is required (found: $(zsh -fc 'print -r -- "$ZSH_VERSION"' 2>/dev/null || echo unknown))."
 }
 
 # Warn about orphaned dotfiles that ZDOTDIR redirection will ignore.
@@ -108,6 +112,7 @@ finalize() {
     log_success "Installation complete."
     log_success "Created: $HOME/.zshenv -> $ZSH_CONFIG_DIR/zshenv"
     log_info "Start a new shell to load the configuration: exec zsh"
+    log_info "Plugins are off by default; set ZSH_ENABLE_PLUGINS=1 in env/local/environment.env to enable zinit."
 }
 
 # Argument parsing

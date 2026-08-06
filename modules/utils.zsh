@@ -45,7 +45,6 @@ path-clean() {
         return 1
     fi
 }
-alias path-reload='source ~/.config/zsh/modules/path.zsh'
 diskusage() { df -h | grep -E '^/dev/' | awk '{print $1, $2, $3, $4, $5, $6}'; }
 memusage() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -80,7 +79,7 @@ newproject() {
 
 # -------------------- Text Processing --------------------
 lcount() { [[ $# -eq 0 ]] && echo "Usage: lcount <file...>" && return 1; for f in "$@"; do [[ -f "$f" ]] && echo "$f: $(wc -l < "$f") lines" || color_red "$f: Not found"; done; }
-rmempty() { [[ $# -eq 0 ]] && echo "Usage: rmempty <file>" && return 1; sed -i '/^[[:space:]]*$/d' "$1" && color_green "Removed empty lines: $1"; }
+rmempty() { [[ $# -eq 0 ]] && echo "Usage: rmempty <file>" && return 1; sed -i.bak '/^[[:space:]]*$/d' "$1" && rm -f "${1}.bak" && color_green "Removed empty lines: $1"; }
 tolower() { [[ $# -eq 0 ]] && echo "Usage: tolower <file>" && return 1; tr '[:upper:]' '[:lower:]' < "$1" > "${1}.tmp" && mv "${1}.tmp" "$1" && color_green "Converted to lowercase: $1"; }
 
 # -------------------- Process/Network --------------------
@@ -224,12 +223,6 @@ config() {
     fi
 }
 
-# Configuration sync (placeholder)
-config_sync() {
-    echo "[TODO] Configuration sync feature not implemented yet. Future support for cloud upload/download of ~/.config/zsh/env/local/environment.env and other files."
-    echo "For manual sync, please backup and restore configuration files manually."
-}
-
 # -------------------- FZF Widget Management --------------------
 fzf_widgets() {
     [[ "$1" == "-h" || "$1" == "--help" ]] && {
@@ -282,7 +275,7 @@ fzf_widgets() {
                 zle -N fzf-cd-widget 2>/dev/null || true
 
                 color_green "✅ FZF widgets fixed"
-                echo "Please reload configuration: source ~/.zshrc"
+                echo "Please reload configuration: zreload"
             else
                 color_red "❌ FZF not installed"
             fi

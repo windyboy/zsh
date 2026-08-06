@@ -3,7 +3,7 @@
 ## Verify changes
 
 - Full checks: `./test.sh`
-- Focused checks: `./test.sh syntax|environment|modules|installer`
+- Focused checks: `./test.sh syntax|environment|modules|installer|update`
 - Targeted syntax: `zsh -n <file>`
 - ShellCheck runs in GitHub Actions for supported shell scripts.
 
@@ -14,7 +14,7 @@
 - `zshenv` establishes XDG and Zsh paths.
 - `zshrc` loads modules from `modules/`, optional local environment overrides, and `local.zsh`.
 - `themes/prompt.zsh` configures the prompt.
-- `plugins/core.list` and `plugins/optional.list` are registry inputs.
+- `plugins/core.list` is the plugin registry parsed by `modules/plugins.zsh`.
 - `VERSION` is the canonical version source.
 
 ## Changes
