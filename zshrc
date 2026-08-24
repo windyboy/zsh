@@ -62,7 +62,7 @@ if [[ -z "$ZSH_LOCAL_ENV_LOADED" ]]; then
 fi
 
 # Load core modules (order cannot be changed)
-local module_list=(colors core navigation plugins completion aliases keybindings utils)
+local module_list=(colors core env navigation plugins completion aliases keybindings utils)
 
 for mod in "${module_list[@]}"; do
     simple_source "$ZSH_CONFIG_DIR/modules/${mod}.zsh" "$mod module"
@@ -91,20 +91,7 @@ export ZSH_STARTUP_TIME=$(printf "%.3f" $(( EPOCHREALTIME - ZSH_STARTUP_START ))
 # Startup banner is opt-in (set ZSH_PROFILE=1, e.g. in env/local); use `perf --startup` for real timing.
 [[ "${ZSH_PROFILE:-0}" == "1" ]] && echo "✅ ZSH config loaded in ${ZSH_STARTUP_TIME}s (${#ZSH_MODULES_LOADED[@]} modules)" >&2
 
-# Lazy load NVM to improve startup time
-export NVM_DIR="$HOME/.config/nvm"
-nvm() {
-    if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-        source "$NVM_DIR/nvm.sh"
-        if [[ -s "$NVM_DIR/bash_completion" ]]; then
-            source "$NVM_DIR/bash_completion"
-        fi
-        nvm "$@"
-    else
-        echo "NVM not installed. Install from https://github.com/nvm-sh/nvm" >&2
-        return 1
-    fi
-}
+# (NVM lazy loader moved to modules/env.zsh)
 
 # Ensure script returns success
 true

@@ -28,23 +28,7 @@ sysinfo() {
     [[ -n "$SSH_CLIENT" ]] && echo "SSH: $SSH_CLIENT"
 }
 
-# PATH management shortcuts
-alias path-status='echo $PATH | tr ":" "\n" | nl'
-path-clean() {
-    local cleaned_path
-    if [[ -z "$PATH" ]]; then
-        echo "Warning: PATH is empty, skipping cleanup" >&2
-        return 1
-    fi
-    cleaned_path=$(echo "$PATH" | tr ":" "\n" | awk '!seen[$0]++' | tr "\n" ":" | sed 's/:$//')
-    if [[ -n "$cleaned_path" ]]; then
-        export PATH="$cleaned_path"
-        echo "PATH cleanup completed"
-    else
-        echo "Warning: PATH cleanup resulted in empty PATH, keeping original" >&2
-        return 1
-    fi
-}
+# PATH management helpers (path-status, path-clean) live in modules/env.zsh
 diskusage() { df -h | grep -E '^/dev/' | awk '{print $1, $2, $3, $4, $5, $6}'; }
 memusage() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -139,14 +123,12 @@ config() {
         completion) target_file="$ZSH_CONFIG_DIR/modules/completion.zsh" ;;
         keybindings) target_file="$ZSH_CONFIG_DIR/modules/keybindings.zsh" ;;
         utils) target_file="$ZSH_CONFIG_DIR/modules/utils.zsh" ;;
+        env-module) target_file="$ZSH_CONFIG_DIR/modules/env.zsh" ;;
         
         # Environment configuration
-        env) 
-            # Check for new environment system first
+        env)
             if [[ -f "$ZSH_CONFIG_DIR/env/local/environment.env" ]]; then
                 target_file="$ZSH_CONFIG_DIR/env/local/environment.env"
-            elif [[ -f "$ZSH_CONFIG_DIR/env/development.zsh" ]]; then
-                target_file="$ZSH_CONFIG_DIR/env/development.zsh"
             else
                 color_yellow "⚠️  No environment configuration found"
                 color_cyan "💡 Run 'config env-init' to initialize environment configuration"

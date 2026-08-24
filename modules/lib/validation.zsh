@@ -98,7 +98,7 @@ validation_attempt_fix() {
 validation_run() {
     local target_array="$1"
     local fix_mode="${2:-false}"
-    local -a modules=("core" "navigation" "aliases" "plugins" "completion" "keybindings" "utils")
+    local -a modules=("core" "env" "navigation" "aliases" "plugins" "completion" "keybindings" "utils" "colors")
     local -a required_dirs=("$ZSH_CONFIG_DIR" "$ZSH_CACHE_DIR" "$ZSH_DATA_DIR")
     local -a required_files=("$ZSH_CONFIG_DIR/zshrc" "$ZSH_CONFIG_DIR/modules/core.zsh")
 
@@ -242,6 +242,20 @@ validation_run() {
                 validation_add success "Syntax OK: $module.zsh"
             else
                 validation_add error "Syntax error in: $module.zsh"
+                ((syntax_errors++))
+            fi
+        fi
+    done
+
+    # 11. Machine env overrides: syntax-check when present (never required)
+    local env_file
+    for env_file in "$ZSH_CONFIG_DIR/env/local/environment.env" \
+                    "$ZSH_CONFIG_DIR/env/local/hosts/${HOST:-$(hostname 2>/dev/null)}.env"; do
+        if [[ -f "$env_file" ]]; then
+            if zsh -n "$env_file" 2>/dev/null; then
+                validation_add success "Syntax OK: ${env_file:t}"
+            else
+                validation_add error "Syntax error in: $env_file"
                 ((syntax_errors++))
             fi
         fi

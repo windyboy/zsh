@@ -5,7 +5,11 @@ set -euo pipefail
 # Version: loaded from VERSION
 # =============================================================================
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ "${BASH_SOURCE[0]}" == */* ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+    SCRIPT_DIR="$(pwd)"
+fi
 VERSION_FILE="$SCRIPT_DIR/VERSION"
 ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$HOME/.config/zsh}"
 
@@ -27,8 +31,20 @@ VERSION="$(<"$VERSION_FILE")"
 # 1. Prerequisite Checks
 check_requirements() {
     log_info "Checking prerequisites..."
-    command -v zsh >/dev/null 2>&1 || log_error "ZSH is not installed."
-    command -v git >/dev/null 2>&1 || log_error "Git is not installed."
+    local missing=()
+    local cmd
+    for cmd in zsh git ln readlink mv date; do
+        command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
+    done
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        log_error "Missing required dependencies: ${missing[*]}"
+    fi
+
+    # Oh My Posh is optional; the prompt module uses a built-in fallback when
+    # it is unavailable, but surface that choice during installation.
+    command -v oh-my-posh >/dev/null 2>&1 \
+        || log_warn "oh-my-posh is not installed; the fallback prompt will be used."
+
     # README requires Zsh 5.8+; enforce it at install time rather than
     # letting an older shell fail later at runtime.
     zsh -fc 'autoload -Uz is-at-least && is-at-least 5.8 "$ZSH_VERSION"' \
@@ -111,8 +127,27 @@ setup_config() {
 finalize() {
     log_success "Installation complete."
     log_success "Created: $HOME/.zshenv -> $ZSH_CONFIG_DIR/zshenv"
+    echo
+    echo "Next steps:"
+    echo "  1. Machine-specific environment (optional, recommended):"
+    echo "       cd $ZSH_CONFIG_DIR/env && ./init-env.sh"
+    echo "       \${EDITOR:-vi} $ZSH_CONFIG_DIR/env/local/environment.env"
+    echo "     Put per-machine exports here (GOPATH, mirrors, custom PATH)."
+    echo "     This file is gitignored - it never touches the repository."
+    echo "  2. Per-host overrides (optional, for multi-machine setups):"
+    echo "       mkdir -p $ZSH_CONFIG_DIR/env/local/hosts"
+    echo "       echo 'export MY_VAR=...' > $ZSH_CONFIG_DIR/env/local/hosts/\$(hostname).env"
+    echo "     Loaded after modules, so it overrides framework defaults on this host."
+    echo "  3. Local aliases/functions (optional):"
+    echo "       cp $ZSH_CONFIG_DIR/env/templates/local.zsh.template $ZSH_CONFIG_DIR/local.zsh"
+    echo "  4. Plugins are off by default; to enable zinit:"
+    echo "       echo 'export ZSH_ENABLE_PLUGINS=1' >> $ZSH_CONFIG_DIR/env/local/environment.env"
+    echo
+    echo "Keep machine-specific settings out of tracked files so every machine"
+    echo "can git-pull the same repository. After editing, verify with:"
+    echo "  zsh -n $ZSH_CONFIG_DIR/env/local/environment.env && reload"
+    echo
     log_info "Start a new shell to load the configuration: exec zsh"
-    log_info "Plugins are off by default; set ZSH_ENABLE_PLUGINS=1 in env/local/environment.env to enable zinit."
 }
 
 # Argument parsing

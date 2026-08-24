@@ -30,7 +30,7 @@ Before linking, the installer warns about any existing `~/.zshrc`, `~/.zprofile`
 
 Main areas:
 
-- `modules/` — shell behaviour, aliases, navigation, plugins, completion, and utilities
+- `modules/` — shell behaviour, environment/PATH management (`env`), aliases, navigation, plugins, completion, and utilities
 - `themes/prompt.zsh` — Oh My Posh integration with a fallback prompt
 - `plugins/core.list` — plugin registry parsed by `modules/plugins.zsh`
 - `env/templates/environment.env.template` — optional local environment template

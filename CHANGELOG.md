@@ -1,5 +1,11 @@
 # Changelog
 
+
+## Unreleased
+
+
+- `install.sh` now prints concrete next steps after installation: how to create the gitignored `env/local/environment.env` (per-machine exports), per-host overrides in `env/local/hosts/<hostname>.env`, local aliases via `local.zsh`, how to enable plugins, and the `zsh -n` + `reload` verification command — so the machine-local customization layers are discoverable at install time.
+- Added `modules/env.zsh`: a runtime environment module owning PATH policy (`add_to_path` with existence + duplicate guards, `path-status`/`path-clean` moved from `utils.zsh`), environment defaults (`PAGER`, `LESS`, `LANG`, `LC_ALL`, set only when unset), standard user bin dirs (`~/.local/bin`, `~/bin`, `~/.cargo/bin`, `~/.go/bin`, `$GOPATH/bin`, `~/.bun/bin`, existence-checked), and the NVM lazy loader (moved out of `zshrc`). The module is idempotent (`reload --module env` does not double-prepend PATH). `validate` now checks `env`/`colors` modules and syntax-checks `env/local/environment.env` and the per-host override when present; `config` gained `env-module` and lost the dead `env/development.zsh` fallback; `test.sh` gained an env-module contract test and `bash -n` coverage for `env/*.sh`.
 ## v5.4.0
 
 - Fixed a flaky/hanging shell startup: the dump-rebuild path called plain `compinit`, whose compaudit prompt (triggered whenever any fpath entry has a world-writable parent, e.g. a cache dir under `/tmp`) was silenced by `2>/dev/null` yet still blocked on stdin — appearing as a frozen shell — and, on abort/EOF, compinit unfunctions itself and compdef, surfacing as the misleading `command not found: compinit`. The rebuild now uses `compinit -u -d` (never prompts); a contract test guards it.
