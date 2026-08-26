@@ -55,6 +55,9 @@ if [[ -z "$ZSH_ENV_LOADED" ]]; then
 fi
 
 # Load user local environment overrides when available
+# NOTE: sourced BEFORE modules — keep it to `export`s and feature toggles
+# (e.g. ZSH_ENABLE_PLUGINS, which plugins.zsh reads at module load).
+# PATH additions go in the per-host file below (add_to_path needs modules).
 if [[ -z "$ZSH_LOCAL_ENV_LOADED" ]]; then
     if simple_source "$ZSH_CONFIG_DIR/env/local/environment.env" "local environment variables"; then
         export ZSH_LOCAL_ENV_LOADED=1
@@ -80,6 +83,7 @@ simple_source "$ZSH_CONFIG_DIR/local.zsh" "local configuration"
 # Load per-host personalization (optional): env/local/hosts/<hostname>.env
 # Lets a single framework repo carry different settings per server without
 # committing machine-specific config. Only activates if the host file exists.
+# Loaded AFTER modules, so PATH additions can use add_to_path (env.zsh).
 local host_name="${HOST:-$(hostname 2>/dev/null)}"
 local host_env_file="$ZSH_CONFIG_DIR/env/local/hosts/${host_name}.env"
 if [[ -f "$host_env_file" ]]; then
