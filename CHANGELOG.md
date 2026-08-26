@@ -1,11 +1,15 @@
 # Changelog
 
-
 ## Unreleased
 
+- Fixed a hanging interactive startup: `forge zsh plugin`/`forge zsh theme` (which can stall indefinitely on a dead backend call) are now timeout-guarded with a 60-minute failure marker, so fresh shells skip them instead of blocking (W1N-221).
+- Fixed `go` being broken in shells: a stale pinned `GOROOT` (`/usr/local/Cellar/go/1.26.7/…`) failed after a Homebrew upgrade to 1.27.0 (`cannot find GOROOT directory`); the export was removed — go auto-detects its root (W1N-222).
+- PATH entries no longer accumulate duplicates in nested shells: `modules/env.zsh` is back in the module list and owns PATH policy (`add_to_path` with existence + duplicate guards, `path-status`/`path-clean`), and the machine override uses `add_to_path` instead of naively re-wrapping `$PATH`.
+- bun completions now resolve on macOS: `${BUN_INSTALL:-$HOME/.bun}/_bun` (the hardcoded `/home/windy/.bun/_bun` never matched on this machine).
+- Env layering is documented and enforced: `env/local/environment.env` holds machine `export`s + feature toggles and is sourced pre-module (so `ZSH_ENABLE_PLUGINS` is set before `plugins.zsh` reads it — plugins were silently off in fresh login shells); `env/local/hosts/<hostname>.env` holds per-host PATH additions via `add_to_path` and is sourced post-module. The env template was de-personalized (everything is a commented example; no author-specific values).
+- `install.sh` finalizes with simpler guidance (the detailed next steps now live in `env/README.md`); the redundant inline NVM lazy-loader and the hardcoded `BW_SESSION` token guidance were removed.
+- `test.sh`'s per-host test uses a synthetic hostname so it can never overwrite or delete a real `env/local/hosts/<host>.env` (it previously deleted `MacBook-Pro.local.env`); `.zsh_sessions/` is gitignored.
 
-- `install.sh` now prints concrete next steps after installation: how to create the gitignored `env/local/environment.env` (per-machine exports), per-host overrides in `env/local/hosts/<hostname>.env`, local aliases via `local.zsh`, how to enable plugins, and the `zsh -n` + `reload` verification command — so the machine-local customization layers are discoverable at install time.
-- Added `modules/env.zsh`: a runtime environment module owning PATH policy (`add_to_path` with existence + duplicate guards, `path-status`/`path-clean` moved from `utils.zsh`), environment defaults (`PAGER`, `LESS`, `LANG`, `LC_ALL`, set only when unset), standard user bin dirs (`~/.local/bin`, `~/bin`, `~/.cargo/bin`, `~/.go/bin`, `$GOPATH/bin`, `~/.bun/bin`, existence-checked), and the NVM lazy loader (moved out of `zshrc`). The module is idempotent (`reload --module env` does not double-prepend PATH). `validate` now checks `env`/`colors` modules and syntax-checks `env/local/environment.env` and the per-host override when present; `config` gained `env-module` and lost the dead `env/development.zsh` fallback; `test.sh` gained an env-module contract test and `bash -n` coverage for `env/*.sh`.
 ## v5.4.0
 
 - Fixed a flaky/hanging shell startup: the dump-rebuild path called plain `compinit`, whose compaudit prompt (triggered whenever any fpath entry has a world-writable parent, e.g. a cache dir under `/tmp`) was silenced by `2>/dev/null` yet still blocked on stdin — appearing as a frozen shell — and, on abort/EOF, compinit unfunctions itself and compdef, surfacing as the misleading `command not found: compinit`. The rebuild now uses `compinit -u -d` (never prompts); a contract test guards it.
