@@ -125,6 +125,11 @@ _init_fallback_prompt() {
 _posh_should_init() {
     [[ "${ZSH_DISABLE_POSH:-0}" == "1" ]] && return 1
     [[ "${ZSH_ENABLE_POSH:-1}" == "0" ]] && return 1
+
+    # An explicit opt-in is needed for SSH sessions whose terminal emulator
+    # cannot be identified from the forwarded environment.
+    [[ "${ZSH_ENABLE_POSH:-}" == "1" ]] && return 0
+
     case "${TERM:-}" in
         linux|dumb|vt100|ansi) return 1 ;;
     esac
@@ -206,6 +211,11 @@ _init_prompt_system() {
 
 # Initialize the prompt system
 _init_prompt_system
+
+# `_init_prompt_system` uses local options, so the fallback's `setopt` does
+# not survive its function scope.  Keep parameter expansion enabled globally
+# for the fallback prompt's `${vcs_info_msg_0_}` segment.
+setopt prompt_subst
 
 # Theme switching function
 posh_theme() {

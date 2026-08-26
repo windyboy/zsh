@@ -121,11 +121,13 @@ reload() {
             ;;
         --config)
             source "$ZSH_CONFIG_DIR/zshenv"
+            unset ZSH_LOCAL_ENV_LOADED
             source "$ZSH_CONFIG_DIR/zshrc"
             color_green "✅ Reloaded zshrc and zshenv"
             ;;
         *)
             echo "🔄 Reloading all ZSH configuration..."
+            unset ZSH_LOCAL_ENV_LOADED
             source "$ZSH_CONFIG_DIR/zshrc"
             color_green "✅ Configuration reloaded"
             ;;
