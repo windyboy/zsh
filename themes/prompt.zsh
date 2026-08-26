@@ -134,6 +134,11 @@ _posh_should_init() {
         linux|dumb|vt100|ansi) return 1 ;;
     esac
     if [[ -n "${SSH_CONNECTION:-}${SSH_CLIENT:-}" ]]; then
+        # SSH always forwards TERM.  Kitty's KITTY_WINDOW_ID normally is not
+        # forwarded, but its xterm-kitty TERM value identifies it safely.
+        case "${TERM:-}" in
+            xterm-kitty|kitty*) return 0 ;;
+        esac
         [[ -n "${TERM_PROGRAM:-}${KITTY_WINDOW_ID:-}${WEZTERM_PANE:-}${WT_SESSION:-}${ALACRITTY_SOCKET:-}${ITERM_SESSION_ID:-}" ]] || return 1
     fi
     return 0
