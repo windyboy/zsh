@@ -56,12 +56,31 @@ create_backup() {
     local dotfile
     for dotfile in .zshenv .zshrc .zprofile .zlogin; do
         if [[ -f "$HOME/$dotfile" ]]; then
-            cp "$HOME/$dotfile" "$BACKUP_DIR/"
+            if ! cp "$HOME/$dotfile" "$BACKUP_DIR/"; then
+                error "Failed to back up $HOME/$dotfile"
+                return 1
+            fi
         fi
     done
-    
+
     if [[ -d "$ZSH_CONFIG_DIR" ]]; then
-        cp -r "$ZSH_CONFIG_DIR" "$BACKUP_DIR/"
+        # BACKUP_DIR is a child of ZSH_CONFIG_DIR, so copying the root into it
+        # would recurse into itself. Copy each top-level entry except backup/
+        # into a named snapshot instead.
+        local snapshot_dir entry
+        local -a config_entries=()
+        snapshot_dir="$BACKUP_DIR/config"
+        if ! mkdir -p "$snapshot_dir"; then
+            error "Failed to create configuration snapshot directory"
+            return 1
+        fi
+        while IFS= read -r -d '' entry; do
+            config_entries+=("$entry")
+        done < <(find "$ZSH_CONFIG_DIR" -mindepth 1 -maxdepth 1 ! -name backup -print0)
+        if ((${#config_entries[@]})) && ! cp -a "${config_entries[@]}" "$snapshot_dir/"; then
+            error "Failed to back up configuration files"
+            return 1
+        fi
     fi
     
     success "Backup created at: $BACKUP_DIR"
@@ -228,9 +247,17 @@ update_optional_tools() {
     if command -v fzf >/dev/null 2>&1; then
         log "Updating fzf..."
         if command -v brew >/dev/null 2>&1; then
-            brew upgrade fzf 2>/dev/null && success "fzf updated" || warning "fzf update failed"
+            if brew upgrade fzf 2>/dev/null; then
+                success "fzf updated"
+            else
+                warning "fzf update failed"
+            fi
         elif command -v apt >/dev/null 2>&1; then
-            sudo apt update && sudo apt install -y fzf 2>/dev/null && success "fzf updated" || warning "fzf update failed"
+            if sudo apt update && sudo apt install -y fzf 2>/dev/null; then
+                success "fzf updated"
+            else
+                warning "fzf update failed"
+            fi
         fi
     fi
     
@@ -238,9 +265,17 @@ update_optional_tools() {
     if command -v zoxide >/dev/null 2>&1; then
         log "Updating zoxide..."
         if command -v brew >/dev/null 2>&1; then
-            brew upgrade zoxide 2>/dev/null && success "zoxide updated" || warning "zoxide update failed"
+            if brew upgrade zoxide 2>/dev/null; then
+                success "zoxide updated"
+            else
+                warning "zoxide update failed"
+            fi
         elif command -v apt >/dev/null 2>&1; then
-            sudo apt update && sudo apt install -y zoxide 2>/dev/null && success "zoxide updated" || warning "zoxide update failed"
+            if sudo apt update && sudo apt install -y zoxide 2>/dev/null; then
+                success "zoxide updated"
+            else
+                warning "zoxide update failed"
+            fi
         fi
     fi
     
@@ -248,9 +283,17 @@ update_optional_tools() {
     if command -v eza >/dev/null 2>&1; then
         log "Updating eza..."
         if command -v brew >/dev/null 2>&1; then
-            brew upgrade eza 2>/dev/null && success "eza updated" || warning "eza update failed"
+            if brew upgrade eza 2>/dev/null; then
+                success "eza updated"
+            else
+                warning "eza update failed"
+            fi
         elif command -v apt >/dev/null 2>&1; then
-            sudo apt update && sudo apt install -y eza 2>/dev/null && success "eza updated" || warning "eza update failed"
+            if sudo apt update && sudo apt install -y eza 2>/dev/null; then
+                success "eza updated"
+            else
+                warning "eza update failed"
+            fi
         fi
     fi
 }
@@ -298,71 +341,59 @@ show_summary() {
     echo "    • Run './test.sh' to test configuration"
 }
 
-# Parse command line arguments
 INTERACTIVE_MODE=0
 SKIP_BACKUP=0
 SKIP_SELF="${ZSH_UPDATE_SELF_SKIP:-0}"
 
-for arg in "$@"; do
-    case "$arg" in
-        --interactive|-i)
-            INTERACTIVE_MODE=1
-            ;;
-        --skip-backup|-s)
-            SKIP_BACKUP=1
-            ;;
-        --skip-self|-S)
-            SKIP_SELF=1
-            ;;
-        --help|-h)
-            echo "ZSH Configuration Update Script v${VERSION}"
-            echo "Usage: $0 [OPTIONS]"
-            echo
-            echo "Options:"
-            echo "  -i, --interactive    Interactive mode with prompts"
-            echo "  -s, --skip-backup    Skip creating backup"
-            echo "  -S, --skip-self      Skip updating the framework repo itself"
-            echo "  -h, --help           Show this help message"
-            echo "  -v, --version        Show version information"
-            echo
-            echo "Examples:"
-            echo "  $0                   # Normal update"
-            echo "  $0 --interactive     # Interactive update"
-            echo "  $0 --skip-backup     # Update without backup"
-            echo "  $0 --skip-self       # Update tools but not the framework repo"
-            exit 0
-            ;;
-        --version|-v)
-            echo "ZSH Configuration Update Script v${VERSION}"
-            echo "Build Date: ${BUILD_DATE}"
-            exit 0
-            ;;
-        *)
-            error "Unknown option: $arg (run '$0 --help' for usage)"
-            exit 1
-            ;;
-    esac
-done
+parse_args() {
+    local arg
+    for arg in "$@"; do
+        case "$arg" in
+            --interactive|-i) INTERACTIVE_MODE=1 ;;
+            --skip-backup|-s) SKIP_BACKUP=1 ;;
+            --skip-self|-S) SKIP_SELF=1 ;;
+            --help|-h)
+                echo "ZSH Configuration Update Script v${VERSION}"
+                echo "Usage: $0 [OPTIONS]"
+                echo
+                echo "Options:"
+                echo "  -i, --interactive    Interactive mode with prompts"
+                echo "  -s, --skip-backup    Skip creating backup"
+                echo "  -S, --skip-self      Skip updating the framework repo itself"
+                echo "  -h, --help           Show this help message"
+                echo "  -v, --version        Show version information"
+                return 2
+                ;;
+            --version|-v)
+                echo "ZSH Configuration Update Script v${VERSION}"
+                echo "Build Date: ${BUILD_DATE}"
+                return 2
+                ;;
+            *)
+                error "Unknown option: $arg (run '$0 --help' for usage)"
+                return 1
+                ;;
+        esac
+    done
+}
 
-# Interactive confirmation
-if [[ $INTERACTIVE_MODE -eq 1 ]]; then
+confirm_update() {
+    [[ $INTERACTIVE_MODE -eq 1 ]] || return 0
+
     echo "🔄 ZSH Configuration Update"
     echo "This will update your zsh configuration components."
     echo
-    
     if [[ $SKIP_BACKUP -eq 0 ]]; then
-        read -p "Create backup before updating? [Y/n]: " backup_confirm
-        if [[ "$backup_confirm" =~ ^[Nn]$ ]]; then
-            SKIP_BACKUP=1
-        fi
+        read -r -p "Create backup before updating? [Y/n]: " backup_confirm
+        [[ "$backup_confirm" =~ ^[Nn]$ ]] && SKIP_BACKUP=1
     fi
-    
-    read -p "Continue with update? [Y/n]: " confirm
+
+    read -r -p "Continue with update? [Y/n]: " confirm
     if [[ "$confirm" =~ ^[Nn]$ ]]; then
         echo "Update cancelled."
-        exit 0
+        return 2
     fi
-fi
+}
 
 # Main update function
 main() {
@@ -408,5 +439,15 @@ main() {
     fi
 }
 
-# Run main function
-main "$@" 
+# Only execute when invoked directly; tests can source the helper functions.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    parse_rc=0
+    parse_args "$@" || parse_rc=$?
+    [[ $parse_rc -eq 2 ]] && exit 0
+    [[ $parse_rc -eq 0 ]] || exit "$parse_rc"
+    confirm_rc=0
+    confirm_update || confirm_rc=$?
+    [[ $confirm_rc -eq 2 ]] && exit 0
+    [[ $confirm_rc -eq 0 ]] || exit "$confirm_rc"
+    main
+fi

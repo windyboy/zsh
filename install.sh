@@ -80,7 +80,8 @@ link_zshenv() {
 # Back up an existing ~/.zshenv to ~/.zshenv.bak.<timestamp>, then link.
 backup_and_link_zshenv() {
     local dest="$HOME/.zshenv"
-    local backup="$dest.bak.$(date +%Y%m%d%H%M%S)"
+    local backup
+    backup="$dest.bak.$(date +%Y%m%d%H%M%S)"
     mv "$dest" "$backup"
     log_info "Backed up existing $dest to $backup"
     ln -s "$ZSH_CONFIG_DIR/zshenv" "$dest"

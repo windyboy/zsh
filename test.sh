@@ -2,6 +2,7 @@
 # =============================================================================
 # Simplified ZSH Test Suite
 # =============================================================================
+# shellcheck disable=SC2016,SC2030,SC2088  # Literal shell snippets and subshell fixtures are intentional.
 
 # Shared logging
 color_red()    { echo -e "\033[31m$*\033[0m"; }
@@ -108,6 +109,15 @@ test_modules() {
     # compinit and compdef ("command not found: compinit").
     grep -q 'compinit -u -d' modules/completion.zsh \
         || log_fail "completion.zsh compinit must use -u (never prompt at startup)"
+
+    # Backspace can arrive as either DEL (^?) or BS (^H), depending on the
+    # terminal and SSH client. Both must delete the preceding character.
+    zsh -fc '
+        typeset -a ZSH_MODULES_LOADED
+        source ./modules/keybindings.zsh
+        [[ "$(bindkey -M emacs "^?")" == *"backward-delete-char" ]] || exit 1
+        [[ "$(bindkey -M emacs "^H")" == *"backward-delete-char" ]] || exit 1
+    ' || log_fail "Backspace bindings"
     log_pass
 }
 
@@ -183,8 +193,8 @@ test_installer_contract() {
         if [[ $rc -ne 0 ]]; then
             log_fail "link_zshenv failed when ~/.zshenv is absent"
         fi
-        [[ -L "$sandbox/.zshenv" ]] || log_fail "~/.zshenv symlink not created"
-        [[ "$(readlink "$sandbox/.zshenv")" == "$PWD/zshenv" ]] || log_fail "~/.zshenv symlink target is wrong"
+        [[ -L "$sandbox/.zshenv" ]] || log_fail ".zshenv symlink not created"
+        [[ "$(readlink "$sandbox/.zshenv")" == "$PWD/zshenv" ]] || log_fail ".zshenv symlink target is wrong"
 
         # (4) existing non-matching ~/.zshenv is NOT overwritten without consent
         rm "$sandbox/.zshenv"
@@ -200,7 +210,7 @@ test_installer_contract() {
         backup_and_link_zshenv
         [[ -L "$sandbox/.zshenv" ]] || log_fail "--force did not create the ~/.zshenv symlink"
         local backup
-        backup="$(ls -d "$sandbox"/.zshenv.bak.* 2>/dev/null | head -n1)"
+        backup="$(find "$sandbox" -maxdepth 1 -type f -name '.zshenv.bak.*' -print -quit)"
         [[ -n "$backup" && -f "$backup" ]] || log_fail "--force did not create a timestamped backup"
         grep -q 'existing user config' "$backup" || log_fail "backup does not preserve the original content"
 
@@ -257,6 +267,31 @@ test_update_script() {
     grep -q 'BACKUP_DIR="$ZSH_CONFIG_DIR/backup' update.sh || log_fail "BACKUP_DIR not derived from ZSH_CONFIG_DIR"
     grep -q 'backup_root="$HOME/.config/zsh' update.sh && log_fail "backup_root still hardcodes ~/.config/zsh"
     grep -q 'install.sh first' update.sh && log_fail "update_zinit error still points at install.sh (which never installed zinit)"
+
+    # A configuration backup lives below ZSH_CONFIG_DIR, so it must copy a
+    # snapshot without recursively copying the backup directory into itself.
+    local sandbox backup_rc
+    sandbox="$(mktemp -d)"
+    (
+        source ./update.sh
+        ZSH_CONFIG_DIR="$sandbox/config"
+        BACKUP_DIR="$ZSH_CONFIG_DIR/backup/snapshot"
+        HOME="$sandbox/home"
+        mkdir -p "$ZSH_CONFIG_DIR/backup" "$HOME"
+        printf 'configuration\n' > "$ZSH_CONFIG_DIR/zshrc"
+        printf 'hidden\n' > "$ZSH_CONFIG_DIR/.zshenv"
+
+        create_backup
+        [[ -f "$BACKUP_DIR/config/zshrc" ]]
+        [[ -f "$BACKUP_DIR/config/.zshenv" ]]
+        [[ ! -e "$BACKUP_DIR/config/backup" ]]
+    )
+    backup_rc=$?
+    rm -rf "$sandbox"
+    [[ $backup_rc -eq 0 ]] || log_fail "configuration backup recurses into itself"
+
+    grep -RInF '~/.config/zsh/zshrc' env/init-env.sh env/migrate-env.sh >/dev/null \
+        && log_fail "environment scripts hardcode the configuration path"
 
     log_pass
 }

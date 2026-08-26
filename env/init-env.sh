@@ -84,7 +84,7 @@ if [[ -f "$local_path" ]]; then
     echo "   ${EDITOR:-code} $local_path"
     echo
     echo "2. Modify configuration values according to your actual environment"
-    echo "3. Reload ZSH configuration: source ~/.config/zsh/zshrc"
+    echo "3. Reload ZSH configuration: source $PROJECT_ROOT/zshrc"
     echo
 fi
 
@@ -110,4 +110,4 @@ if [[ -f "$local_path" ]]; then
 fi
 
 echo
-success "Environment variables configuration initialization completed!" 
+success "Environment variables configuration initialization completed!"

@@ -153,11 +153,13 @@ if [[ -f "$ZSH_CONFIG_DIR/env/local.zsh" ]]; then
     
     # Add custom configuration to environment.env
     if [[ -f "$SCRIPT_DIR/local/environment.env" ]]; then
-        echo "" >> "$SCRIPT_DIR/local/environment.env"
-        echo "# =============================================================================" >> "$SCRIPT_DIR/local/environment.env"
-        echo "# Custom configuration migrated from local.zsh" >> "$SCRIPT_DIR/local/environment.env"
-        echo "# =============================================================================" >> "$SCRIPT_DIR/local/environment.env"
-        echo "" >> "$SCRIPT_DIR/local/environment.env"
+        {
+            echo ""
+            echo "# ============================================================================="
+            echo "# Custom configuration migrated from local.zsh"
+            echo "# ============================================================================="
+            echo ""
+        } >> "$SCRIPT_DIR/local/environment.env"
         
         # Extract export statements and add to environment.env
         while IFS= read -r line; do
@@ -195,7 +197,7 @@ echo "2. Adjust configuration values according to your actual environment"
 
 echo
 echo "3. Reload ZSH configuration:"
-echo "   source ~/.config/zsh/zshrc"
+echo "   source $ZSH_CONFIG_DIR/zshrc"
 
 echo
 echo "4. Verify configuration is correct:"
