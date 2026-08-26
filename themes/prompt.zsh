@@ -104,6 +104,36 @@ _clean_prompt() {
     [[ -n "$RPROMPT" ]] && RPROMPT="${RPROMPT%[[:space:]]}"
 }
 
+_init_fallback_prompt() {
+    autoload -Uz vcs_info
+    _prompt_vcs_info_pre() {
+        git rev-parse --is-inside-work-tree >/dev/null 2>&1 && vcs_info
+    }
+    add-zsh-hook precmd _prompt_vcs_info_pre
+
+    zstyle ':vcs_info:git:*' formats '%F{blue}(%b)%f'
+    zstyle ':vcs_info:*' enable git
+    setopt PROMPT_SUBST
+
+    PROMPT='%F{green}%n@%m%f:%F{cyan}%~%f${vcs_info_msg_0_} %# '
+    RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
+}
+
+# Oh My Posh powerline glyphs (U+E0xx) are counted as 1 cell by zsh and often
+# 2 by a server terminal, so typed characters smear. Skip unless the session
+# looks like a capable local emulator, or the user opted in.
+_posh_should_init() {
+    [[ "${ZSH_DISABLE_POSH:-0}" == "1" ]] && return 1
+    [[ "${ZSH_ENABLE_POSH:-1}" == "0" ]] && return 1
+    case "${TERM:-}" in
+        linux|dumb|vt100|ansi) return 1 ;;
+    esac
+    if [[ -n "${SSH_CONNECTION:-}${SSH_CLIENT:-}" ]]; then
+        [[ -n "${TERM_PROGRAM:-}${KITTY_WINDOW_ID:-}${WEZTERM_PANE:-}${WT_SESSION:-}${ALACRITTY_SOCKET:-}${ITERM_SESSION_ID:-}" ]] || return 1
+    fi
+    return 0
+}
+
 # Initialize prompt system
 _init_prompt_system() {
     setopt local_options no_xtrace 2>/dev/null
@@ -111,8 +141,8 @@ _init_prompt_system() {
     autoload -Uz add-zsh-hook 2>/dev/null
     add-zsh-hook precmd _clean_prompt 2>/dev/null
 
-    # Initialize Oh My Posh if available
-    if command -v oh-my-posh >/dev/null 2>&1; then
+    # Initialize Oh My Posh if available and the terminal can match glyph width
+    if command -v oh-my-posh >/dev/null 2>&1 && _posh_should_init; then
         local themes_dir="$HOME/.poshthemes"
         local -a preferred_themes=(
             "atomicBit.omp.json"
@@ -159,9 +189,10 @@ _init_prompt_system() {
             done
         fi
 
-        # Configure and initialize
+        # Configure and initialize. Transient prompt rewrites the line while
+        # typing; leave it off unless the user opts in (ZSH_OMP_TRANSIENT=1).
         export OMP_DEBUG=0
-        export OMP_TRANSIENT=1
+        export OMP_TRANSIENT="${ZSH_OMP_TRANSIENT:-0}"
 
         if [[ -n "$theme_file" ]]; then
             eval "$(oh-my-posh init zsh --config "$theme_file")"
@@ -169,19 +200,7 @@ _init_prompt_system() {
             eval "$(oh-my-posh init zsh)"
         fi
     else
-        # Fallback custom prompt
-        autoload -Uz vcs_info
-        _prompt_vcs_info_pre() {
-            git rev-parse --is-inside-work-tree >/dev/null 2>&1 && vcs_info
-        }
-        add-zsh-hook precmd _prompt_vcs_info_pre
-
-        zstyle ':vcs_info:git:*' formats '%F{blue}(%b)%f'
-        zstyle ':vcs_info:*' enable git
-        setopt PROMPT_SUBST
-
-        PROMPT='%F{green}%n@%m%f:%F{cyan}%~%f${vcs_info_msg_0_} %# '
-        RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
+        _init_fallback_prompt
     fi
 }
 

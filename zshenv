@@ -22,9 +22,10 @@ export HISTSIZE=50000
 export SAVEHIST=50000
 
 # Terminal Settings
-# TERM is intentionally not set: the terminal emulator declares it, and
-# overriding it here breaks tmux/kitty/SSH sessions.
-export COLORTERM=truecolor
+# TERM and COLORTERM are intentionally not set: the terminal emulator (or
+# SSH client) declares them. Forcing truecolor here made Oh My Posh emit
+# 24-bit CSI that a typical Ubuntu console/SSH session does not treat as
+# zero-width, so ZLE painted each keystroke in the wrong column.
 export EDITOR="${EDITOR:-code}"
 export VISUAL="${VISUAL:-$EDITOR}"
 

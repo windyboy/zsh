@@ -35,7 +35,7 @@ modules, so `add_to_path` is available there — put PATH additions in it.
 
 1. Add the variable with `export` (no `export` → child programs won't see it).
 2. Apply it: `source ~/.config/zsh/zshrc` (current shell; safe to re-source —
-   modules, PATH and forge are idempotent) or open a new terminal (all new shells).
+   modules and PATH are idempotent) or open a new terminal (all new shells).
 3. Verify: `echo $MY_VAR` or `env | grep MY_VAR`.
 
 Changes only affect shells started after the edit — `source` gets them into the

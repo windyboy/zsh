@@ -106,56 +106,7 @@ true
 # the old hardcoded /home/windy path never matched on this Mac)
 [ -s "${BUN_INSTALL:-$HOME/.bun}/_bun" ] && source "${BUN_INSTALL:-$HOME/.bun}/_bun"
 
-# >>> forge initialize >>>
-# !! Contents within this block are managed by 'forge zsh setup' !!
-# !! Do not edit manually - changes will be overwritten !!
-
-# Add required zsh plugins if not already present
-if [[ ! " ${plugins[@]} " =~ " zsh-autosuggestions " ]]; then
-    plugins+=(zsh-autosuggestions)
-fi
-if [[ ! " ${plugins[@]} " =~ " zsh-syntax-highlighting " ]]; then
-    plugins+=(zsh-syntax-highlighting)
-fi
-
-# Load forge shell plugin (commands, completions, keybindings) if not already loaded
-# Timeout-guarded + failure marker (W1N-221): forge zsh plugin/theme can hang on a
-# stalled backend call. On timeout, write a marker and skip for 60 min so fresh
-# shells stay fast; success removes the marker. (`forge zsh setup` regenerates this.)
-if [[ -z "$_FORGE_PLUGIN_LOADED" ]]; then
-    local _forge_marker="${ZSH_CACHE_DIR}/forge-plugin-failed"
-    if [[ ! -f "$_forge_marker" ]] || [[ -z "$(find "$_forge_marker" -mmin -60 2>/dev/null)" ]]; then
-        if _forge_plugin="$(timeout 3 forge zsh plugin 2>/dev/null)"; then
-            [[ -n "$_forge_plugin" ]] && eval "$_forge_plugin"
-            rm -f "$_forge_marker" 2>/dev/null
-            _FORGE_PLUGIN_LOADED=1
-        else
-            mkdir -p "${ZSH_CACHE_DIR}" 2>/dev/null
-            touch "$_forge_marker" 2>/dev/null
-        fi
-        unset _forge_plugin
-    fi
-    unset _forge_marker
-fi
-
-# Load forge shell theme (prompt with AI context) if not already loaded
-if [[ -z "$_FORGE_THEME_LOADED" ]]; then
-    local _forge_theme_marker="${ZSH_CACHE_DIR}/forge-theme-failed"
-    if [[ ! -f "$_forge_theme_marker" ]] || [[ -z "$(find "$_forge_theme_marker" -mmin -60 2>/dev/null)" ]]; then
-        if _forge_theme="$(timeout 3 forge zsh theme 2>/dev/null)"; then
-            [[ -n "$_forge_theme" ]] && eval "$_forge_theme"
-            rm -f "$_forge_theme_marker" 2>/dev/null
-            _FORGE_THEME_LOADED=1
-        else
-            mkdir -p "${ZSH_CACHE_DIR}" 2>/dev/null
-            touch "$_forge_theme_marker" 2>/dev/null
-        fi
-        unset _forge_theme
-    fi
-    unset _forge_theme_marker
-fi
-
-# Editor for editing prompts (set during setup)
-# To change: update FORGE_EDITOR or remove to use $EDITOR
-export FORGE_EDITOR="nvim"
-# <<< forge initialize <<<
+# NOTE: the 'forge initialize' block that used to live here was removed.
+# `forge zsh theme` installs a second prompt engine on top of oh-my-posh that
+# re-renders the prompt while you type, garbling the input line (duplicated
+# characters). Running `forge zsh setup` will re-add the block and the bug.

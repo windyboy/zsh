@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed typed characters smearing on Ubuntu/SSH (`ls` → `lls`): zshenv no longer forces `COLORTERM=truecolor`, Oh My Posh is skipped over SSH unless the client identifies a capable emulator (`TERM_PROGRAM` / Kitty / WezTerm / Windows Terminal / iTerm), and `OMP_TRANSIENT` defaults off. Set `ZSH_DISABLE_POSH=1` or `ZSH_ENABLE_POSH=1` to override.
 - Fixed a hanging interactive startup: `forge zsh plugin`/`forge zsh theme` (which can stall indefinitely on a dead backend call) are now timeout-guarded with a 60-minute failure marker, so fresh shells skip them instead of blocking (W1N-221).
 - Fixed `go` being broken in shells: a stale pinned `GOROOT` (`/usr/local/Cellar/go/1.26.7/…`) failed after a Homebrew upgrade to 1.27.0 (`cannot find GOROOT directory`); the export was removed — go auto-detects its root (W1N-222).
 - PATH entries no longer accumulate duplicates in nested shells: `modules/env.zsh` is back in the module list and owns PATH policy (`add_to_path` with existence + duplicate guards, `path-status`/`path-clean`), and the machine override uses `add_to_path` instead of naively re-wrapping `$PATH`.
