@@ -246,7 +246,10 @@ posh_theme() {
     # Store base name without extension for consistency
     stored_name="$(basename "$theme_file" .omp.json)"
     stored_name="${stored_name%.omp.yaml}"
-    print -r -- "$stored_name" >"$POSH_THEME_PREF_FILE"
+    print -r -- "$stored_name" >|"$POSH_THEME_PREF_FILE" || {
+        echo "Failed to save theme preference: $POSH_THEME_PREF_FILE" >&2
+        return 1
+    }
     echo "Saved theme preference: $stored_name"
     echo "Reload with: zreload"
 }
