@@ -263,7 +263,9 @@ test_update_script() {
 
 test_machine_specific_moved() {
     log_test "Machine-specific moved out"
-    # W1N-45: zshrc must not contain the opencode PATH or the odd ../bin/env hack
+    # W1N-45: zshrc must not contain machine-specific hacks (the ../bin/env hack;
+    # the opencode PATH entry was removed from the suite when opencode stopped
+    # being installed on the reference machine)
     grep -q 'opencode/bin' zshrc && log_fail "opencode PATH still in shared zshrc"
     grep -q '\.local/share/../bin/env' zshrc && log_fail "../bin/env hack still in shared zshrc"
 
@@ -271,7 +273,6 @@ test_machine_specific_moved() {
     # exists on machines that created it (not CI or fresh clones). When it
     # does exist, verify the moved hacks actually live there.
     if [[ -f env/local/environment.env ]]; then
-        grep -q 'opencode/bin' env/local/environment.env || log_fail "opencode PATH not in local override"
         grep -q '\.local/bin/env' env/local/environment.env || log_fail "bin/env source not in local override"
     else
         echo -n "(no local env file, content checks skipped) "
