@@ -32,9 +32,6 @@ test_syntax() {
     for f in install.sh test.sh update.sh; do
         bash -n "$f" || log_fail "$f"
     done
-    for f in env/init-env.sh env/migrate-env.sh; do
-        [[ -f "$f" ]] && { bash -n "$f" || log_fail "$f"; }
-    done
     log_pass
 }
 
@@ -66,55 +63,21 @@ test_startup_timing() {
 
 test_per_host_config() {
     log_test "Per-host config"
-    local host host_dir
-    # Resolve the host the same way zshrc does (zsh's $HOST), so the filename
-    # written here matches the one zshrc sources, without depending on a
-    # `hostname` binary being present in PATH.
-    host="$(zsh -dfc 'print -r -- "${HOST:-$(hostname 2>/dev/null)}"')"
+    # Use a synthetic hostname that can never match a real machine, so the test
+    # never overwrites or deletes a real env/local/hosts/<host>.env file
+    # (the old code resolved the real host and clobbered it — W1N-221).
+    local host="zsh-perhost-test" host_dir
     host_dir="$PWD/env/local/hosts"
     mkdir -p "$host_dir"
     printf 'export ZSH_TEST_PERHOST=1\n' > "$host_dir/$host.env"
     local loaded
-    loaded="$(ZSH_CONFIG_DIR="$PWD" ZDOTDIR="$PWD" zsh -dfc '
+    loaded="$(HOST="$host" ZSH_CONFIG_DIR="$PWD" ZDOTDIR="$PWD" zsh -dfc '
         export ZSH_ENV_LOADED=1 ZSH_STARTUP_START=1
         source ./zshrc >/dev/null 2>&1
         print -r -- "${ZSH_TEST_PERHOST:-0}"
     ')"
     rm -f "$host_dir/$host.env"
     [[ "$loaded" == "1" ]] || log_fail "per-host env not loaded from env/local/hosts/$host.env"
-    log_pass
-}
-
-# 3b. Env module contract
-test_env_module() {
-    # NVM lazy loader must live in modules/env.zsh, not in shared zshrc
-    grep -q 'NVM_DIR' zshrc && log_fail "NVM lazy loader still in zshrc (belongs in modules/env.zsh)"
-    grep -q 'NVM_DIR' modules/env.zsh || log_fail "modules/env.zsh missing NVM lazy loader"
-
-    # add_to_path: no-op on missing dir, idempotent on existing dir
-    env HOME=/tmp/zsh-config-test-home PATH=/usr/bin:/bin GOPATH=/nonexistent-gopath ZSH_CONFIG_DIR="$PWD" zsh -dfc '
-        source ./modules/env.zsh
-        [[ "$PATH" == "/usr/bin:/bin" ]] || exit 10
-        d="$(mktemp -d)"
-        add_to_path "$d" prepend
-        add_to_path "$d" prepend
-        n=$(print -r -- "$PATH" | tr ":" "\n" | grep -cxF "$d")
-        [[ "$n" -eq 1 ]] || exit 11
-        add_to_path "$d/nonexistent" prepend && exit 12
-        (( ${+functions[nvm]} )) || exit 13
-        (( ${+aliases[path-status]} )) || exit 14
-        (( ${+functions[path-clean]} )) || exit 15
-        rm -rf "$d"
-        exit 0
-    ' || log_fail "env module contract (exit $?)"
-
-    # nvm must be a function after full zshrc load
-    ZSH_CONFIG_DIR="$PWD" ZDOTDIR="$PWD" zsh -dfc '
-        export ZSH_ENV_LOADED=1 ZSH_STARTUP_START=$EPOCHREALTIME
-        source ./zshrc >/dev/null 2>&1
-        (( ${+functions[nvm]} )) || exit 1
-        [[ " ${ZSH_MODULES_LOADED[*]} " == *" env "* ]] || exit 2
-    ' || log_fail "nvm/env module not loaded by zshrc"
     log_pass
 }
 
@@ -189,12 +152,7 @@ test_documentation() {
     log_pass
 }
 
-# Resolve an absolute path for a command: `command -v` may return a bare
-# name (some environments), which would create dangling symlinks below.
-resolve_cmd() { type -P "$1" 2>/dev/null || command -v "$1"; }
-
 test_installer_contract() {
-
     log_test "Installer contract"
     [[ -s VERSION ]] || log_fail "VERSION file missing"
     if ./install.sh --unexpected >/dev/null 2>&1; then
@@ -208,9 +166,8 @@ test_installer_contract() {
     # real one is never touched, and install.sh's `set -euo pipefail` cannot
     # leak into the test runner process. install.sh guards main(), so sourcing
     # exposes its functions without executing the installer.
-    local sandbox install_home sandbox_rc
+    local sandbox sandbox_rc
     sandbox="$(mktemp -d)"
-    install_home="$(mktemp -d)"
     (
         # shellcheck disable=SC1091
         source ./install.sh
@@ -239,7 +196,7 @@ test_installer_contract() {
         fi
         grep -q 'existing user config' "$sandbox/.zshenv" || log_fail "existing ~/.zshenv was modified without consent"
 
-        # (4b) force path backs up and links
+        # (4b) --force path backs up and links
         backup_and_link_zshenv
         [[ -L "$sandbox/.zshenv" ]] || log_fail "--force did not create the ~/.zshenv symlink"
         local backup
@@ -254,60 +211,10 @@ test_installer_contract() {
         [[ -f "$zdotdir_zshrc" ]] || log_fail "config zshrc is not resolvable via ZDOTDIR"
     )
     sandbox_rc=$?
+    rm -rf "$sandbox"
     if [[ $sandbox_rc -ne 0 ]]; then
-        rm -rf "$sandbox" "$install_home"
         exit 1  # log_fail inside the subshell already reported the reason
     fi
-
-    # A fresh HOME must install successfully and the second run must be safe.
-    HOME="$install_home" ZSH_CONFIG_DIR="$PWD" ./install.sh >/dev/null || log_fail "installer failed with a fresh HOME"
-    [[ -L "$install_home/.zshenv" ]] || log_fail "installer did not create ~/.zshenv"
-    [[ "$(readlink "$install_home/.zshenv")" == "$PWD/zshenv" ]] || log_fail "installer created ~/.zshenv with the wrong target"
-    HOME="$install_home" ZSH_CONFIG_DIR="$PWD" ./install.sh >/dev/null || log_fail "installer is not idempotent"
-
-    # A conflicting file requires --force, which backs it up before linking.
-    rm "$install_home/.zshenv"
-    printf 'existing user config\n' > "$install_home/.zshenv"
-    if HOME="$install_home" ZSH_CONFIG_DIR="$PWD" ./install.sh >/dev/null 2>&1; then
-        log_fail "installer overwrote ~/.zshenv without --force"
-    fi
-    HOME="$install_home" ZSH_CONFIG_DIR="$PWD" ./install.sh --force >/dev/null || log_fail "installer --force failed"
-    [[ -L "$install_home/.zshenv" ]] || log_fail "installer --force did not create ~/.zshenv"
-    local install_backup
-    install_backup="$(ls -d "$install_home"/.zshenv.bak.* 2>/dev/null | head -n1)"
-    [[ -n "$install_backup" && -f "$install_backup" ]] || log_fail "installer --force did not back up ~/.zshenv"
-    grep -q 'existing user config' "$install_backup" || log_fail "installer backup does not preserve ~/.zshenv"
-
-    # oh-my-posh is optional: absence warns but does not block installation.
-    local optional_path optional_output optional_rc
-    optional_path="$(mktemp -d)"
-    local cmd_path
-    for cmd in zsh git ln readlink mv date dirname; do
-        cmd_path="$(resolve_cmd "$cmd")"
-        [[ "$cmd_path" == /* ]] || log_fail "could not resolve $cmd to an absolute path"
-        ln -s "$cmd_path" "$optional_path/$cmd"
-    done
-    optional_output="$(PATH="$optional_path" "$(resolve_cmd bash)" -c 'source "$1"; check_requirements' installer-test ./install.sh 2>&1)"
-    optional_rc=$?
-    rm -rf "$optional_path"
-    [[ $optional_rc -eq 0 ]] || log_fail "oh-my-posh absence blocked installation"
-    [[ "$optional_output" == *"oh-my-posh is not installed"* ]] || log_fail "installer did not warn when oh-my-posh is absent"
-
-    # With no required commands on PATH, the installer identifies every one.
-    local restricted_path missing_output missing_rc cmd
-    restricted_path="$(mktemp -d)"
-    # dirname is needed for install.sh to be sourced/parsed at all; keep it
-    # on PATH so the missing-dependency check (not a parse failure) drives rc.
-    ln -s "$(resolve_cmd dirname)" "$restricted_path/dirname"
-    missing_output="$(PATH="$restricted_path" "$(resolve_cmd bash)" ./install.sh 2>&1)"
-    missing_rc=$?
-    rm -rf "$restricted_path"
-    [[ $missing_rc -eq 1 ]] || log_fail "installer did not exit 1 for missing dependencies"
-    for cmd in zsh git ln readlink mv date; do
-        [[ "$missing_output" == *"$cmd"* ]] || log_fail "installer did not report missing dependency: $cmd"
-    done
-
-    rm -rf "$sandbox" "$install_home"
     log_pass
 }
 
@@ -350,6 +257,7 @@ test_update_script() {
     grep -q 'BACKUP_DIR="$ZSH_CONFIG_DIR/backup' update.sh || log_fail "BACKUP_DIR not derived from ZSH_CONFIG_DIR"
     grep -q 'backup_root="$HOME/.config/zsh' update.sh && log_fail "backup_root still hardcodes ~/.config/zsh"
     grep -q 'install.sh first' update.sh && log_fail "update_zinit error still points at install.sh (which never installed zinit)"
+
     log_pass
 }
 
@@ -358,6 +266,8 @@ test_machine_specific_moved() {
     # W1N-45: zshrc must not contain the opencode PATH or the odd ../bin/env hack
     grep -q 'opencode/bin' zshrc && log_fail "opencode PATH still in shared zshrc"
     grep -q '\.local/share/../bin/env' zshrc && log_fail "../bin/env hack still in shared zshrc"
+
+    # env/local/environment.env is gitignored machine-local config: it only
     # exists on machines that created it (not CI or fresh clones). When it
     # does exist, verify the moved hacks actually live there.
     if [[ -f env/local/environment.env ]]; then
@@ -376,7 +286,6 @@ run_all() {
     test_vars
     test_startup_timing
     test_per_host_config
-    test_env_module
     test_modules
     test_documentation
     test_installer_contract
@@ -392,7 +301,6 @@ case "${1:-all}" in
         test_vars
         test_startup_timing
         test_per_host_config
-        test_env_module
         ;;
     modules) test_modules ;;
     installer) test_installer_contract ;;

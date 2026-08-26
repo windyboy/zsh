@@ -62,6 +62,7 @@ if [[ -z "$ZSH_LOCAL_ENV_LOADED" ]]; then
 fi
 
 # Load core modules (order cannot be changed)
+# env is the PATH/runtime-defaults module (add_to_path, PAGER/LANG, NVM lazy loader).
 local module_list=(colors core env navigation plugins completion aliases keybindings utils)
 
 for mod in "${module_list[@]}"; do
@@ -86,12 +87,71 @@ if [[ -f "$host_env_file" ]]; then
 fi
 unset host_name host_env_file
 
-# Enhanced loading summary. Export so perf/validation helpers can read it.
-export ZSH_STARTUP_TIME=$(printf "%.3f" $(( EPOCHREALTIME - ZSH_STARTUP_START )))
+# Enhanced loading summary. Shell-local (not exported): perf/validation helpers run
+# in-shell, and exporting would leak a float into every child process (W1N-221).
+ZSH_STARTUP_TIME=$(printf "%.3f" $(( EPOCHREALTIME - ZSH_STARTUP_START )))
 # Startup banner is opt-in (set ZSH_PROFILE=1, e.g. in env/local); use `perf --startup` for real timing.
 [[ "${ZSH_PROFILE:-0}" == "1" ]] && echo "✅ ZSH config loaded in ${ZSH_STARTUP_TIME}s (${#ZSH_MODULES_LOADED[@]} modules)" >&2
 
-# (NVM lazy loader moved to modules/env.zsh)
+# NVM lazy loader lives in modules/env.zsh (single definition; W1N-221)
 
 # Ensure script returns success
 true
+
+# bun completions (W1N-221: $HOME-based so it resolves on macOS and Linux;
+# the old hardcoded /home/windy path never matched on this Mac)
+[ -s "${BUN_INSTALL:-$HOME/.bun}/_bun" ] && source "${BUN_INSTALL:-$HOME/.bun}/_bun"
+
+# >>> forge initialize >>>
+# !! Contents within this block are managed by 'forge zsh setup' !!
+# !! Do not edit manually - changes will be overwritten !!
+
+# Add required zsh plugins if not already present
+if [[ ! " ${plugins[@]} " =~ " zsh-autosuggestions " ]]; then
+    plugins+=(zsh-autosuggestions)
+fi
+if [[ ! " ${plugins[@]} " =~ " zsh-syntax-highlighting " ]]; then
+    plugins+=(zsh-syntax-highlighting)
+fi
+
+# Load forge shell plugin (commands, completions, keybindings) if not already loaded
+# Timeout-guarded + failure marker (W1N-221): forge zsh plugin/theme can hang on a
+# stalled backend call. On timeout, write a marker and skip for 60 min so fresh
+# shells stay fast; success removes the marker. (`forge zsh setup` regenerates this.)
+if [[ -z "$_FORGE_PLUGIN_LOADED" ]]; then
+    local _forge_marker="${ZSH_CACHE_DIR}/forge-plugin-failed"
+    if [[ ! -f "$_forge_marker" ]] || [[ -z "$(find "$_forge_marker" -mmin -60 2>/dev/null)" ]]; then
+        if _forge_plugin="$(timeout 3 forge zsh plugin 2>/dev/null)"; then
+            [[ -n "$_forge_plugin" ]] && eval "$_forge_plugin"
+            rm -f "$_forge_marker" 2>/dev/null
+            _FORGE_PLUGIN_LOADED=1
+        else
+            mkdir -p "${ZSH_CACHE_DIR}" 2>/dev/null
+            touch "$_forge_marker" 2>/dev/null
+        fi
+        unset _forge_plugin
+    fi
+    unset _forge_marker
+fi
+
+# Load forge shell theme (prompt with AI context) if not already loaded
+if [[ -z "$_FORGE_THEME_LOADED" ]]; then
+    local _forge_theme_marker="${ZSH_CACHE_DIR}/forge-theme-failed"
+    if [[ ! -f "$_forge_theme_marker" ]] || [[ -z "$(find "$_forge_theme_marker" -mmin -60 2>/dev/null)" ]]; then
+        if _forge_theme="$(timeout 3 forge zsh theme 2>/dev/null)"; then
+            [[ -n "$_forge_theme" ]] && eval "$_forge_theme"
+            rm -f "$_forge_theme_marker" 2>/dev/null
+            _FORGE_THEME_LOADED=1
+        else
+            mkdir -p "${ZSH_CACHE_DIR}" 2>/dev/null
+            touch "$_forge_theme_marker" 2>/dev/null
+        fi
+        unset _forge_theme
+    fi
+    unset _forge_theme_marker
+fi
+
+# Editor for editing prompts (set during setup)
+# To change: update FORGE_EDITOR or remove to use $EDITOR
+export FORGE_EDITOR="nvim"
+# <<< forge initialize <<<
