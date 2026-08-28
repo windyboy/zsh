@@ -227,7 +227,15 @@ posh_theme() {
     theme_file="$(_posh_locate_theme_file "$theme_name" "$themes_dir")" || {
         echo "Theme not found: $theme_name"
         echo "Available themes:"
-        ls -1 "$themes_dir"/*.omp.* 2>/dev/null | sed 's/.*\///; s/\.omp\.\(json\|yaml\)$//' | sort | head -10
+        # (N) keeps an extensionless glob empty instead of triggering zsh's
+        # NOMATCH error (2>/dev/null cannot hide it: the glob fails to expand
+        # before ls ever runs). Extension stripping uses parameter expansion:
+        # sed alternation \(json\|yaml\) is a GNU extension and silently
+        # matches nothing on BSD sed (macOS).
+        local f
+        for f in "$themes_dir"/*.omp.*(N); do
+            print -r -- "${${${f:t}%.omp.json}%.omp.yaml}"
+        done | sort | head -10
         return 1
     }
 
@@ -257,11 +265,12 @@ posh_themes() {
         echo "=============================="
 
         if [[ -d "$theme_dir" ]]; then
-            # List both JSON and YAML themes, removing duplicates
-            {
-                ls -1 "$theme_dir"/*.omp.json 2>/dev/null | sed 's/.*\///; s/\.omp\.json$//'
-                ls -1 "$theme_dir"/*.omp.yaml 2>/dev/null | sed 's/.*\///; s/\.omp\.yaml$//'
-            } | sort -u
+            # List both JSON and YAML themes, removing duplicates. (N) and
+            # parameter expansion: see posh_theme for why (NOMATCH, BSD sed).
+            local f
+            for f in "$theme_dir"/*.omp.json(N) "$theme_dir"/*.omp.yaml(N); do
+                print -r -- "${${${f:t}%.omp.json}%.omp.yaml}"
+            done | sort -u
         else
             echo "No themes found. Install with: oh-my-posh theme install"
         fi
@@ -289,12 +298,12 @@ change_theme() {
     local themes_dir="$HOME/.poshthemes"
     local selected_theme
 
-    # Get list of available themes (both JSON and YAML)
-    local themes_list
-    themes_list=$({
-        ls -1 "$themes_dir"/*.omp.json 2>/dev/null | sed 's|.*/||; s|\.omp\.json$||'
-        ls -1 "$themes_dir"/*.omp.yaml 2>/dev/null | sed 's|.*/||; s|\.omp\.yaml$||'
-    } | sort -u)
+    # Get list of available themes (both JSON and YAML); (N) and parameter
+    # expansion: see posh_theme for why (NOMATCH, BSD sed).
+    local themes_list f
+    themes_list=$(for f in "$themes_dir"/*.omp.json(N) "$themes_dir"/*.omp.yaml(N); do
+        print -r -- "${${${f:t}%.omp.json}%.omp.yaml}"
+    done | sort -u)
 
     if [[ -z "$themes_list" ]]; then
         echo "No themes found in $themes_dir"
