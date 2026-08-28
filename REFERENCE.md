@@ -46,7 +46,7 @@ Feature toggles (set in `env/local/environment.env` unless noted):
 | Variable | Default | Effect |
 | --- | --- | --- |
 | `ZSH_ENABLE_PLUGINS` | `0` | `1` enables zinit and loads `plugins/core.list` (registry parsed by `modules/plugins.zsh`). |
-| `ZSH_POSH_THEME` | bundled theme | Selects an Oh My Posh theme. `posh_theme` persists the choice to `$ZSH_CACHE_DIR/theme-preference` (per-machine, not tracked). |
+| `ZSH_POSH_THEME` | bundled theme | Selects an Oh My Posh theme when no saved preference exists. `posh_theme` persists the choice to `$ZSH_CACHE_DIR/theme-preference` (per-machine, not tracked), and that saved preference outranks this variable on every load — a value pinned in `env/local/*.env` cannot shadow an explicit `posh_theme` switch. Delete the preference file to restore variable control. |
 | `ZSH_ENABLE_POSH` | `1` | `0` disables Oh My Posh. `1` forces it on for SSH sessions whose terminal cannot be detected. |
 | `ZSH_DISABLE_POSH` | `0` | `1` disables Oh My Posh unconditionally (wins over `ZSH_ENABLE_POSH`). |
 | `ZSH_OMP_TRANSIENT` | `0` | `1` enables the Oh My Posh transient prompt. |

@@ -83,6 +83,50 @@ test_per_host_config() {
     log_pass
 }
 
+test_posh_theme_precedence() {
+    log_test "Posh theme precedence"
+    # W1N-224: a ZSH_POSH_THEME pinned in env/local files is re-exported on
+    # every reload, so it must NOT outrank the persisted posh_theme choice —
+    # otherwise the theme can never be switched at runtime. ZSH_DISABLE_POSH
+    # keeps the loader on the fallback prompt path (no oh-my-posh needed).
+    local tmp out
+    tmp="$(mktemp -d)"
+    mkdir -p "$tmp/home/.poshthemes"
+    printf '{"version":2,"final_space":true,"blocks":[{"type":"prompt","alignment":"left","segments":[{"type":"path","style":"powerline","powerline_symbol":"\\uE0B0","foreground":"#100e23","background":"#91ddff","properties":{"style":"full"}}]}]}\n' \
+        > "$tmp/home/.poshthemes/prefchoice.omp.json"
+    cp "$tmp/home/.poshthemes/prefchoice.omp.json" "$tmp/home/.poshthemes/envdefault.omp.json"
+
+    # Saved preference wins over a pinned ZSH_POSH_THEME.
+    printf 'prefchoice\n' > "$tmp/pref"
+    out="$(POSH_THEME_PREF_FILE="$tmp/pref" ZSH_POSH_THEME=envdefault zsh -dfc '
+        ZSH_DISABLE_POSH=1 ZSH_CONFIG_DIR="$PWD"
+        source ./themes/prompt.zsh >/dev/null 2>&1
+        print -r -- "$(_posh_saved_theme)"
+    ')"
+    [[ "$out" == "prefchoice.omp.json" ]] || log_fail "saved preference must outrank a pinned ZSH_POSH_THEME"
+
+    # Without a preference file, ZSH_POSH_THEME still applies.
+    out="$(POSH_THEME_PREF_FILE="$tmp/absent" ZSH_POSH_THEME=envdefault zsh -dfc '
+        ZSH_DISABLE_POSH=1 ZSH_CONFIG_DIR="$PWD"
+        source ./themes/prompt.zsh >/dev/null 2>&1
+        print -r -- "$(_posh_saved_theme)"
+    ')"
+    [[ "$out" == "envdefault.omp.json" ]] || log_fail "ZSH_POSH_THEME must apply when no preference is saved"
+
+    # posh_theme persists the base name and syncs the session variable.
+    out="$(HOME="$tmp/home" POSH_THEME_PREF_FILE="$tmp/pref2" ZSH_POSH_THEME=envdefault zsh -dfc '
+        ZSH_DISABLE_POSH=1 ZSH_CONFIG_DIR="$PWD"
+        source ./themes/prompt.zsh >/dev/null 2>&1
+        posh_theme prefchoice >/dev/null 2>&1
+        print -r -- "$ZSH_POSH_THEME"
+    ')"
+    [[ "$out" == "prefchoice" ]] || log_fail "posh_theme must sync ZSH_POSH_THEME"
+    [[ "$(head -n1 "$tmp/pref2")" == "prefchoice" ]] || log_fail "posh_theme must persist the base name"
+
+    rm -rf "$tmp"
+    log_pass
+}
+
 # 3. Module Check
 test_modules() {
     log_test "Modules"
@@ -324,6 +368,7 @@ run_all() {
     test_vars
     test_startup_timing
     test_per_host_config
+    test_posh_theme_precedence
     test_modules
     test_documentation
     test_installer_contract
@@ -339,6 +384,7 @@ case "${1:-all}" in
         test_vars
         test_startup_timing
         test_per_host_config
+        test_posh_theme_precedence
         ;;
     modules) test_modules ;;
     installer) test_installer_contract ;;

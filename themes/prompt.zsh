@@ -98,6 +98,23 @@ _posh_locate_theme_file() {
     return 1
 }
 
+# Resolve the user's saved theme choice: the persisted preference (the last
+# explicit `posh_theme` call) outranks ZSH_POSH_THEME, because startup env
+# files (env/local/*.env, local.zsh) re-export the variable on every reload
+# and would otherwise pin the theme forever. The variable remains the default
+# for machines that have no preference file yet.
+_posh_saved_theme() {
+    local pref_content=""
+    if [[ -f "$POSH_THEME_PREF_FILE" ]]; then
+        pref_content="$(head -n1 "$POSH_THEME_PREF_FILE" 2>/dev/null | tr -d '[:space:]')"
+    fi
+    if [[ -n "$pref_content" ]] && _posh_resolve_theme_name "$pref_content"; then
+        return 0
+    fi
+    [[ -n "${ZSH_POSH_THEME:-}" ]] || return 1
+    _posh_resolve_theme_name "$ZSH_POSH_THEME"
+}
+
 # Simple prompt cleanup
 _clean_prompt() {
     [[ -n "$PROMPT" ]] && PROMPT="${PROMPT%[[:space:]]}"
@@ -159,20 +176,10 @@ _init_prompt_system() {
             "blue-owl.omp.json"
             "blueish.omp.json"
         )
+        # Theme precedence: see _posh_saved_theme — the persisted preference
+        # outranks a ZSH_POSH_THEME that env/local files re-export on reload.
         local saved_theme=""
-        if [[ -n "${ZSH_POSH_THEME:-}" ]]; then
-            if ! saved_theme="$(_posh_resolve_theme_name "$ZSH_POSH_THEME")"; then
-                saved_theme=""
-            fi
-        elif [[ -f "$POSH_THEME_PREF_FILE" ]]; then
-            local pref_content
-            pref_content="$(head -n1 "$POSH_THEME_PREF_FILE" 2>/dev/null | tr -d '[:space:]')"
-            if [[ -n "$pref_content" ]]; then
-                if ! saved_theme="$(_posh_resolve_theme_name "$pref_content")"; then
-                    saved_theme=""
-                fi
-            fi
-        fi
+        saved_theme="$(_posh_saved_theme)" || saved_theme=""
 
         if [[ -n "$saved_theme" ]]; then
             preferred_themes=("$saved_theme" "${(@)preferred_themes:#$saved_theme}")
@@ -254,6 +261,14 @@ posh_theme() {
         return 1
     }
     echo "Saved theme preference: $stored_name"
+    # Keep the session variable aligned with the applied choice. The saved
+    # preference outranks it on reload, so a differing value is informational:
+    # if it is pinned in env/local/*.env or local.zsh it will be re-exported
+    # (and overridden again) on every reload.
+    if [[ -n "${ZSH_POSH_THEME:-}" && "$ZSH_POSH_THEME" != "$stored_name" ]]; then
+        echo "Note: saved preference overrides ZSH_POSH_THEME='$ZSH_POSH_THEME'; remove any pinned export of it from env/local files to avoid this note."
+    fi
+    export ZSH_POSH_THEME="$stored_name"
     echo "Reload with: zreload"
 }
 
