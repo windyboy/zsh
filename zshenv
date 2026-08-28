@@ -26,7 +26,15 @@ export SAVEHIST=50000
 # SSH client) declares them. Forcing truecolor here made Oh My Posh emit
 # 24-bit CSI that a typical Ubuntu console/SSH session does not treat as
 # zero-width, so ZLE painted each keystroke in the wrong column.
-export EDITOR="${EDITOR:-code}"
+# `code` is absent on typical Linux/SSH hosts; fall back to vi (POSIX) so
+# git commit and editor widgets never break there.
+if [[ -z "$EDITOR" ]]; then
+    if (( ${+commands[code]} )); then
+        export EDITOR=code
+    else
+        export EDITOR=vi
+    fi
+fi
 export VISUAL="${VISUAL:-$EDITOR}"
 
 # Initialize module tracking

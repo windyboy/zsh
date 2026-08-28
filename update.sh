@@ -66,7 +66,8 @@ create_backup() {
     if [[ -d "$ZSH_CONFIG_DIR" ]]; then
         # BACKUP_DIR is a child of ZSH_CONFIG_DIR, so copying the root into it
         # would recurse into itself. Copy each top-level entry except backup/
-        # into a named snapshot instead.
+        # into a named snapshot instead. .git is excluded: it doubles the
+        # snapshot size and copies the user's full repository history.
         local snapshot_dir entry
         local -a config_entries=()
         snapshot_dir="$BACKUP_DIR/config"
@@ -76,7 +77,7 @@ create_backup() {
         fi
         while IFS= read -r -d '' entry; do
             config_entries+=("$entry")
-        done < <(find "$ZSH_CONFIG_DIR" -mindepth 1 -maxdepth 1 ! -name backup -print0)
+        done < <(find "$ZSH_CONFIG_DIR" -mindepth 1 -maxdepth 1 ! -name backup ! -name .git -print0)
         if ((${#config_entries[@]})) && ! cp -a "${config_entries[@]}" "$snapshot_dir/"; then
             error "Failed to back up configuration files"
             return 1
@@ -91,9 +92,12 @@ update_zinit() {
     log "Updating zinit..."
 
     if [[ ! -d "$ZINIT_DIR/.git" ]]; then
-        error "Zinit not found. It is cloned automatically on the first interactive shell when ZSH_ENABLE_PLUGINS=1;"
-        error "start a new shell or run 'zsh -ic exit' to install it, then re-run this update."
-        return 1
+        # Plugins are optional (off by default): a default install never
+        # clones zinit, so its absence is a skip, not a failure. Failing here
+        # made every plain `./update.sh` exit 1 on a healthy machine.
+        log "Zinit not installed (plugins disabled); skipping. It is cloned on the first"
+        log "interactive shell when ZSH_ENABLE_PLUGINS=1."
+        return 0
     fi
 
     if ! git -C "$ZINIT_DIR" pull --ff-only --quiet; then
@@ -208,12 +212,14 @@ update_oh_my_posh() {
     if [[ -w "$target_dir" ]]; then
         if ! mv "$temp_file" "$install_path"; then
             error "Failed to install oh-my-posh to $install_path"
+            rm -f "$temp_file"
             return 1
         fi
     else
         log "Installing to $install_path requires sudo"
         if ! sudo mv "$temp_file" "$install_path"; then
             error "Failed to install oh-my-posh to $install_path"
+            rm -f "$temp_file"
             return 1
         fi
     fi
@@ -221,6 +227,15 @@ update_oh_my_posh() {
     local new_version
     new_version=$(oh-my-posh version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
     success "oh-my-posh updated: $current_version → $new_version"
+}
+
+# Portable SHA256 of a file (Linux sha256sum / macOS shasum)
+_hash_file() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1" | awk '{print $1}'
+    else
+        shasum -a 256 "$1" | awk '{print $1}'
+    fi
 }
 
 # Update the framework repo itself
@@ -231,12 +246,24 @@ update_framework() {
     fi
 
     log "Updating framework repo..."
+    local self_hash_before
+    self_hash_before="$(_hash_file "$SCRIPT_DIR/update.sh")"
     if ! git -C "$SCRIPT_DIR" pull --ff-only --quiet; then
         warning "Framework self-update failed (repo dirty or network issue)"
         log "Run manually: git -C \"$SCRIPT_DIR\" pull --ff-only"
         return 1
     fi
     success "Framework repo is up to date"
+
+    # This script is tracked by the repo it pulls: bash reads it by byte
+    # offset, so continuing after the file changed risks executing garbled
+    # commands. Restart the new copy, skipping what already ran (backup is
+    # made, framework pulled).
+    if [[ "$self_hash_before" != "$(_hash_file "$SCRIPT_DIR/update.sh")" ]]; then
+        log "update.sh changed upstream; restarting updated version"
+        exec env ZSH_UPDATE_SELF_SKIP=1 bash "$SCRIPT_DIR/update.sh" \
+            ${SCRIPT_ARGS[@]+"${SCRIPT_ARGS[@]}"} --skip-backup
+    fi
 }
 
 # Update optional tools
@@ -301,25 +328,31 @@ update_optional_tools() {
 # Clean up old backups
 cleanup_old_backups() {
     log "Cleaning up old backups..."
-    
+
     local backup_root="$ZSH_CONFIG_DIR/backup"
-    if [[ ! -d "$backup_root" ]]; then
+    [[ -d "$backup_root" ]] || return 0
+
+    # Keep only the last 5 backups. Glob iteration (not find|sort|tail) keeps
+    # paths with spaces intact; timestamp names sort lexicographically.
+    local -a backups=()
+    local backup
+    for backup in "$backup_root"/*_*; do
+        [[ -d "$backup" ]] && backups+=("$backup")
+    done
+    if ((${#backups[@]} == 0)); then
+        log "No old backups to clean"
         return 0
     fi
-    
-    # Keep only last 5 backups
-    local old_backups
-    old_backups=$(find "$backup_root" -maxdepth 1 -type d -name "*_*" | sort -r | tail -n +6)
-    
-    if [[ -n "$old_backups" ]]; then
-        echo "$old_backups" | while read -r backup; do
-            log "Removing old backup: $backup"
-            rm -rf "$backup"
-        done
-        success "Old backups cleaned up"
-    else
-        log "No old backups to clean"
-    fi
+
+    local -a sorted=()
+    IFS=$'\n' read -r -d '' -a sorted < <(printf '%s\n' "${backups[@]}" | sort -r)
+    ((${#sorted[@]} > 5)) || { log "No old backups to clean"; return 0; }
+
+    for backup in "${sorted[@]:5}"; do
+        log "Removing old backup: $backup"
+        rm -rf "$backup"
+    done
+    success "Old backups cleaned up"
 }
 
 # Show update summary
@@ -441,6 +474,7 @@ main() {
 
 # Only execute when invoked directly; tests can source the helper functions.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    SCRIPT_ARGS=("$@")
     parse_rc=0
     parse_args "$@" || parse_rc=$?
     [[ $parse_rc -eq 2 ]] && exit 0

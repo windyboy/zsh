@@ -128,6 +128,10 @@ reload() {
         *)
             echo "🔄 Reloading all ZSH configuration..."
             unset ZSH_LOCAL_ENV_LOADED
+            # Reset module tracking like zshenv does: without this, every
+            # reload re-appends to ZSH_MODULES_LOADED (only colors/env guard
+            # against it) and the array doubles each time.
+            typeset -gax ZSH_MODULES_LOADED=()
             source "$ZSH_CONFIG_DIR/zshrc"
             color_green "✅ Configuration reloaded"
             ;;
@@ -331,7 +335,7 @@ version() {
     [[ -r "$version_file" ]] && current_version="$(<"$version_file")"
     echo "📦 ZSH Configuration Version $current_version (Enhanced Modular)"
     echo "Key Features: Modular configuration and optional integrations"
-    echo "Modules: colors/core/navigation/plugins/completion/aliases/keybindings/utils"
+    echo "Modules: colors/core/env/navigation/plugins/completion/aliases/keybindings/utils"
     echo "Interface: Shell functions for reload, validation, status, and performance"
 }
 

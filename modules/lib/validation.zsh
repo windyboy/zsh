@@ -197,8 +197,10 @@ validation_run() {
     # 8. Performance metrics
     validation_add info "Checking performance metrics..."
     local func_count alias_count memory_kb memory_mb
-    func_count=$(declare -F 2>/dev/null | wc -l 2>/dev/null)
-    alias_count=$(alias 2>/dev/null | wc -l 2>/dev/null)
+    # ${#functions} (as in perf): `declare -F` is bash syntax; in zsh -F means
+    # float and the pipeline always counted 0.
+    func_count=${#functions}
+    alias_count=${#aliases}
     memory_kb=$(ps -p $$ -o rss 2>/dev/null | awk 'NR==2 {gsub(/ /, "", $1); print $1}')
     memory_mb=$(echo "scale=1; ${memory_kb:-0} / 1024" | bc 2>/dev/null || echo "0")
 

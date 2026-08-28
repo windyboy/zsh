@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
 
-.PHONY: help test all syntax environment modules installer update install lint shellcheck
+.PHONY: help test all syntax environment modules installer update install lint shellcheck zsh-syntax
 
 help: ## Show available targets
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -13,8 +13,7 @@ help: ## Show available targets
 test: ## Run full test suite (./test.sh)
 	./test.sh
 
-all: test ## Alias for full test suite
-	./test.sh update
+all: test ## Alias for full test suite (./test.sh runs every group)
 
 syntax: ## Syntax checks only
 	./test.sh syntax
@@ -37,7 +36,12 @@ install: ## Run installer against this checkout
 lint: shellcheck syntax ## ShellCheck + zsh syntax checks
 
 shellcheck: ## ShellCheck on supported shell scripts
-	shellcheck install.sh test.sh update.sh scripts/lib/*.sh env/*.sh || true
+	@if command -v shellcheck >/dev/null 2>&1; then \
+		shellcheck install.sh test.sh update.sh scripts/lib/*.sh env/*.sh; \
+	else \
+		echo "shellcheck not installed; skipping (CI runs it)"; \
+	fi
 
 zsh-syntax: ## zsh -n over every .zsh file
-	@set -e; for f in zshrc zshenv modules/*.zsh themes/*.zsh; do zsh -n "$$f"; done
+	@set -e; for f in zshrc zshenv modules/*.zsh modules/lib/*.zsh themes/*.zsh; do \
+		[ -e "$$f" ] || continue; zsh -n "$$f"; done

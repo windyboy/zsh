@@ -30,14 +30,17 @@ add_to_path() {
     fi
 }
 
-# Standard user-level binary directories (existence-checked, prepended once)
+# Standard user-level binary directories (existence-checked, prepended once).
+# Listed lowest-priority first: each entry is prepended in order, so the last
+# entry (~/.local/bin) ends up with the highest priority, matching the usual
+# pipx/pnpm/cargo expectations.
 typeset -a _env_user_bins=(
-    "$HOME/.local/bin"
-    "$HOME/bin"
-    "$HOME/.cargo/bin"
-    "$HOME/.go/bin"
-    "${GOPATH:-$HOME/go}/bin"
     "$HOME/.bun/bin"
+    "${GOPATH:-$HOME/go}/bin"
+    "$HOME/.go/bin"
+    "$HOME/.cargo/bin"
+    "$HOME/bin"
+    "$HOME/.local/bin"
 )
 for _dir in "${_env_user_bins[@]}"; do
     add_to_path "$_dir" prepend
@@ -66,11 +69,20 @@ path-clean() {
 export PAGER="${PAGER:-less}"
 export LESS="${LESS:--R -F -X}"
 export LANG="${LANG:-en_US.UTF-8}"
-export LC_ALL="${LC_ALL:-en_US.UTF-8}"
+# LC_ALL is deliberately not defaulted: it overrides LANG and every LC_*
+# category, and minimal systems without the en_US.UTF-8 locale would warn
+# (setlocale) on every perl/grep invocation. Export it in env/local if wanted.
 
 # -------------------- Lazy Tool Loaders --------------------
 # Lazy load NVM to keep startup fast (moved from zshrc verbatim).
-export NVM_DIR="${NVM_DIR:-$HOME/.config/nvm}"
+# Prefer ~/.nvm when it exists: that is where nvm's official installer puts it.
+if [[ -n "${NVM_DIR:-}" ]]; then
+    export NVM_DIR
+elif [[ -d "$HOME/.nvm" ]]; then
+    export NVM_DIR="$HOME/.nvm"
+else
+    export NVM_DIR="$HOME/.config/nvm"
+fi
 nvm() {
     if [[ -s "$NVM_DIR/nvm.sh" ]]; then
         source "$NVM_DIR/nvm.sh"

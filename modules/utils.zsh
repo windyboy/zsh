@@ -282,8 +282,5 @@ fzf_widgets() {
     esac
 }
 
-# -------------------- Reserved Custom Area --------------------
-# Custom functions can be added in the custom/ directory
-
 # Mark module as loaded
 ZSH_MODULES_LOADED+=(utils)

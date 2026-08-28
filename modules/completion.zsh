@@ -7,8 +7,10 @@
 source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 
 # -------------------- fpath Setup --------------------
-# Set fpath before compinit (The proper ZSH way)
-[[ -d "$ZSH_CONFIG_DIR/completions" ]] && fpath=("$ZSH_CONFIG_DIR/completions" $fpath)
+# Set fpath before compinit (The proper ZSH way). The -z index test keeps
+# re-sourcing (reload) from duplicating the same entries at the front.
+[[ -d "$ZSH_CONFIG_DIR/completions" && -z "${fpath[(r)$ZSH_CONFIG_DIR/completions]}" ]] \
+    && fpath=("$ZSH_CONFIG_DIR/completions" $fpath)
 
 # Handle tool completions via fpath/autoload
 for tool in bun deno docker; do
@@ -24,7 +26,7 @@ for tool in bun deno docker; do
     fi
 done
 
-[[ -d "$ZSH_CACHE_DIR" ]] && fpath=("$ZSH_CACHE_DIR" $fpath)
+[[ -d "$ZSH_CACHE_DIR" && -z "${fpath[(r)$ZSH_CACHE_DIR]}" ]] && fpath=("$ZSH_CACHE_DIR" $fpath)
 
 # -------------------- compinit Initialization --------------------
 COMPLETION_CACHE_FILE="$ZSH_CACHE_DIR/zcompdump"
@@ -62,7 +64,9 @@ zstyle ':completion:*' completer _complete _match _approximate
 # after this module runs and wraps the completion UI, so a load-time detection
 # here can never see it; these styles are correct with or without it.
 zstyle ':completion:*' menu yes select=2
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+# Only apply LS_COLORS when it is actually exported: with it empty this would
+# explicitly blank the complist colors instead of leaving the defaults.
+[[ -n "${LS_COLORS:-}" ]] && zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' verbose yes
 zstyle ':completion:*' use-cache yes

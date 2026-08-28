@@ -62,7 +62,10 @@ link_zshenv() {
     local dest="$HOME/.zshenv"
     local target="$ZSH_CONFIG_DIR/zshenv"
 
-    if [[ ! -e "$dest" ]]; then
+    # -L catches dangling symlinks (target deleted): -e is false for them, so
+    # without the -L guard ln -s would fail with "File exists" under set -e,
+    # bypassing the consent/--force path below.
+    if [[ ! -e "$dest" && ! -L "$dest" ]]; then
         ln -s "$target" "$dest"
         log_success "Created $dest symlink"
         return 0

@@ -11,7 +11,8 @@ color_yellow() { echo -e "\033[33m$*\033[0m"; }
 
 log_test() { echo -n "Testing $1... "; }
 log_pass() { color_green "PASSED"; }
-log_fail() { color_red "FAILED"; exit 1; }
+# Print the reason: a bare "FAILED" hides which assertion fired.
+log_fail() { color_red "FAILED: $*"; exit 1; }
 
 # 1. Syntax Check
 test_syntax() {
@@ -305,12 +306,13 @@ test_machine_specific_moved() {
     grep -q '\.local/share/../bin/env' zshrc && log_fail "../bin/env hack still in shared zshrc"
 
     # env/local/environment.env is gitignored machine-local config: it only
-    # exists on machines that created it (not CI or fresh clones). When it
-    # does exist, verify the moved hacks actually live there.
-    if [[ -f env/local/environment.env ]]; then
-        grep -q '\.local/bin/env' env/local/environment.env || log_fail "bin/env source not in local override"
-    else
-        echo -n "(no local env file, content checks skipped) "
+    # exists on machines that created it (not CI or fresh clones). Whether the
+    # moved hack still lives there is machine state, not a repo invariant —
+    # zshrc cleanliness (checked above) is the invariant. Failures here were
+    # seen whenever the hack was later removed from a local override.
+    if [[ -f env/local/environment.env ]] \
+        && ! grep -q '\.local/bin/env' env/local/environment.env; then
+        echo -n "(bin/env hack no longer present in local override) "
     fi
     git check-ignore -q env/local/environment.env || log_fail "env/local/environment.env is not gitignored"
     log_pass

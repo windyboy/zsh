@@ -23,6 +23,7 @@ alias dc='docker-compose'
 # Config
 alias zconf='${EDITOR:-code} $ZSH_CONFIG_DIR'
 # Re-read local feature toggles as well as the main configuration.
-alias zreload='unset ZSH_LOCAL_ENV_LOADED; source $ZSH_CONFIG_DIR/zshrc'
+# Delegates to reload() so module tracking is reset identically.
+alias zreload='reload'
 
 ZSH_MODULES_LOADED+=(aliases)

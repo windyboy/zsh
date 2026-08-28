@@ -17,6 +17,7 @@ local.zsh
 themes/theme-preference
 in-memoria.db*
 plans/
+backup/
 
 # OS specific
 .DS_Store
