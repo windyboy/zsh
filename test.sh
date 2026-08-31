@@ -163,6 +163,12 @@ test_modules() {
         [[ "$(bindkey -M emacs "^?")" == *"backward-delete-char" ]] || exit 1
         [[ "$(bindkey -M emacs "^H")" == *"backward-delete-char" ]] || exit 1
     ' || log_fail "Backspace bindings"
+
+    # history-substring-search defines no default keybindings (upstream README
+    # requires explicit ones); plugins.zsh must bind ↑/↓ to its widgets once the
+    # turbo-loaded widgets exist, or history search stays silently disabled.
+    grep -q 'history-substring-search-up' modules/plugins.zsh \
+        || log_fail "plugins.zsh must bind history-substring-search arrows (W1N-262)"
     log_pass
 }
 

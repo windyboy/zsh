@@ -67,5 +67,21 @@ zstyle ':fzf-tab:complete:*:*' fzf-flags --preview-window=right:60%:wrap
 # Initialize
 plugins_load
 
+# -------------------- History Substring Search Bindings --------------------
+# zsh-history-substring-search ships no default keybindings (upstream README
+# requires explicit bindings). It loads via zinit turbo (async, shortly after
+# the first prompt), so bind ↑/↓ once its widgets exist instead of racing the
+# load; plain up-line-or-history remains the fallback until then.
+_zsh_bind_hss() {
+    (( ${+widgets[history-substring-search-up]} && ${+widgets[history-substring-search-down]} )) || return 0
+    bindkey '^[[A' history-substring-search-up
+    bindkey '^[[B' history-substring-search-down
+    add-zsh-hook -d precmd _zsh_bind_hss
+}
+if (( ZSH_ENABLE_PLUGINS )) && [[ -o interactive ]]; then
+    autoload -Uz add-zsh-hook
+    add-zsh-hook precmd _zsh_bind_hss
+fi
+
 # Mark module as loaded
 ZSH_MODULES_LOADED+=(plugins)
