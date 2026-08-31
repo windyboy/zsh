@@ -1,0 +1,5 @@
+# Linear Workflow governance for this repository.
+# Personal project → minimal profile: implicit plan confirmation, PR-ready
+# review gate, manual completion (user confirms), no audit comments.
+version: 1
+profile: minimal
