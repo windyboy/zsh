@@ -306,10 +306,14 @@ jobs:
           *.zsh
           *.zwc
     - name: Check for secrets
-      uses: trufflesecurity/trufflehog@v3.63.7
+      # v3.63.7's wrapper inlined toJson(github.event.commits) into a
+      # single-quoted jq heredoc, so any commit message containing an
+      # apostrophe crashed the scan ("jq: error: Could not open file ]").
+      # v3.97.x passes commit IDs via env instead. The action also
+      # hard-codes --fail in its docker command; passing it via extra_args
+      # too makes the CLI abort with "flag 'fail' cannot be repeated".
+      uses: trufflesecurity/trufflehog@v3.97.1
       with:
-        # NOTE: the action hard-codes --fail in its docker command; passing it
-        # here too makes the CLI abort with "flag 'fail' cannot be repeated".
         extra_args: --only-verified
       
     - name: Security scan summary
