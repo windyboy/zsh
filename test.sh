@@ -56,7 +56,9 @@ test_startup_timing() {
         export -p | grep -q "ZSH_ENV_LOADED" && exit 1
 
         export ZSH_ENV_LOADED=1 ZSH_STARTUP_START=1
-        source ./zshrc >/dev/null 2>&1
+        # A bun-less HOME (like CI runners) must not leak a non-zero status
+        # out of zshrc — the last statement must stay status-neutral.
+        source ./zshrc >/dev/null 2>&1 || exit 1
         export -p | grep -q "ZSH_STARTUP_START" && exit 1
         (( ${ZSH_STARTUP_TIME%.*} >= 0 && ${ZSH_STARTUP_TIME%.*} < 60 ))
     ' || log_fail "stale startup timestamp"

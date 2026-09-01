@@ -103,8 +103,12 @@ ZSH_STARTUP_TIME=$(printf "%.3f" $(( EPOCHREALTIME - ZSH_STARTUP_START )))
 true
 
 # bun completions (W1N-221: $HOME-based so it resolves on macOS and Linux;
-# the old hardcoded /home/windy path never matched on this Mac)
-[ -s "${BUN_INSTALL:-$HOME/.bun}/_bun" ] && source "${BUN_INSTALL:-$HOME/.bun}/_bun"
+# the old hardcoded /home/windy path never matched on this Mac). Guarded with
+# if so a missing bun install cannot set the zshrc's exit status (CI runners
+# have no ~/.bun; a bare `[ -s ] && source` returns 1 and fails `source zshrc`).
+if [ -s "${BUN_INSTALL:-$HOME/.bun}/_bun" ]; then
+    source "${BUN_INSTALL:-$HOME/.bun}/_bun"
+fi
 
 # NOTE: the 'forge initialize' block that used to live here was removed.
 # `forge zsh theme` installs a second prompt engine on top of oh-my-posh that

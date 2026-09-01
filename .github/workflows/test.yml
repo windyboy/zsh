@@ -12,6 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     
     strategy:
+      fail-fast: false  # Show results for every OS instead of canceling siblings
       matrix:
         os: [ubuntu-latest, macos-latest]
         # Remove zsh-version matrix as it's not properly supported
@@ -307,7 +308,9 @@ jobs:
     - name: Check for secrets
       uses: trufflesecurity/trufflehog@v3.63.7
       with:
-        extra_args: --only-verified --fail
+        # NOTE: the action hard-codes --fail in its docker command; passing it
+        # here too makes the CLI abort with "flag 'fail' cannot be repeated".
+        extra_args: --only-verified
       
     - name: Security scan summary
       run: |
