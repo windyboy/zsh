@@ -129,6 +129,40 @@ test_posh_theme_precedence() {
     log_pass
 }
 
+test_prompt_spacing() {
+    log_test "Prompt spacing"
+    # Oh My Posh rebuilds PROMPT from a precmd hook. Exercise the real hook
+    # ordering with a deterministic renderer so cleanup cannot accidentally
+    # run before the final prompt value exists.
+    local tmp prompt_rc
+    tmp="$(mktemp -d)"
+    mkdir -p "$tmp/bin" "$tmp/home"
+    printf '%s\n' \
+        '#!/usr/bin/env bash' \
+        "printf '%s\\n' '_omp_precmd() { PROMPT=\"rendered \"; }' 'add-zsh-hook precmd _omp_precmd'" \
+        > "$tmp/bin/oh-my-posh"
+    chmod +x "$tmp/bin/oh-my-posh"
+
+    PATH="$tmp/bin:/usr/bin:/bin" \
+        HOME="$tmp/home" \
+        ZSH_CONFIG_DIR="$PWD" \
+        ZSH_CACHE_DIR="$tmp/cache" \
+        POSH_THEME_PREF_FILE="$tmp/theme-preference" \
+        ZSH_ENABLE_POSH=1 \
+        zsh -dfc '
+        source ./themes/prompt.zsh >/dev/null 2>&1
+        local hook
+        for hook in $precmd_functions; do
+            "$hook"
+        done
+        [[ "$PROMPT" != *[[:space:]] ]]
+    '
+    prompt_rc=$?
+    rm -rf "$tmp"
+    [[ $prompt_rc -eq 0 ]] || log_fail "rendered prompt ends with extra whitespace"
+    log_pass
+}
+
 # 3. Module Check
 test_modules() {
     log_test "Modules"
@@ -377,6 +411,7 @@ run_all() {
     test_startup_timing
     test_per_host_config
     test_posh_theme_precedence
+    test_prompt_spacing
     test_modules
     test_documentation
     test_installer_contract
@@ -393,6 +428,7 @@ case "${1:-all}" in
         test_startup_timing
         test_per_host_config
         test_posh_theme_precedence
+        test_prompt_spacing
         ;;
     modules) test_modules ;;
     installer) test_installer_contract ;;

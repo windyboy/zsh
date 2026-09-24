@@ -159,9 +159,7 @@ _posh_should_init() {
 # Initialize prompt system
 _init_prompt_system() {
     setopt local_options no_xtrace 2>/dev/null
-    # Register cleanup hook
     autoload -Uz add-zsh-hook 2>/dev/null
-    add-zsh-hook precmd _clean_prompt 2>/dev/null
 
     # Initialize Oh My Posh if available and the terminal can match glyph width
     if command -v oh-my-posh >/dev/null 2>&1 && _posh_should_init; then
@@ -214,6 +212,10 @@ _init_prompt_system() {
     else
         _init_fallback_prompt
     fi
+
+    # Prompt renderers update PROMPT from their own precmd hooks, so cleanup
+    # must run after those hooks have produced the final value.
+    add-zsh-hook precmd _clean_prompt 2>/dev/null
 }
 
 # Initialize the prompt system
