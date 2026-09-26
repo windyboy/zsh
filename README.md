@@ -48,6 +48,38 @@ This separation is what makes the same repo usable across multiple servers: the 
 
 See [REFERENCE.md](REFERENCE.md) for the available shell functions and configuration files.
 
+### PATH Management
+
+PATH is managed centrally by `modules/env.zsh`. All directories are added through the `add_to_path` helper, which **existence-checks** and **deduplicates** before inserting — a directory is only added if it exists on disk and is not already in `$PATH`.
+
+**Standard user binaries** are prepended automatically (lowest-priority first, so the last entry wins):
+
+| Directory | Purpose |
+|-----------|---------|
+| `$HOME/.bun/bin` | Bun |
+| `$GOPATH/bin` | Go |
+| `$HOME/.go/bin` | Go (fallback) |
+| `$HOME/.cargo/bin` | Rust / Cargo |
+| `$HOME/bin` | User scripts |
+| `$HOME/.local/bin` | pipx, pnpm, local installs |
+
+**Adding custom PATH entries** — use the per-host file so they stay out of git:
+
+```bash
+# env/local/hosts/<hostname>.env
+add_to_path "/opt/my-tool/bin" prepend   # highest priority
+add_to_path "/opt/other/bin"  append     # lowest priority
+```
+
+Do **not** add `export PATH=...` directly in `local.zsh` or `environment.env` — those bypass the dedup guard and can create duplicate entries.
+
+**Inspection and cleanup:**
+
+```bash
+path-status   # print PATH with line numbers (one entry per line)
+path-clean    # remove duplicate entries from PATH
+```
+
 ## Verify changes
 
 ```bash
