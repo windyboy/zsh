@@ -48,4 +48,12 @@ typeset +gx ZSH_ENV_LOADED=1
 path=("$HOME/.qoder-cn/entry" ${path:#"$HOME/.qoder-cn/entry"})
 export PATH
 # END QODERCN_DISPATCHER_PATH v1
-. "$HOME/.cargo/env"
+# Guarded with [[ -s ]] so a machine without a cargo install (fresh installs,
+# CI) cannot fail zshenv — the same rationale as the guarded bun block in
+# zshrc. A failed `. ` here would set zshenv's exit status and surface as
+# "Failed to load environment variables" on every startup.
+[[ -s "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
+
+# zshenv's exit status propagates to whatever sourced it; never let a missing
+# optional file above fail the whole file.
+true

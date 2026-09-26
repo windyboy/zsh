@@ -48,10 +48,13 @@ simple_source() {
 }
 
 # Load environment variables first (core environment setup)
-# Note: zshenv is normally loaded by ZSH itself via ZDOTDIR.
-# Only source it manually if it wasn't auto-loaded (e.g., ZDOTDIR changed).
+# Note: zshenv is normally loaded by ZSH itself via ZDOTDIR (and $ZDOTDIR/.zshenv
+# covers shells that inherit ZDOTDIR). Only source it manually if that failed —
+# and NOT via simple_source: sourcing inside a function turns zshenv's
+# `typeset +gx ZSH_ENV_LOADED=1` into a function-local variable that dies on
+# return, leaving the guard empty and re-sourcing on every startup.
 if [[ -z "$ZSH_ENV_LOADED" ]]; then
-    simple_source "$ZSH_CONFIG_DIR/zshenv" "environment variables"
+    source "$ZSH_CONFIG_DIR/zshenv" || echo "❌ Error: Failed to load environment variables" >&2
 fi
 
 # Load user local environment overrides when available

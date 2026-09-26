@@ -202,9 +202,48 @@ test_modules() {
 
     # history-substring-search defines no default keybindings (upstream README
     # requires explicit ones); plugins.zsh must bind ↑/↓ to its widgets once the
-    # turbo-loaded widgets exist, or history search stays silently disabled.
+    # registry-loaded widgets exist, or history search stays silently disabled.
     grep -q 'history-substring-search-up' modules/plugins.zsh \
         || log_fail "plugins.zsh must bind history-substring-search arrows (W1N-262)"
+
+    # plugins/core.list is the single plugin load path. plugins.zsh must load
+    # synchronously: turbo wait"0"/wait"1" deferred loads past compinit and
+    # left zsh-completions' completions unregistered (inert plugin).
+    grep -q 'wait"' modules/plugins.zsh \
+        && log_fail "plugins.zsh must load synchronously (no turbo wait)"
+    grep -q 'zinit light' modules/plugins.zsh || log_fail "plugins.zsh must load owner/repo specs via zinit light"
+    grep -q 'zinit snippet' modules/plugins.zsh || log_fail "plugins.zsh must load OMZP::/OMZL:: specs via zinit snippet"
+
+    # local.zsh must not source registry plugin files directly — that double-
+    # loads plugins also loaded by the registry (wrapped widgets, duplicated
+    # hooks). fzf-tab is the only sanctioned direct source there.
+    if [[ -f local.zsh ]]; then
+        grep -qE 'fast-syntax-highlighting\.plugin\.zsh|zsh-autosuggestions\.plugin\.zsh|zsh-history-substring-search\.plugin\.zsh' local.zsh \
+            && log_fail "local.zsh must not source registry plugins directly (double load)"
+    fi
+
+    # Every active registry spec must be parseable by plugins_load: owner/repo
+    # or OMZP::/OMZL::.
+    local registry_spec
+    while IFS= read -r registry_spec; do
+        registry_spec="${registry_spec//[[:space:]]/}"
+        [[ -z "$registry_spec" || "$registry_spec" == \#* ]] && continue
+        case "$registry_spec" in
+            OMZP::*|OMZL::*|*/*) ;;
+            *) log_fail "unparseable plugins/core.list spec: $registry_spec" ;;
+        esac
+    done < plugins/core.list
+
+    # fast-syntax-highlighting must be the last owner/repo entry so it wraps
+    # the widgets created by autosuggestions and history-substring-search.
+    [[ "$(grep -vE '^[[:space:]]*(#|$)' plugins/core.list | grep -v '^OMZ' | tail -n1)" \
+        == "zdharma-continuum/fast-syntax-highlighting" ]] \
+        || log_fail "fast-syntax-highlighting must be the last owner/repo registry entry (must load last)"
+
+    # The disabled state must not be silent: a fresh install with the toggle
+    # off prints a one-time hint instead of skipping invisibly.
+    grep -q 'Plugins are disabled' modules/plugins.zsh \
+        || log_fail "plugins.zsh must print a one-time hint when ZSH_ENABLE_PLUGINS is off"
     log_pass
 }
 
@@ -258,6 +297,12 @@ test_installer_contract() {
     if "$0" unknown >/dev/null 2>&1; then
         log_fail "test runner accepted an unknown group"
     fi
+
+    # ZDOTDIR re-entry: zshenv exports ZDOTDIR, so every nested zsh looks for
+    # $ZDOTDIR/.zshenv. Without it those shells skip zshenv entirely and
+    # zshrc re-sources it (and its side effects) on every startup.
+    [[ -s .zshenv ]] || log_fail ".zshenv re-entry file missing (nested shells skip zshenv)"
+    grep -q 'ZDOTDIR/zshenv' .zshenv || log_fail ".zshenv must source \$ZDOTDIR/zshenv"
 
     # Sandboxed link logic test: run in a subshell against a temp HOME so the
     # real one is never touched, and install.sh's `set -euo pipefail` cannot

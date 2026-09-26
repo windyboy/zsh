@@ -24,9 +24,13 @@ The installer verifies Zsh and Git, then creates a `~/.zshenv` symlink pointing 
 
 Before linking, the installer warns about any existing `~/.zshrc`, `~/.zprofile`, or `~/.zlogin`: after ZDOTDIR redirection these files are ignored, so back them up if you want to keep them. After a successful install, restart your terminal or run `exec zsh`.
 
+### Plugins
+
+Plugins are opt-in and download lazily. After install, add `export ZSH_ENABLE_PLUGINS=1` to `env/local/environment.env` and start a new shell — zinit and every entry in `plugins/core.list` are cloned automatically on that first startup (a fresh-install shell prints this hint once). fzf-tab, the only plugin without a registry entry, installs with `zinit light Aloxaf/fzf-tab`.
+
 ## Configuration
 
-`zshenv` sets XDG paths and `ZDOTDIR`; `zshrc` loads modules, an optional `env/local/environment.env`, optional `local.zsh` personalizations, and an optional per-host file.
+`zshenv` sets XDG paths and `ZDOTDIR`; `.zshenv` re-sources it for shells that inherit `ZDOTDIR` (nested shells would otherwise skip it); `zshrc` loads modules, an optional `env/local/environment.env`, optional `local.zsh` personalizations, and an optional per-host file.
 
 Main areas:
 

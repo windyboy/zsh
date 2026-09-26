@@ -1,10 +1,20 @@
 # Core plugin registry, parsed by modules/plugins.zsh (one spec per line).
-# owner/repo entries load via `zinit light` (turbo wait"0"); OMZP::/OMZL::
-# entries load via `zinit snippet` (wait"1"). Blank lines and comments are
-# ignored. Plugins only load when ZSH_ENABLE_PLUGINS=1 (off by default).
-zdharma-continuum/fast-syntax-highlighting
+# owner/repo entries load via `zinit light`; OMZP::/OMZL:: entries via
+# `zinit snippet`. Both load synchronously (no turbo wait) while the plugins
+# module runs BEFORE completion.zsh, so zsh-completions' fpath additions land
+# before compinit and its completions actually register. Blank lines and
+# comments are ignored. Plugins only load when ZSH_ENABLE_PLUGINS=1 (off by
+# default).
+#
+# Ordering matters: fast-syntax-highlighting must stay LAST so it wraps the
+# widgets created by autosuggestions and history-substring-search.
+#
+# fzf-tab is NOT loaded from this registry: it must load AFTER compinit, so
+# local.zsh sources it directly (gated on the same ZSH_ENABLE_PLUGINS
+# toggle). Install it once on any machine:
+#   zinit light Aloxaf/fzf-tab
 zsh-users/zsh-autosuggestions
 zsh-users/zsh-completions
 zsh-users/zsh-history-substring-search
-# fzf-tab: loaded in local.zsh after completion.zsh so its Tab binding wins
+zdharma-continuum/fast-syntax-highlighting
 OMZP::extract
