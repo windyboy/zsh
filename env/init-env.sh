@@ -80,7 +80,7 @@ echo
 # Display next steps guide
 if [[ -f "$local_path" ]]; then
     success "Next Steps:"
-    echo "1. Edit the newly created configuration file:"
+    echo "1. Edit the local configuration file:"
     echo "   ${EDITOR:-code} $local_path"
     echo
     echo "2. Modify configuration values according to your actual environment"

@@ -43,3 +43,9 @@ typeset -gax ZSH_MODULES_LOADED=()
 # Shell-local load guard: do not export so nested shells re-run zshenv cleanly
 # instead of inheriting a parent's ZSH_ENV_LOADED=1.
 typeset +gx ZSH_ENV_LOADED=1
+
+# QODERCN_DISPATCHER_PATH v1
+path=("$HOME/.qoder-cn/entry" ${path:#"$HOME/.qoder-cn/entry"})
+export PATH
+# END QODERCN_DISPATCHER_PATH v1
+. "$HOME/.cargo/env"
