@@ -5,6 +5,18 @@
 
 source "$ZSH_CONFIG_DIR/modules/colors.zsh"
 
+# Public shell-local state for status/validation helpers. Plugin failures do
+# not abort an interactive shell, but they must not be reported as success.
+typeset -g ZSH_PLUGIN_STATUS=disabled
+typeset -ga ZSH_PLUGIN_ERRORS=()
+
+plugin_record_error() {
+    ZSH_PLUGIN_STATUS=degraded
+    ZSH_PLUGIN_ERRORS+=("$1")
+    color_red "❌ $1"
+    return 1
+}
+
 # -------------------- Plugin Initialization --------------------
 plugin_init() {
     (( ${+functions[zinit]} )) && return 0
@@ -16,12 +28,12 @@ plugin_init() {
         [[ -o interactive ]] || return 1
         color_yellow "📦 Installing zinit..."
         if ! git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_BIN"; then
-            color_red "❌ zinit clone failed. Check network/proxy, then rerun: git clone https://github.com/zdharma-continuum/zinit.git $ZINIT_BIN"
+            plugin_record_error "zinit clone failed. Check network/proxy, then rerun: git clone https://github.com/zdharma-continuum/zinit.git $ZINIT_BIN"
             return 1
         fi
     fi
 
-    source "$ZINIT_BIN/zinit.zsh" || { color_red "❌ Failed to source $ZINIT_BIN/zinit.zsh"; return 1 }
+    source "$ZINIT_BIN/zinit.zsh" || { plugin_record_error "Failed to source $ZINIT_BIN/zinit.zsh"; return 1; }
     return 0
 }
 
@@ -41,9 +53,15 @@ plugins_load() {
         if [[ -o interactive ]]; then
             local hint_marker="$ZSH_CACHE_DIR/.plugins-disabled-hint"
             if [[ ! -f "$hint_marker" ]]; then
-                mkdir -p "$ZSH_CACHE_DIR" 2>/dev/null
-                touch "$hint_marker" 2>/dev/null
-                color_yellow "ℹ️ Plugins are disabled (default). Enable: set ZSH_ENABLE_PLUGINS=1 in env/local/environment.env and start a new shell — zinit and plugins/core.list install automatically."
+                if [[ -z "${ZSH_PLUGINS_DISABLED_HINT_SHOWN:-}" ]]; then
+                    if mkdir -p "$ZSH_CACHE_DIR" 2>/dev/null && touch "$hint_marker" 2>/dev/null; then
+                        : # The persistent marker suppresses future shells.
+                    else
+                        # Read-only caches still get at most one hint per shell.
+                        typeset -g ZSH_PLUGINS_DISABLED_HINT_SHOWN=1
+                    fi
+                    color_yellow "ℹ️ Plugins are disabled (default). Enable: set ZSH_ENABLE_PLUGINS=1 in env/local/environment.env and start a new shell — zinit and plugins/core.list install automatically."
+                fi
             fi
         fi
         return 0
@@ -56,7 +74,7 @@ plugins_load() {
     # `zinit snippet`. Both synchronously, before compinit runs.
     local registry="$ZSH_CONFIG_DIR/plugins/core.list"
     if [[ ! -f "$registry" ]]; then
-        color_yellow "⚠️ plugin registry missing: $registry"
+        plugin_record_error "Plugin registry missing: $registry"
         return 1
     fi
 
@@ -65,12 +83,40 @@ plugins_load() {
         spec="${spec//[[:space:]]/}"
         [[ -z "$spec" || "$spec" == \#* ]] && continue
         case "$spec" in
-            OMZP::*|OMZL::*)
-                zinit ice lucid; zinit snippet "$spec" ;;
+            OMZP::*?|OMZL::*?)
+                zinit ice lucid && zinit snippet "$spec" || {
+                    plugin_record_error "Failed to load plugin: $spec"
+                    return 1
+                } ;;
+            *?/*?)
+                zinit ice lucid && zinit light "$spec" || {
+                    plugin_record_error "Failed to load plugin: $spec"
+                    return 1
+                } ;;
             *)
-                zinit ice lucid; zinit light "$spec" ;;
+                plugin_record_error "Invalid plugin registry entry: $spec"
+                return 1 ;;
         esac
     done < "$registry"
+    ZSH_PLUGIN_STATUS=loaded
+    return 0
+}
+
+# fzf-tab must load after completion.zsh has run compinit. Keeping this
+# function here centralizes all zinit operations while completion.zsh owns the
+# correctly ordered call site.
+plugin_load_fzf_tab() {
+    (( ZSH_ENABLE_PLUGINS )) || return 0
+    [[ -o interactive ]] || return 0
+    (( ${+functions[zinit]} )) || {
+        plugin_record_error "Cannot load fzf-tab because zinit is unavailable"
+        return 1
+    }
+    zinit ice lucid && zinit light Aloxaf/fzf-tab || {
+        plugin_record_error "Failed to load plugin: Aloxaf/fzf-tab"
+        return 1
+    }
+    return 0
 }
 
 # -------------------- Tool Configs --------------------
@@ -91,7 +137,7 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -la "$realpath" 2>/dev/null'
 zstyle ':fzf-tab:complete:*:*' fzf-flags --preview-window=right:60%:wrap
 
 # Initialize
-plugins_load
+plugins_load || :
 
 # -------------------- History Substring Search Bindings --------------------
 # zsh-history-substring-search ships no default keybindings (upstream README

@@ -159,12 +159,25 @@ validation_run() {
 
     # 5. Plugin system
     validation_add info "Checking plugin system..."
-    if command -v zinit >/dev/null 2>&1; then
-        validation_add success "zinit plugin manager available"
-    else
-        validation_add warning "zinit plugin manager not found"
-        local zinit_dir="${ZINIT_HOME:-$HOME/.local/share/zinit}/zinit.git"
-        validation_attempt_fix "Install zinit" "git clone https://github.com/zdharma-continuum/zinit.git \"$zinit_dir\""
+    case "${ZSH_PLUGIN_STATUS:-unknown}" in
+        loaded)
+            validation_add success "Configured plugins loaded"
+            ;;
+        degraded)
+            validation_add error "Plugin loading degraded: ${ZSH_PLUGIN_ERRORS[*]:-unknown error}"
+            ;;
+        disabled)
+            validation_add info "Plugins disabled by configuration"
+            ;;
+    esac
+    if [[ "${ZSH_PLUGIN_STATUS:-disabled}" != disabled ]]; then
+        if command -v zinit >/dev/null 2>&1; then
+            validation_add success "zinit plugin manager available"
+        else
+            validation_add warning "zinit plugin manager not found"
+            local zinit_dir="${ZINIT_HOME:-$HOME/.local/share/zinit}/zinit.git"
+            validation_attempt_fix "Install zinit" "git clone https://github.com/zdharma-continuum/zinit.git \"$zinit_dir\""
+        fi
     fi
 
     # 6. Completion system

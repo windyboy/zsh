@@ -200,39 +200,83 @@ test_modules() {
         [[ "$(bindkey -M emacs "^H")" == *"backward-delete-char" ]] || exit 1
     ' || log_fail "Backspace bindings"
 
-    # history-substring-search defines no default keybindings (upstream README
-    # requires explicit ones); plugins.zsh must bind ↑/↓ to its widgets once the
-    # registry-loaded widgets exist, or history search stays silently disabled.
-    grep -q 'history-substring-search-up' modules/plugins.zsh \
-        || log_fail "plugins.zsh must bind history-substring-search arrows (W1N-262)"
+    # Exercise the registry parser and zinit calls rather than matching source
+    # comments. The mocked function records the exact synchronous call order.
+    local plugin_tmp plugin_rc
+    plugin_tmp="$(mktemp -d)"
+    mkdir -p "$plugin_tmp/config/modules" "$plugin_tmp/config/plugins" "$plugin_tmp/cache"
+    cat > "$plugin_tmp/config/modules/colors.zsh" <<'EOF'
+color_red() { :; }
+color_yellow() { [[ -n "${PLUGIN_HINT_LOG:-}" ]] && print -r -- "$*" >> "$PLUGIN_HINT_LOG"; return 0; }
+color_green() { :; }
+EOF
+    cat > "$plugin_tmp/config/plugins/core.list" <<'EOF'
+owner/first
+OMZP::extract
+owner/last
+EOF
+    PLUGIN_MODULE="$PWD/modules/plugins.zsh" PLUGIN_TMP="$plugin_tmp" zsh -fic '
+        ZSH_CONFIG_DIR="$PLUGIN_TMP/config"
+        ZSH_CACHE_DIR="$PLUGIN_TMP/cache"
+        ZINIT_HOME="$PLUGIN_TMP/zinit"
+        ZSH_ENABLE_PLUGINS=1
+        typeset -ga ZSH_MODULES_LOADED=()
+        zinit() { print -r -- "$*" >> "$PLUGIN_TMP/calls"; }
+        source "$PLUGIN_MODULE" || exit 1
+        [[ "$ZSH_PLUGIN_STATUS" == loaded ]] || exit 2
+        plugin_load_fzf_tab || exit 3
+        [[ "${(F)ZSH_PLUGIN_ERRORS}" == "" ]] || exit 4
+    ' >/dev/null 2>&1
+    plugin_rc=$?
+    [[ $plugin_rc -eq 0 ]] || { rm -rf "$plugin_tmp"; log_fail "mocked plugin load failed ($plugin_rc)"; }
+    cat > "$plugin_tmp/expected" <<'EOF'
+ice lucid
+light owner/first
+ice lucid
+snippet OMZP::extract
+ice lucid
+light owner/last
+ice lucid
+light Aloxaf/fzf-tab
+EOF
+    cmp -s "$plugin_tmp/expected" "$plugin_tmp/calls" \
+        || { rm -rf "$plugin_tmp"; log_fail "plugin registry or fzf-tab load order is incorrect"; }
+    [[ "$(grep -n 'compinit -[uC]' modules/completion.zsh | tail -n1 | cut -d: -f1)" -lt \
+       "$(grep -n 'plugin_load_fzf_tab' modules/completion.zsh | tail -n1 | cut -d: -f1)" ]] \
+        || { rm -rf "$plugin_tmp"; log_fail "fzf-tab loader must run after compinit"; }
 
-    # plugins/core.list is the single plugin load path. plugins.zsh must load
-    # synchronously: turbo wait"0"/wait"1" deferred loads past compinit and
-    # left zsh-completions' completions unregistered (inert plugin).
-    grep -q 'wait"' modules/plugins.zsh \
-        && log_fail "plugins.zsh must load synchronously (no turbo wait)"
-    grep -q 'zinit light' modules/plugins.zsh || log_fail "plugins.zsh must load owner/repo specs via zinit light"
-    grep -q 'zinit snippet' modules/plugins.zsh || log_fail "plugins.zsh must load OMZP::/OMZL:: specs via zinit snippet"
+    # A zinit failure is nonfatal to shell startup but must be visible through
+    # the public degraded state and error list.
+    PLUGIN_MODULE="$PWD/modules/plugins.zsh" PLUGIN_TMP="$plugin_tmp" zsh -fic '
+        ZSH_CONFIG_DIR="$PLUGIN_TMP/config"
+        ZSH_CACHE_DIR="$PLUGIN_TMP/cache"
+        ZINIT_HOME="$PLUGIN_TMP/zinit"
+        ZSH_ENABLE_PLUGINS=1
+        typeset -ga ZSH_MODULES_LOADED=()
+        zinit() { [[ "$1 $2" != "light owner/first" ]]; }
+        source "$PLUGIN_MODULE" || exit 1
+        [[ "$ZSH_PLUGIN_STATUS" == degraded && ${#ZSH_PLUGIN_ERRORS} -eq 1 ]]
+    ' >/dev/null 2>&1 || { rm -rf "$plugin_tmp"; log_fail "plugin failure state is not exposed"; }
+
+    printf 'not-a-plugin-spec\n' > "$plugin_tmp/config/plugins/core.list"
+    PLUGIN_MODULE="$PWD/modules/plugins.zsh" PLUGIN_TMP="$plugin_tmp" zsh -fic '
+        ZSH_CONFIG_DIR="$PLUGIN_TMP/config"
+        ZSH_CACHE_DIR="$PLUGIN_TMP/cache"
+        ZINIT_HOME="$PLUGIN_TMP/zinit"
+        ZSH_ENABLE_PLUGINS=1
+        typeset -ga ZSH_MODULES_LOADED=()
+        zinit() { return 0; }
+        source "$PLUGIN_MODULE" || exit 1
+        [[ "$ZSH_PLUGIN_STATUS" == degraded && "$ZSH_PLUGIN_ERRORS[1]" == *"Invalid plugin registry entry"* ]]
+    ' >/dev/null 2>&1 || { rm -rf "$plugin_tmp"; log_fail "invalid plugin registry entry was accepted"; }
 
     # local.zsh must not source registry plugin files directly — that double-
     # loads plugins also loaded by the registry (wrapped widgets, duplicated
-    # hooks). fzf-tab is the only sanctioned direct source there.
+    # hooks). fzf-tab also has a tracked load path and does not belong there.
     if [[ -f local.zsh ]]; then
         grep -qE 'fast-syntax-highlighting\.plugin\.zsh|zsh-autosuggestions\.plugin\.zsh|zsh-history-substring-search\.plugin\.zsh' local.zsh \
             && log_fail "local.zsh must not source registry plugins directly (double load)"
     fi
-
-    # Every active registry spec must be parseable by plugins_load: owner/repo
-    # or OMZP::/OMZL::.
-    local registry_spec
-    while IFS= read -r registry_spec; do
-        registry_spec="${registry_spec//[[:space:]]/}"
-        [[ -z "$registry_spec" || "$registry_spec" == \#* ]] && continue
-        case "$registry_spec" in
-            OMZP::*|OMZL::*|*/*) ;;
-            *) log_fail "unparseable plugins/core.list spec: $registry_spec" ;;
-        esac
-    done < plugins/core.list
 
     # fast-syntax-highlighting must be the last owner/repo entry so it wraps
     # the widgets created by autosuggestions and history-substring-search.
@@ -240,10 +284,19 @@ test_modules() {
         == "zdharma-continuum/fast-syntax-highlighting" ]] \
         || log_fail "fast-syntax-highlighting must be the last owner/repo registry entry (must load last)"
 
-    # The disabled state must not be silent: a fresh install with the toggle
-    # off prints a one-time hint instead of skipping invisibly.
-    grep -q 'Plugins are disabled' modules/plugins.zsh \
-        || log_fail "plugins.zsh must print a one-time hint when ZSH_ENABLE_PLUGINS is off"
+    # With an unwritable cache, the shell-local fallback still limits the hint
+    # to one display. Calling the production function twice exercises it.
+    PLUGIN_MODULE="$PWD/modules/plugins.zsh" PLUGIN_TMP="$plugin_tmp" zsh -fic '
+        ZSH_CONFIG_DIR="$PLUGIN_TMP/config"
+        ZSH_CACHE_DIR=/proc/zsh-test-cache
+        ZSH_ENABLE_PLUGINS=0
+        typeset -ga ZSH_MODULES_LOADED=()
+        PLUGIN_HINT_LOG="$PLUGIN_TMP/hints"
+        source "$PLUGIN_MODULE" || exit 1
+        plugins_load
+        [[ "$(wc -l < "$PLUGIN_TMP/hints")" == 1 ]]
+    ' >/dev/null 2>&1 || { rm -rf "$plugin_tmp"; log_fail "disabled plugin hint is not limited to once"; }
+    rm -rf "$plugin_tmp"
     log_pass
 }
 
@@ -259,6 +312,9 @@ test_documentation() {
     for command in reload validate status perf version config; do
         grep -Eq "^${command}\\(\\)" modules/core.zsh modules/utils.zsh || log_fail "documented command missing: $command"
     done
+
+    grep -q 'ZSH_PLUGIN_STATUS' modules/lib/validation.zsh \
+        || log_fail "validation does not expose degraded plugin state"
 
     for command in mkcd up backup ff fd grepc posh_theme posh_themes change_theme; do
         grep -REq "^${command}\\(\\)" modules themes || log_fail "documented helper missing: $command"
@@ -298,11 +354,18 @@ test_installer_contract() {
         log_fail "test runner accepted an unknown group"
     fi
 
-    # ZDOTDIR re-entry: zshenv exports ZDOTDIR, so every nested zsh looks for
-    # $ZDOTDIR/.zshenv. Without it those shells skip zshenv entirely and
-    # zshrc re-sources it (and its side effects) on every startup.
+    # ZDOTDIR re-entry: verify the file and launch a nested shell to prove it
+    # receives a fresh, non-exported load guard from $ZDOTDIR/.zshenv.
     [[ -s .zshenv ]] || log_fail ".zshenv re-entry file missing (nested shells skip zshenv)"
-    grep -q 'ZDOTDIR/zshenv' .zshenv || log_fail ".zshenv must source \$ZDOTDIR/zshenv"
+    local nested_guard nested_home
+    nested_home="$(mktemp -d)"
+    nested_guard="$(HOME="$nested_home" ZSH_CONFIG_DIR="$PWD" ZDOTDIR="$PWD" zsh -dfc '
+        unset ZSH_ENV_LOADED
+        source ./zshenv
+        zsh -dc '\''print -r -- "${ZSH_ENV_LOADED:-missing}:${ZDOTDIR}"'\''
+    ')"
+    rm -rf "$nested_home"
+    [[ "$nested_guard" == "1:$PWD" ]] || log_fail ".zshenv did not initialize the nested shell: $nested_guard"
 
     # Sandboxed link logic test: run in a subshell against a temp HOME so the
     # real one is never touched, and install.sh's `set -euo pipefail` cannot

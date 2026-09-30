@@ -9,10 +9,8 @@
 # Ordering matters: fast-syntax-highlighting must stay LAST so it wraps the
 # widgets created by autosuggestions and history-substring-search.
 #
-# fzf-tab is NOT loaded from this registry: it must load AFTER compinit, so
-# local.zsh sources it directly (gated on the same ZSH_ENABLE_PLUGINS
-# toggle). Install it once on any machine:
-#   zinit light Aloxaf/fzf-tab
+# fzf-tab is NOT in this registry because it must load AFTER compinit;
+# completion.zsh loads it through plugin_load_fzf_tab instead.
 zsh-users/zsh-autosuggestions
 zsh-users/zsh-completions
 zsh-users/zsh-history-substring-search
