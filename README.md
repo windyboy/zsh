@@ -26,7 +26,7 @@ Before linking, the installer warns about any existing `~/.zshrc`, `~/.zprofile`
 
 ### Plugins
 
-Plugins are opt-in and download lazily. After install, add `export ZSH_ENABLE_PLUGINS=1` to `env/local/environment.env` and start a new shell — zinit and every entry in `plugins/core.list` are cloned automatically on that first startup (a fresh-install shell prints this hint once). fzf-tab, the only plugin without a registry entry, installs with `zinit light Aloxaf/fzf-tab`.
+Plugins are opt-in and load synchronously so completion plugins are available before `compinit`. After install, add `export ZSH_ENABLE_PLUGINS=1` to `env/local/environment.env` and start a new shell. The first enabled startup can take longer while zinit, every entry in `plugins/core.list`, and fzf-tab are cloned. Registry plugins load before completion initialization; the tracked completion module loads fzf-tab afterward so it can wrap the initialized completion widgets. A fresh installation prints the enablement hint once while plugins remain disabled.
 
 ## Configuration
 

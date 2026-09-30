@@ -59,10 +59,7 @@ autoload -Uz _files _directories _cd _ls _cp _mv _rm _complete _ignored _approxi
 # -------------------- Basic Completion Styles --------------------
 zstyle ':completion:*' completer _complete _match _approximate
 
-# Check if fzf-tab is available to avoid conflicts
-# Standard completion styles. fzf-tab (when plugins are enabled) turbo-loads
-# after this module runs and wraps the completion UI, so a load-time detection
-# here can never see it; these styles are correct with or without it.
+# These standard styles work with or without fzf-tab.
 zstyle ':completion:*' menu yes select=2
 # Only apply LS_COLORS when it is actually exported: with it empty this would
 # explicitly blank the complist colors instead of leaving the defaults.
@@ -109,6 +106,12 @@ bindkey '^I' complete-word
 bindkey '^[[Z' reverse-menu-complete
 zstyle ':completion:*' accept-exact '*(N)'
 zstyle ':completion:*' insert-tab false
+
+# fzf-tab wraps completion widgets and therefore must load after compinit.
+# plugin_load_fzf_tab is defined by the preceding plugins module.
+if (( ${+functions[plugin_load_fzf_tab]} )); then
+    plugin_load_fzf_tab || :
+fi
 
 # VS Code Terminal Specific Fixes
 if [[ "$TERM_PROGRAM" == "vscode" ]]; then
